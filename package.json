@@ -1,0 +1,31 @@
+{
+  "name": "nebula-dock",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
+    "release": "release-it",
+    "dev:next": "pnpm --filter ./client dev",
+    "dev:neu": "neu run",
+    "dev": "concurrently -n \"NextJS,Neutralino\" -c \"cyan,green\" \"npm run dev:next\" \"npm run dev:neu\""
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.2",
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.0",
+    "@commitlint/config-conventional": "^21.2.0",
+    "concurrently": "^10.0.3",
+    "husky": "^9.1.7",
+    "release-it": "^20.2.1"
+  }
+}
