@@ -1,2 +1,7 @@
 packages:
   - 'client'
+  # - 'extensions/*'
+
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
