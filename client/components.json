@@ -1,12 +1,12 @@
 {
   "$schema": "https://shadcn-vue.com/schema.json",
   "style": "new-york",
-  "font": "roboto",
+  "font": "inter",
   "typescript": true,
   "tailwind": {
     "config": "",
     "css": "src/assets/main.css",
-    "baseColor": "stone",
+    "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
   },
