@@ -1,6 +1,6 @@
 {
-  "applicationId": "js.neutralino.zero",
-  "version": "1.0.0",
+  "applicationId": "com.nebula.dock",
+  "version": "0.0.1",
   "defaultMode": "window",
   "documentRoot": "/client/dist/",
   "url": "/",
@@ -8,16 +8,19 @@
   "enableNativeAPI": true,
   "nativeAllowList": [
     "app.*",
-    "filesystem.readDirectory"
+    "filesystem.readDirectory",
+    "os.*",
+    "filesystem.*"
   ],
   "modes": {
     "window": {
       "title": "nebula-dock",
-      "width": 800,
-      "height": 500,
-      "minWidth": 400,
-      "minHeight": 200,
-      "icon": "/client/public/favicon.ico"
+      "width": 1280,
+      "height": 800,
+      "minWidth": 800,
+      "minHeight": 500,
+      "icon": "/client/public/favicon.ico",
+      "enableInspector": true
     }
   },
   "cli": {
