@@ -14,7 +14,7 @@ onMounted(() => store.fetch())
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-6">
+  <div class="flex h-full flex-col gap-4 p-6">
 
     <!-- Header -->
     <div class="flex items-start justify-between">
@@ -27,7 +27,7 @@ onMounted(() => store.fetch())
             {{ stats.failed }} failed
           </span>
           <span class="mx-1.5 text-zinc-700">·</span>
-          {{ stats.total }} total
+          {{ stats.shown }} / {{ stats.total }} shown
         </p>
       </div>
 
@@ -44,7 +44,7 @@ onMounted(() => store.fetch())
       </Button>
     </div>
 
-    <!-- Error banner -->
+    <!-- Error -->
     <div
       v-if="error"
       class="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
@@ -54,18 +54,16 @@ onMounted(() => store.fetch())
 
     <!-- Search -->
     <div class="relative">
-      <Search
-        class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
-      />
+      <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
       <Input
         v-model="search"
-        placeholder="Filter by name or description…"
+        placeholder="Search daemons (3+ chars)…"
         class="pl-9"
       />
     </div>
 
     <!-- List -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="min-h-0 flex-1 overflow-y-auto">
       <!-- Skeleton -->
       <div v-if="loading && daemons.length === 0" class="space-y-1.5">
         <div
