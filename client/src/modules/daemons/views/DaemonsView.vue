@@ -6,6 +6,7 @@ import { useDaemonsStore } from '../store'
 import DaemonList from '../components/DaemonList.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area' // <-- Import dello ScrollArea
 
 const store = useDaemonsStore()
 const { loading, error, search, stats, daemons } = storeToRefs(store)
@@ -62,10 +63,10 @@ onMounted(() => store.fetch())
       />
     </div>
 
-    <!-- List -->
-    <div class="min-h-0 flex-1 overflow-y-auto">
+    <!-- List Wrapper con ScrollArea -->
+    <ScrollArea class="min-h-0 flex-1">
       <!-- Skeleton -->
-      <div v-if="loading && daemons.length === 0" class="space-y-1.5">
+      <div v-if="loading && daemons.length === 0" class="space-y-1.5 pr-3">
         <div
           v-for="i in 10"
           :key="i"
@@ -73,8 +74,10 @@ onMounted(() => store.fetch())
         />
       </div>
 
-      <DaemonList v-else />
-    </div>
+      <div v-else class="pr-3">
+        <DaemonList />
+      </div>
+    </ScrollArea>
 
   </div>
 </template>
