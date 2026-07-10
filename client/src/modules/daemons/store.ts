@@ -12,7 +12,8 @@ import {
 } from '@/modules/daemons/composables/useDaemonAction'
 
 const MIN_SEARCH_CHARS = 3
-const PAGE_SIZE = 50
+const PAGE_SIZE = 12
+const STORAGE_KEY = 'daemons_view_mode'
 
 export const useDaemonsStore = defineStore('daemons', () => {
   const daemons = ref<Daemon[]>([])
@@ -21,6 +22,16 @@ export const useDaemonsStore = defineStore('daemons', () => {
   const search = ref('')
   const page = ref(1)
   const pendingNames = ref<Set<string>>(new Set())
+
+  // Stato persistente per la modalità di visualizzazione ('list' | 'grid')
+  const viewMode = ref<'list' | 'grid'>(
+    (localStorage.getItem(STORAGE_KEY) as 'list' | 'grid') || 'list'
+  )
+
+  // Watcher per salvare la scelta in localStorage al variare di viewMode
+  watch(viewMode, (newMode) => {
+    localStorage.setItem(STORAGE_KEY, newMode)
+  })
 
   const searchDebounced = refDebounced(search, 300)
 
@@ -138,7 +149,7 @@ export const useDaemonsStore = defineStore('daemons', () => {
   return {
     daemons, filtered, allFiltered, hasMore,
     loading, error, search, searchDebounced,
-    pendingNames, stats,
+    pendingNames, stats, viewMode, // <-- Esportato viewMode
     fetch, loadMore,
     start, stop, restart, enable, disable, toggleEnabled,
   }

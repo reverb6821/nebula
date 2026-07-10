@@ -1,29 +1,69 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { LayoutGrid, List } from '@lucide/vue'
 import { useDaemonsStore } from '../store'
 import DaemonCard from './DaemonCard.vue'
+import { Button } from '@/components/ui/button'
 
 const store = useDaemonsStore()
 const { filtered, pendingNames, hasMore, stats, search } = storeToRefs(store)
 
 const MIN_SEARCH_CHARS = 3
+
+// Stato per gestire la vista corrente ('list' o 'grid')
+const viewMode = ref<'list' | 'grid'>('list')
 </script>
 
 <template>
   <div class="flex h-full flex-col gap-3">
+    
+    <!-- Barra controlli vista ed eventuali info di ricerca -->
+    <div class="flex items-center justify-between">
+      <!-- Hint: digita ancora N caratteri -->
+      <p
+        v-if="search.length > 0 && search.length < MIN_SEARCH_CHARS"
+        class="text-xs text-zinc-600"
+      >
+        Type {{ MIN_SEARCH_CHARS - search.length }} more
+        {{ MIN_SEARCH_CHARS - search.length === 1 ? 'character' : 'characters' }}
+        to search…
+      </p>
+      <div v-else class="text-xs text-zinc-600">
+        Showing {{ filtered.length }} daemons
+      </div>
 
-    <!-- Hint: digita ancora N caratteri -->
-    <p
-      v-if="search.length > 0 && search.length < MIN_SEARCH_CHARS"
-      class="text-xs text-zinc-600"
+      <!-- Toggle Vista (Griglia / Elenco) -->
+      <div class="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-0.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7"
+          :class="viewMode === 'list' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'"
+          @click="viewMode = 'list'"
+        >
+          <List class="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7"
+          :class="viewMode === 'grid' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'"
+          @click="viewMode = 'grid'"
+        >
+          <LayoutGrid class="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
+
+    <!-- Lista o Griglia condizionale -->
+    <div
+      :class="[
+        viewMode === 'grid' 
+          ? 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3' 
+          : 'space-y-1.5'
+      ]"
     >
-      Type {{ MIN_SEARCH_CHARS - search.length }} more
-      {{ MIN_SEARCH_CHARS - search.length === 1 ? 'character' : 'characters' }}
-      to search…
-    </p>
-
-    <!-- Lista -->
-    <div class="space-y-1.5">
       <DaemonCard
         v-for="daemon in filtered"
         :key="daemon.name"
