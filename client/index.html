@@ -5,7 +5,13 @@
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/__neutralino_globals.js"></script>
-    <title>Vite App</title>
+    <script>
+      window.NL_TOKEN   = typeof NL_TOKEN   !== 'undefined' ? NL_TOKEN   : undefined
+      window.NL_PORT    = typeof NL_PORT    !== 'undefined' ? NL_PORT    : undefined
+      window.NL_OS      = typeof NL_OS      !== 'undefined' ? NL_OS      : undefined
+      window.NL_VERSION = typeof NL_VERSION !== 'undefined' ? NL_VERSION : undefined
+    </script>
+    <title>Nebula Dock</title>
   </head>
   <body>
     <div id="app"></div>
