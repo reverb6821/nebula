@@ -29,6 +29,13 @@ interface NavGroup {
 }
 
 const groups: NavGroup[] = [
+
+  {
+    heading: 'Dashboard',
+    items: [
+      { label: 'Dashboard', path: '/', icon: ActivitySquare },
+    ],
+  },
   {
     heading: 'System',
     items: [
@@ -39,12 +46,6 @@ const groups: NavGroup[] = [
     heading: 'Containers',
     items: [
       { label: 'Docker', path: '/docker', icon: Container },
-    ],
-  },
-  {
-    heading: 'AI',
-    items: [
-      { label: 'Ollama', path: '/ollama', icon: BrainCircuit },
     ],
   },
 ]
