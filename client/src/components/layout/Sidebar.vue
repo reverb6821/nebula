@@ -105,7 +105,7 @@ function isActive(path: string) {
         v-if="!sidebarCollapsed"
         class="text-sm font-semibold tracking-tight text-zinc-100"
       >
-        Nebula Dock
+        Nebula
       </span>
     </div>
 

@@ -5,9 +5,9 @@ import { RefreshCw } from '@lucide/vue'
 import { useDaemonsStore } from '../store'
 import DaemonList from '../components/DaemonList.vue'
 import DaemonFilters from '../components/DaemonFilters.vue'
-import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import SharedButton from '@/components/shared/SharedButton.vue'
+import SharedAlert from '@/components/shared/SharedAlert.vue'
 
 const store = useDaemonsStore()
 const { loading, error, stats, daemons } = storeToRefs(store)
@@ -33,25 +33,14 @@ onMounted(() => store.fetch())
         </p>
       </div>
 
-      <SharedButton
-        variant="ghost"
-        size="icon"
-        :disabled="loading"
-        @click="store.fetch()"
-      >
-        <RefreshCw
-          class="h-4 w-4 text-zinc-400"
-          :class="{ 'animate-spin': loading }"
-        />
+      <SharedButton variant="ghost" size="icon" :disabled="loading" @click="store.fetch()">
+        <RefreshCw class="h-4 w-4 text-zinc-400" :class="{ 'animate-spin': loading }" />
       </SharedButton>
     </div>
 
     <!-- Error -->
-    <div
-      v-if="error"
-      class="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
-    >
-      {{ error }}
+    <div v-if="error">
+      <SharedAlert variant="destructive" title="ERROR!" :description="error" />
     </div>
 
     <!-- Filtri -->
@@ -62,11 +51,7 @@ onMounted(() => store.fetch())
     <!-- List -->
     <ScrollArea class="min-h-0 flex-1">
       <div v-if="loading && daemons.length === 0" class="space-y-1.5 pr-3">
-        <div
-          v-for="i in 10"
-          :key="i"
-          class="h-[60px] animate-pulse rounded-lg bg-zinc-800/60"
-        />
+        <div v-for="i in 10" :key="i" class="h-[60px] animate-pulse rounded-lg bg-zinc-800/60" />
       </div>
       <div v-else class="pr-3">
         <DaemonList />

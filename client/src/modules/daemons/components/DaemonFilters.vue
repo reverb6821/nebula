@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/collapsible'
 import SharedButton from '@/components/shared/SharedButton.vue'
 import { ref } from 'vue'
+import Badge from '@/components/ui/badge/Badge.vue'
 
 const store = useDaemonsStore()
 const { search, filters, hasActiveFilters } = storeToRefs(store)
@@ -22,17 +23,17 @@ const open = ref(false)
 
 // Opzioni status
 const statusOptions: { value: DaemonStatus; label: string; dotClass: string }[] = [
-  { value: 'active',   label: 'Active',   dotClass: 'bg-emerald-400' },
-  { value: 'inactive', label: 'Inactive', dotClass: 'bg-zinc-500'    },
-  { value: 'failed',   label: 'Failed',   dotClass: 'bg-red-400'     },
-  { value: 'unknown',  label: 'Unknown',  dotClass: 'bg-yellow-400'  },
+  { value: 'active', label: 'Active', dotClass: 'bg-emerald-400' },
+  { value: 'inactive', label: 'Inactive', dotClass: 'bg-zinc-500' },
+  { value: 'failed', label: 'Failed', dotClass: 'bg-red-400' },
+  { value: 'unknown', label: 'Unknown', dotClass: 'bg-yellow-400' },
 ]
 
 // Opzioni enabled
 const enabledOptions: { value: DaemonEnabled; label: string }[] = [
-  { value: 'enabled',  label: 'Enabled'  },
+  { value: 'enabled', label: 'Enabled' },
   { value: 'disabled', label: 'Disabled' },
-  { value: 'static',   label: 'Static'   },
+  { value: 'static', label: 'Static' },
 ]
 </script>
 
@@ -44,17 +45,9 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
       <!-- Sostituito flex-1 con max-w-xs per limitare la larghezza dell'input -->
       <div class="relative w-full max-w-xs">
         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <Input
-          v-model="search"
-          placeholder="Search daemons (3+ chars)…"
-          class="pl-9 pr-9"
-        />
-        <SharedButton
-          variant="ghost"
-          v-if="search.length > 0"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-          @click="search = ''"
-        >
+        <Input v-model="search" placeholder="Search daemons (3+ chars)…" class="pl-9 pr-9" />
+        <SharedButton variant="ghost" v-if="search.length > 0"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300" @click="search = ''">
           <X class="h-3.5 w-3.5" />
         </SharedButton>
       </div>
@@ -62,22 +55,15 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
       <!-- Toggle filtri avanzati -->
       <Collapsible v-model:open="open">
         <CollapsibleTrigger as-child>
-          <Button
-            variant="outline"
-            size="icon"
-            class="shrink-0 border-zinc-700"
-            :class="(filters.status.length > 0 || filters.enabled.length > 0)
-              ? 'border-indigo-500/50 text-indigo-400'
-              : 'text-zinc-400'"
-          >
+          <Button variant="outline" size="icon" class="shrink-0 border-zinc-700" :class="(filters.status.length > 0 || filters.enabled.length > 0)
+            ? 'border-indigo-500/50 text-indigo-400'
+            : 'text-zinc-400'">
             <SlidersHorizontal class="h-4 w-4" />
           </Button>
         </CollapsibleTrigger>
 
         <!-- Pannello filtri avanzati -->
-        <CollapsibleContent
-          class="absolute z-10 mt-1 w-72 rounded-lg border border-zinc-800 bg-zinc-950 p-4 shadow-xl"
-        >
+        <CollapsibleContent class="absolute z-10 mt-1 w-72 rounded-lg border border-zinc-800 bg-zinc-950 p-4 shadow-xl">
           <div class="flex flex-col gap-4">
 
             <!-- Status -->
@@ -86,15 +72,9 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
                 Status
               </p>
               <div class="flex flex-col gap-2">
-                <label
-                  v-for="opt in statusOptions"
-                  :key="opt.value"
-                  class="flex cursor-pointer items-center gap-2.5"
-                >
-                  <Checkbox
-                    :checked="filters.status.includes(opt.value)"
-                    @update:checked="store.toggleStatusFilter(opt.value)"
-                  />
+                <label v-for="opt in statusOptions" :key="opt.value" class="flex cursor-pointer items-center gap-2.5">
+                  <Checkbox :checked="filters.status.includes(opt.value)"
+                    @update:checked="store.toggleStatusFilter(opt.value)" />
                   <span class="flex items-center gap-1.5 text-sm text-zinc-300">
                     <span :class="['h-1.5 w-1.5 rounded-full', opt.dotClass]" />
                     {{ opt.label }}
@@ -111,15 +91,9 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
                 Boot
               </p>
               <div class="flex flex-col gap-2">
-                <label
-                  v-for="opt in enabledOptions"
-                  :key="opt.value"
-                  class="flex cursor-pointer items-center gap-2.5"
-                >
-                  <Checkbox
-                    :checked="filters.enabled.includes(opt.value)"
-                    @update:checked="store.toggleEnabledFilter(opt.value)"
-                  />
+                <label v-for="opt in enabledOptions" :key="opt.value" class="flex cursor-pointer items-center gap-2.5">
+                  <Checkbox :checked="filters.enabled.includes(opt.value)"
+                    @update:checked="store.toggleEnabledFilter(opt.value)" />
                   <span class="text-sm text-zinc-300">{{ opt.label }}</span>
                 </label>
               </div>
@@ -128,13 +102,8 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
             <Separator class="bg-zinc-800" />
 
             <!-- Reset -->
-            <Button
-              variant="ghost"
-              size="sm"
-              class="w-full text-zinc-500 hover:text-zinc-300"
-              :disabled="!hasActiveFilters"
-              @click="store.resetFilters()"
-            >
+            <Button variant="ghost" size="sm" class="w-full text-zinc-500 hover:text-zinc-300"
+              :disabled="!hasActiveFilters" @click="store.resetFilters()">
               <X class="mr-1.5 h-3.5 w-3.5" />
               Reset all filters
             </Button>
@@ -145,30 +114,24 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
     </div>
 
     <!-- Chip filtri attivi -->
-    <div
-      v-if="filters.status.length > 0 || filters.enabled.length > 0"
-      class="flex flex-wrap gap-1.5"
-    >
-      <span
-        v-for="s in filters.status"
-        :key="s"
-        class="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300"
-      >
+    <div v-if="filters.status.length > 0 || filters.enabled.length > 0" class="flex flex-wrap gap-1.5">
+      <!-- Badge per Status -->
+      <Badge v-for="s in filters.status" :key="s" variant="secondary" class="gap-1 rounded-full font-normal">
         {{ s }}
-        <button class="hover:text-white" @click="store.toggleStatusFilter(s)">
-          <X class="h-2.5 w-2.5" />
-        </button>
-      </span>
-      <span
-        v-for="e in filters.enabled"
-        :key="e"
-        class="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300"
-      >
+        <SharedButton variant="ghost" class="text-muted-foreground hover:text-foreground transition-colors ml-0.5"
+          @click="store.toggleStatusFilter(s)">
+          <X class="h-3 w-3" />
+        </SharedButton>
+      </Badge>
+
+      <!-- Badge per Enabled -->
+      <Badge v-for="e in filters.enabled" :key="e" variant="secondary" class="gap-1 rounded-full font-normal">
         boot: {{ e }}
-        <button class="hover:text-white" @click="store.toggleEnabledFilter(e)">
-          <X class="h-2.5 w-2.5" />
-        </button>
-      </span>
+        <SharedButton variant="ghost" class="text-muted-foreground hover:text-foreground transition-colors ml-0.5"
+          @click="store.toggleEnabledFilter(e)">
+          <X class="h-3 w-3" />
+        </SharedButton>
+      </Badge>
     </div>
 
   </div>

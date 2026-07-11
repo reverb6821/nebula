@@ -31,19 +31,19 @@ const emit = defineEmits<{
 }>()
 
 const isRunning = computed(() => props.daemon.status === 'active')
-const isFailed  = computed(() => props.daemon.status === 'failed')
-const isStatic  = computed(() => props.daemon.enabled === 'static')
+const isFailed = computed(() => props.daemon.status === 'failed')
+const isStatic = computed(() => props.daemon.enabled === 'static')
 const isEnabled = computed(() => props.daemon.enabled === 'enabled')
 
 const dotClass = computed(() => {
   if (isRunning.value) return 'text-emerald-400 animate-pulse'
-  if (isFailed.value)  return 'text-red-400'
+  if (isFailed.value) return 'text-red-400'
   return 'text-zinc-600'
 })
 
 const statusLabel = computed(() => {
   if (isRunning.value) return 'Running'
-  if (isFailed.value)  return 'Failed'
+  if (isFailed.value) return 'Failed'
   if (props.daemon.status === 'inactive') return 'Inactive'
   return 'Unknown'
 })
@@ -55,7 +55,8 @@ const bootTooltip = computed(() => {
 </script>
 
 <template>
-  <Card class="group flex flex-col border-zinc-800 bg-zinc-900/60 transition-colors hover:border-zinc-700 hover:bg-zinc-900">
+  <Card
+    class="group flex flex-col border-zinc-800 bg-zinc-900/60 transition-colors hover:border-zinc-700 hover:bg-zinc-900">
 
     <CardHeader class="pb-2">
       <!-- Status row -->
@@ -76,12 +77,8 @@ const bootTooltip = computed(() => {
           <TooltipTrigger as-child>
             <div class="flex items-center gap-1.5">
               <span class="text-[10px] uppercase tracking-widest text-zinc-600">Boot</span>
-              <SharedSwitch
-                :model-value="isEnabled"
-                :disabled="pending || isStatic"
-                class="scale-75"
-                @update:model-value="emit('toggleEnabled')"
-              />
+              <SharedSwitch :model-value="isEnabled" :disabled="pending || isStatic" class="scale-75"
+                @update:model-value="emit('toggleEnabled')" />
             </div>
           </TooltipTrigger>
           <TooltipContent>{{ bootTooltip }}</TooltipContent>
@@ -95,10 +92,8 @@ const bootTooltip = computed(() => {
     </CardHeader>
 
     <CardContent class="flex-1 pb-3">
-      <CardDescription
-        v-if="daemon.description && daemon.description !== daemon.name"
-        class="line-clamp-2 text-xs text-zinc-500"
-      >
+      <CardDescription v-if="daemon.description && daemon.description !== daemon.name"
+        class="line-clamp-2 text-xs text-zinc-500">
         {{ daemon.description }}
       </CardDescription>
       <span v-else class="text-xs text-zinc-700">No description</span>
@@ -109,18 +104,10 @@ const bootTooltip = computed(() => {
       <!-- Start / Stop -->
       <Tooltip>
         <TooltipTrigger as-child>
-          <SharedButton
-            variant="ghost"
-            size="icon"
-            :loading="pending"
-            :disabled="pending"
-            :icon="isRunning ? Square : Play"
-            class="h-8 w-8"
-            :class="isRunning
+          <SharedButton variant="ghost" size="icon" :loading="pending" :disabled="pending"
+            :icon="isRunning ? Square : Play" class="h-8 w-8" :class="isRunning
               ? 'text-zinc-400 hover:text-red-400'
-              : 'text-emerald-400 hover:text-emerald-300'"
-            @click="isRunning ? emit('stop') : emit('start')"
-          />
+              : 'text-emerald-400 hover:text-emerald-300'" @click="isRunning ? emit('stop') : emit('start')" />
         </TooltipTrigger>
         <TooltipContent>{{ isRunning ? 'Stop' : 'Start' }}</TooltipContent>
       </Tooltip>
@@ -128,14 +115,8 @@ const bootTooltip = computed(() => {
       <!-- Restart -->
       <Tooltip>
         <TooltipTrigger as-child>
-          <SharedButton
-            variant="ghost"
-            size="icon"
-            :disabled="pending || !isRunning"
-            :icon="RotateCcw"
-            class="h-8 w-8 text-zinc-400 hover:text-zinc-200"
-            @click="emit('restart')"
-          />
+          <SharedButton variant="ghost" size="icon" :disabled="pending || !isRunning" :icon="RotateCcw"
+            class="h-8 w-8 text-zinc-400 hover:text-zinc-200" @click="emit('restart')" />
         </TooltipTrigger>
         <TooltipContent>Restart</TooltipContent>
       </Tooltip>
