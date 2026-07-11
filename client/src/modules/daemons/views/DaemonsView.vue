@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { RefreshCw, Search } from '@lucide/vue'
+import { RefreshCw } from '@lucide/vue'
 import { useDaemonsStore } from '../store'
 import DaemonList from '../components/DaemonList.vue'
+import DaemonFilters from '../components/DaemonFilters.vue'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area' // <-- Import dello ScrollArea
+import { ScrollArea } from '@/components/ui/scroll-area'
+import SharedButton from '@/components/shared/SharedButton.vue'
 
 const store = useDaemonsStore()
-const { loading, error, search, stats, daemons } = storeToRefs(store)
+const { loading, error, stats, daemons } = storeToRefs(store)
 
 onMounted(() => store.fetch())
 </script>
@@ -32,7 +33,7 @@ onMounted(() => store.fetch())
         </p>
       </div>
 
-      <Button
+      <SharedButton
         variant="ghost"
         size="icon"
         :disabled="loading"
@@ -42,7 +43,7 @@ onMounted(() => store.fetch())
           class="h-4 w-4 text-zinc-400"
           :class="{ 'animate-spin': loading }"
         />
-      </Button>
+      </SharedButton>
     </div>
 
     <!-- Error -->
@@ -53,19 +54,13 @@ onMounted(() => store.fetch())
       {{ error }}
     </div>
 
-    <!-- Search -->
+    <!-- Filtri -->
     <div class="relative">
-      <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-      <Input
-        v-model="search"
-        placeholder="Search daemons (3+ chars)…"
-        class="pl-9"
-      />
+      <DaemonFilters />
     </div>
 
-    <!-- List Wrapper con ScrollArea -->
+    <!-- List -->
     <ScrollArea class="min-h-0 flex-1">
-      <!-- Skeleton -->
       <div v-if="loading && daemons.length === 0" class="space-y-1.5 pr-3">
         <div
           v-for="i in 10"
@@ -73,7 +68,6 @@ onMounted(() => store.fetch())
           class="h-[60px] animate-pulse rounded-lg bg-zinc-800/60"
         />
       </div>
-
       <div v-else class="pr-3">
         <DaemonList />
       </div>
