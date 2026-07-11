@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 
@@ -19,23 +18,23 @@ const props = withDefaults(
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
-
-const checked = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
-})
 </script>
 
 <template>
   <div class="flex items-center space-x-2">
     <Switch
       :id="id"
-      v-model:checked="checked"
+      :checked="modelValue"
       :disabled="disabled"
-      defaultChecked
+      class="
+        data-[state=unchecked]:bg-zinc-700
+        data-[state=checked]:bg-indigo-500
+        data-[disabled]:opacity-40
+        data-[disabled]:cursor-not-allowed
+      "
+      @update:checked="emit('update:modelValue', $event)"
     />
     <Label :for="id" class="cursor-pointer">
-      <!-- Slot per permettere sia testo semplice che HTML personalizzato -->
       <slot />
     </Label>
   </div>
