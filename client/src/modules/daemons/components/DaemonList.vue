@@ -3,24 +3,24 @@ import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { LayoutGrid, List } from '@lucide/vue'
 import { useDaemonsStore } from '../store'
+import DaemonItem from './DaemonItem.vue'
 import DaemonCard from './DaemonCard.vue'
 import { Button } from '@/components/ui/button'
+import { ItemGroup } from '@/components/ui/item'
 
 const store = useDaemonsStore()
 const { filtered, pendingNames, hasMore, stats, search } = storeToRefs(store)
 
 const MIN_SEARCH_CHARS = 3
 
-// Stato per gestire la vista corrente ('list' o 'grid')
 const viewMode = ref<'list' | 'grid'>('list')
 </script>
 
 <template>
   <div class="flex h-full flex-col gap-3">
-    
+
     <!-- Barra controlli vista ed eventuali info di ricerca -->
     <div class="flex items-center justify-between">
-      <!-- Hint: digita ancora N caratteri -->
       <p
         v-if="search.length > 0 && search.length < MIN_SEARCH_CHARS"
         class="text-xs text-zinc-600"
@@ -33,7 +33,7 @@ const viewMode = ref<'list' | 'grid'>('list')
         Showing {{ filtered.length }} daemons
       </div>
 
-      <!-- Toggle Vista (Griglia / Elenco) -->
+      <!-- Toggle Vista -->
       <div class="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-0.5">
         <Button
           variant="ghost"
@@ -56,13 +56,24 @@ const viewMode = ref<'list' | 'grid'>('list')
       </div>
     </div>
 
-    <!-- Lista o Griglia condizionale -->
+    <!-- Lista: DaemonItem con ItemGroup -->
+    <ItemGroup v-if="viewMode === 'list' && filtered.length > 0">
+      <DaemonItem
+        v-for="daemon in filtered"
+        :key="daemon.name"
+        :daemon="daemon"
+        :pending="pendingNames.has(daemon.name)"
+        @start="store.start(daemon.name)"
+        @stop="store.stop(daemon.name)"
+        @restart="store.restart(daemon.name)"
+        @toggle-enabled="store.toggleEnabled(daemon.name)"
+      />
+    </ItemGroup>
+
+    <!-- Griglia: DaemonCard con shadcn Card -->
     <div
-      :class="[
-        viewMode === 'grid' 
-          ? 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3' 
-          : 'space-y-1.5'
-      ]"
+      v-else-if="viewMode === 'grid' && filtered.length > 0"
+      class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
     >
       <DaemonCard
         v-for="daemon in filtered"
