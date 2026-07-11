@@ -13,71 +13,96 @@ import {
 
 const MIN_SEARCH_CHARS = 3
 const PAGE_SIZE = 12
-const STORAGE_KEY = 'daemons_view_mode'
+const STORAGE_KEY_VIEW  = 'daemons_view_mode'
+const STORAGE_KEY_FAVS  = 'daemons_favorites'
 
 export interface DaemonFilters {
   status: DaemonStatus[]
   enabled: DaemonEnabled[]
 }
 
+function loadFavorites(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_FAVS)
+    return new Set(raw ? (JSON.parse(raw) as string[]) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function saveFavorites(favs: Set<string>) {
+  localStorage.setItem(STORAGE_KEY_FAVS, JSON.stringify([...favs]))
+}
+
 export const useDaemonsStore = defineStore('daemons', () => {
-  const daemons = ref<Daemon[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
-  const search = ref('')
-  const page = ref(1)
+  const daemons      = ref<Daemon[]>([])
+  const loading      = ref(false)
+  const error        = ref<string | null>(null)
+  const search       = ref('')
+  const page         = ref(1)
   const pendingNames = ref<Set<string>>(new Set())
+  const favorites    = ref<Set<string>>(loadFavorites())
 
-  // Persistenza viewMode in localStorage
+  // Persistenza viewMode
   const viewMode = ref<'list' | 'grid'>(
-    (localStorage.getItem(STORAGE_KEY) as 'list' | 'grid') || 'list',
+    (localStorage.getItem(STORAGE_KEY_VIEW) as 'list' | 'grid') || 'list',
   )
-  watch(viewMode, (newMode) => {
-    localStorage.setItem(STORAGE_KEY, newMode)
-  })
+  watch(viewMode, (v) => localStorage.setItem(STORAGE_KEY_VIEW, v))
 
-  // Filtri status e enabled
-  const filters = ref<DaemonFilters>({
-    status: [],
-    enabled: [],
-  })
+  // Filtri
+  const filters = ref<DaemonFilters>({ status: [], enabled: [] })
 
   const searchDebounced = refDebounced(search, 300)
 
-  // Reset pagina quando cambiano ricerca o filtri
   watch([searchDebounced, filters], () => { page.value = 1 }, { deep: true })
 
-  const allFiltered = computed(() => {
+  // ─── Filtering ──────────────────────────────────────────────────────────────
+
+  function matchesFilters(d: Daemon): boolean {
     const q = searchDebounced.value.toLowerCase().trim()
-    const hasStatusFilter  = filters.value.status.length > 0
-    const hasEnabledFilter = filters.value.enabled.length > 0
 
-    return daemons.value.filter((d) => {
-      // Filtro testo (attivo solo con 3+ chars) — cerca anche per PID
-      if (q.length >= MIN_SEARCH_CHARS) {
-        const matchesText =
-          d.name.toLowerCase().includes(q) ||
-          d.description.toLowerCase().includes(q) ||
-          (d.pid !== undefined && String(d.pid).includes(q))
-        if (!matchesText) return false
-      }
+    if (q.length >= MIN_SEARCH_CHARS) {
+      const ok =
+        d.name.toLowerCase().includes(q) ||
+        d.description.toLowerCase().includes(q) ||
+        (d.pid !== undefined && String(d.pid).includes(q))
+      if (!ok) return false
+    }
 
-      // Filtro status
-      if (hasStatusFilter && !filters.value.status.includes(d.status)) return false
+    if (filters.value.status.length > 0 && !filters.value.status.includes(d.status))
+      return false
 
-      // Filtro enabled
-      if (hasEnabledFilter && !filters.value.enabled.includes(d.enabled)) return false
+    if (filters.value.enabled.length > 0 && !filters.value.enabled.includes(d.enabled))
+      return false
 
-      return true
-    })
-  })
+    return true
+  }
 
-  const filtered = computed(() =>
-    allFiltered.value.slice(0, page.value * PAGE_SIZE),
+  // Converte Set in Array per forzare il tracking reattivo di Vue
+  const favoritesArray = computed(() => Array.from(favorites.value))
+
+  // Favoriti filtrati — sempre mostrati in cima, senza paginazione
+  const filteredFavorites = computed(() =>
+    daemons.value.filter((d) => favoritesArray.value.includes(d.name) && matchesFilters(d)),
   )
 
+  // Non-favoriti filtrati — paginati
+  const allFilteredNonFav = computed(() =>
+    daemons.value.filter((d) => !favoritesArray.value.includes(d.name) && matchesFilters(d)),
+  )
+
+  const filteredNonFav = computed(() =>
+    allFilteredNonFav.value.slice(0, page.value * PAGE_SIZE),
+  )
+
+  // Compatibilità con i componenti che usano `filtered`
+  const filtered = computed(() => [
+    ...filteredFavorites.value,
+    ...filteredNonFav.value,
+  ])
+
   const hasMore = computed(
-    () => filtered.value.length < allFiltered.value.length,
+    () => filteredNonFav.value.length < allFilteredNonFav.value.length,
   )
 
   const hasActiveFilters = computed(
@@ -92,8 +117,24 @@ export const useDaemonsStore = defineStore('daemons', () => {
     failed:   daemons.value.filter((d) => d.status === 'failed').length,
     total:    daemons.value.length,
     shown:    filtered.value.length,
-    matching: allFiltered.value.length,
+    matching: filteredFavorites.value.length + allFilteredNonFav.value.length,
   }))
+
+  // ─── Favorites ──────────────────────────────────────────────────────────────
+
+  function toggleFavorite(name: string) {
+    const next = new Set(favorites.value)
+    if (next.has(name)) next.delete(name)
+    else next.add(name)
+    favorites.value = next
+    saveFavorites(next)
+  }
+
+  function isFavorite(name: string): boolean {
+    return favoritesArray.value.includes(name)
+  }
+
+  // ─── Pagination ─────────────────────────────────────────────────────────────
 
   function loadMore() { page.value++ }
 
@@ -103,7 +144,6 @@ export const useDaemonsStore = defineStore('daemons', () => {
     page.value = 1
   }
 
-  // Riassegna sempre un nuovo oggetto per forzare la reattività Vue
   function toggleStatusFilter(status: DaemonStatus) {
     const current = filters.value.status
     filters.value = {
@@ -148,9 +188,8 @@ export const useDaemonsStore = defineStore('daemons', () => {
 
   async function withPending<T>(name: string, fn: () => Promise<T>): Promise<T> {
     pendingNames.value = new Set([...pendingNames.value, name])
-    try {
-      return await fn()
-    } finally {
+    try { return await fn() }
+    finally {
       const next = new Set(pendingNames.value)
       next.delete(name)
       pendingNames.value = next
@@ -203,10 +242,13 @@ export const useDaemonsStore = defineStore('daemons', () => {
   }
 
   return {
-    daemons, filtered, allFiltered, hasMore, hasActiveFilters,
+    daemons, filtered, filteredFavorites, filteredNonFav, allFilteredNonFav,
+    hasMore, hasActiveFilters, favorites, favoritesArray,
     loading, error, search, searchDebounced,
     pendingNames, stats, filters, viewMode,
-    fetch, loadMore, resetFilters, toggleStatusFilter, toggleEnabledFilter,
+    fetch, loadMore, resetFilters,
+    toggleStatusFilter, toggleEnabledFilter,
+    toggleFavorite, isFavorite,
     start, stop, restart, enable, disable, toggleEnabled,
   }
 })
