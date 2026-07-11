@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { Search, X, SlidersHorizontal } from '@lucide/vue'
+import {
+  Search,
+  X,
+  SlidersHorizontal
+} from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import { useDaemonsStore } from '../store'
 import type { DaemonStatus, DaemonEnabled } from '@/types/daemon'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import SharedButton from '@/components/shared/SharedButton.vue'
+import { SharedButton } from '@/components/shared'
 import { ref } from 'vue'
 import Badge from '@/components/ui/badge/Badge.vue'
 
@@ -47,7 +50,7 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
         <Input v-model="search" placeholder="Search daemons (3+ chars)…" class="pl-9 pr-9" />
         <SharedButton variant="ghost" v-if="search.length > 0"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300" @click="search = ''">
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:bg-transparent hover:text-zinc-300" @click="search = ''">
           <X class="h-3.5 w-3.5" />
         </SharedButton>
       </div>
@@ -55,11 +58,11 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
       <!-- Toggle filtri avanzati -->
       <Collapsible v-model:open="open">
         <CollapsibleTrigger as-child>
-          <Button variant="outline" size="icon" class="shrink-0 border-zinc-700" :class="(filters.status.length > 0 || filters.enabled.length > 0)
+          <SharedButton variant="outline" size="icon" class="shrink-0 bg-transparent border-zinc-700 hover:bg-transparent hover:text-zinc-300" :class="(filters.status.length > 0 || filters.enabled.length > 0)
             ? 'border-indigo-500/50 text-indigo-400'
             : 'text-zinc-400'">
             <SlidersHorizontal class="h-4 w-4" />
-          </Button>
+          </SharedButton>
         </CollapsibleTrigger>
 
         <!-- Pannello filtri avanzati -->
@@ -102,11 +105,11 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
             <Separator class="bg-zinc-800" />
 
             <!-- Reset -->
-            <Button variant="ghost" size="sm" class="w-full text-zinc-500 hover:text-zinc-300"
+            <SharedButton variant="ghost" size="sm" class="w-full text-zinc-500 hover:bg-transparent hover:text-zinc-300"
               :disabled="!hasActiveFilters" @click="store.resetFilters()">
               <X class="mr-1.5 h-3.5 w-3.5" />
               Reset all filters
-            </Button>
+            </SharedButton>
 
           </div>
         </CollapsibleContent>

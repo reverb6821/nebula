@@ -6,8 +6,7 @@ import { useDaemonsStore } from '../store'
 import DaemonItem from './DaemonItem.vue'
 import DaemonCard from './DaemonCard.vue'
 import { ItemGroup } from '@/components/ui/item'
-import SharedEmpty from '@/components/shared/SharedEmpty.vue'
-import SharedButton from '@/components/shared/SharedButton.vue'
+import { SharedButton, SharedEmpty } from '@/components/shared'
 
 const store = useDaemonsStore()
 const { filtered, pendingNames, hasMore, stats, search } = storeToRefs(store)
@@ -33,12 +32,12 @@ const viewMode = ref<'list' | 'grid'>('list')
 
       <!-- Toggle Vista -->
       <div class="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-0.5">
-        <SharedButton variant="ghost" size="icon" class="h-7 w-7"
+        <SharedButton variant="ghost" size="icon" class="h-7 w-7 hover:bg-zinc-800 hover:text-zinc-100"
           :class="viewMode === 'list' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'"
           @click="viewMode = 'list'">
           <List class="h-3.5 w-3.5" />
         </SharedButton>
-        <SharedButton variant="ghost" size="icon" class="h-7 w-7"
+        <SharedButton variant="ghost" size="icon" class="h-7 w-7 hover:bg-zinc-800 hover:text-zinc-100"
           :class="viewMode === 'grid' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'"
           @click="viewMode = 'grid'">
           <LayoutGrid class="h-3.5 w-3.5" />

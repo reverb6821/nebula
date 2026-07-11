@@ -6,8 +6,7 @@ import { useDaemonsStore } from '../store'
 import DaemonList from '../components/DaemonList.vue'
 import DaemonFilters from '../components/DaemonFilters.vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import SharedButton from '@/components/shared/SharedButton.vue'
-import SharedAlert from '@/components/shared/SharedAlert.vue'
+import { SharedButton, SharedAlert } from '@/components/shared'
 
 const store = useDaemonsStore()
 const { loading, error, stats, daemons } = storeToRefs(store)

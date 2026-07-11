@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, RotateCcw, Circle } from '@lucide/vue'
+import {
+  Play,
+  Square,
+  RotateCcw,
+  Circle
+} from '@lucide/vue'
 import type { Daemon } from '@/types/daemon'
-import SharedButton from '@/components/shared/SharedButton.vue'
-import SharedSwitch from '@/components/shared/SharedSwitch.vue'
+import {
+  SharedSwitch,
+  SharedButton } from '@/components/shared'
 import {
   Card,
   CardContent,
@@ -105,7 +111,7 @@ const bootTooltip = computed(() => {
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton variant="ghost" size="icon" :loading="pending" :disabled="pending"
-            :icon="isRunning ? Square : Play" class="h-8 w-8" :class="isRunning
+            :icon="isRunning ? Square : Play" class="h-8 w-8 hover:bg-transparent" :class="isRunning
               ? 'text-zinc-400 hover:text-red-400'
               : 'text-emerald-400 hover:text-emerald-300'" @click="isRunning ? emit('stop') : emit('start')" />
         </TooltipTrigger>
@@ -116,7 +122,7 @@ const bootTooltip = computed(() => {
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton variant="ghost" size="icon" :disabled="pending || !isRunning" :icon="RotateCcw"
-            class="h-8 w-8 text-zinc-400 hover:text-zinc-200" @click="emit('restart')" />
+            class="h-8 w-8 text-zinc-400 hover:text-zinc-200 hover:bg-transparent" @click="emit('restart')" />
         </TooltipTrigger>
         <TooltipContent>Restart</TooltipContent>
       </Tooltip>

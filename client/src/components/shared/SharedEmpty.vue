@@ -8,7 +8,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
-import SharedButton from './SharedButton.vue'
+import { SharedButton } from '@/components/shared'
 
 interface Props {
   icon?: Component
@@ -24,7 +24,7 @@ defineEmits<{
 </script>
 
 <template>
-  <Empty class="from-muted/50 to-background h-full bg-gradient-to-b from-30%">
+  <Empty>
     <EmptyHeader>
       <!-- Icona dinamica -->
       <EmptyMedia v-if="icon" variant="icon">
