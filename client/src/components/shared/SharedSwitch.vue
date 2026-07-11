@@ -32,6 +32,7 @@ const checked = computed({
       :id="id"
       v-model:checked="checked"
       :disabled="disabled"
+      defaultChecked
     />
     <Label :for="id" class="cursor-pointer">
       <!-- Slot per permettere sia testo semplice che HTML personalizzato -->

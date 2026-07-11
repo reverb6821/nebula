@@ -103,39 +103,27 @@ export const useDaemonsStore = defineStore('daemons', () => {
     page.value = 1
   }
 
-function toggleStatusFilter(status: DaemonStatus) {
-  const idx = filters.value.status.indexOf(status)
-  let nextStatus = [...filters.value.status]
-  
-  if (idx === -1) {
-    nextStatus.push(status)
-  } else {
-    nextStatus = nextStatus.filter(s => s !== status)
+  // Riassegna sempre un nuovo oggetto per forzare la reattività Vue
+  function toggleStatusFilter(status: DaemonStatus) {
+    const current = filters.value.status
+    filters.value = {
+      ...filters.value,
+      status: current.includes(status)
+        ? current.filter((s) => s !== status)
+        : [...current, status],
+    }
   }
 
-  // Riassegna l'intero oggetto filters per forzare la reattività immediata
-  filters.value = {
-    ...filters.value,
-    status: nextStatus
-  }
-}
-
-function toggleEnabledFilter(enabled: DaemonEnabled) {
-  const idx = filters.value.enabled.indexOf(enabled)
-  let nextEnabled = [...filters.value.enabled]
-  
-  if (idx === -1) {
-    nextEnabled.push(enabled)
-  } else {
-    nextEnabled = nextEnabled.filter(e => e !== enabled)
+  function toggleEnabledFilter(enabled: DaemonEnabled) {
+    const current = filters.value.enabled
+    filters.value = {
+      ...filters.value,
+      enabled: current.includes(enabled)
+        ? current.filter((e) => e !== enabled)
+        : [...current, enabled],
+    }
   }
 
-  // Riassegna l'intero oggetto filters per forzare la reattività immediata
-  filters.value = {
-    ...filters.value,
-    enabled: nextEnabled
-  }
-}
   // ─── Fetch ──────────────────────────────────────────────────────────────────
 
   async function fetch() {
