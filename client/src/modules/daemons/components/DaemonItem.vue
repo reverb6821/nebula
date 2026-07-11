@@ -48,7 +48,10 @@ const bootTooltip = computed(() => {
 </script>
 
 <template>
-  <Item variant="outline" size="sm" class="group transition-colors hover:border-zinc-700 hover:bg-zinc-900/80">
+  <Item 
+    variant="outline" 
+    class="group border-zinc-800 bg-zinc-900/60 transition-colors hover:border-zinc-700 hover:bg-zinc-900"
+  >
 
     <!-- Status dot -->
     <ItemMedia>
@@ -69,12 +72,12 @@ const bootTooltip = computed(() => {
     </ItemContent>
 
     <!-- Actions -->
-    <ItemActions class="gap-3">
+    <ItemActions class="gap-1">
 
       <!-- Boot toggle -->
       <Tooltip>
         <TooltipTrigger as-child>
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 mr-2">
             <span class="text-[10px] uppercase tracking-widest text-zinc-600">Boot</span>
             <SharedSwitch
               :model-value="isEnabled"
@@ -96,7 +99,7 @@ const bootTooltip = computed(() => {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+            class="h-8 w-8"
             :class="isRunning
               ? 'text-zinc-400 hover:text-red-400'
               : 'text-emerald-400 hover:text-emerald-300'"
@@ -114,7 +117,7 @@ const bootTooltip = computed(() => {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-zinc-400 hover:text-zinc-200"
+            class="h-8 w-8 text-zinc-400 hover:text-zinc-200"
             @click="emit('restart')"
           />
         </TooltipTrigger>

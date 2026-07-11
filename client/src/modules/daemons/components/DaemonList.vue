@@ -57,7 +57,7 @@ const viewMode = ref<'list' | 'grid'>('list')
     </div>
 
     <!-- Lista: DaemonItem con ItemGroup -->
-    <ItemGroup v-if="viewMode === 'list' && filtered.length > 0">
+    <ItemGroup v-if="viewMode === 'list' && filtered.length > 0" class="gap-2">
       <DaemonItem
         v-for="daemon in filtered"
         :key="daemon.name"
