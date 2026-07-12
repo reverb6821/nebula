@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, RotateCcw, Circle, Star } from '@lucide/vue'
+import { Play, Square, RotateCcw, Star } from '@lucide/vue'
 import type { Daemon } from '@/types/daemon'
 import { SharedSwitch, SharedButton } from '@/components/shared'
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -16,6 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import DaemonStatusBadge from './DaemonStatusBadge.vue'
 
 const props = defineProps<{
   daemon: Daemon
@@ -32,22 +32,8 @@ const emit = defineEmits<{
 }>()
 
 const isRunning = computed(() => props.daemon.status === 'active')
-const isFailed  = computed(() => props.daemon.status === 'failed')
 const isStatic  = computed(() => props.daemon.enabled === 'static')
 const isEnabled = computed(() => props.daemon.enabled === 'enabled')
-
-const dotClass = computed(() => {
-  if (isRunning.value) return 'text-emerald-400 animate-pulse'
-  if (isFailed.value)  return 'text-red-400'
-  return 'text-zinc-600'
-})
-
-const statusLabel = computed(() => {
-  if (isRunning.value) return 'Running'
-  if (isFailed.value)  return 'Failed'
-  if (props.daemon.status === 'inactive') return 'Inactive'
-  return 'Unknown'
-})
 
 const bootTooltip = computed(() => {
   if (isStatic.value) return 'Static unit — cannot change'
@@ -57,45 +43,36 @@ const bootTooltip = computed(() => {
 
 <template>
   <Card
-    class="group flex flex-col border-zinc-800 bg-zinc-900/60 transition-colors hover:border-zinc-700 hover:bg-zinc-900"
-    :class="{ 'border-amber-500/30 bg-amber-500/5': favorite }"
+    class="group flex flex-col border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    :class="{ 'border-amber-500/20 bg-amber-500/[0.03]': favorite }"
   >
-    <CardHeader class="pb-2">
-      <!-- Status row -->
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <Circle :class="['h-2 w-2 shrink-0 fill-current', dotClass]" />
-          <span class="text-xs font-medium" :class="{
-            'text-emerald-400': isRunning,
-            'text-red-400': isFailed,
-            'text-zinc-500': !isRunning && !isFailed,
-          }">
-            {{ statusLabel }}
-          </span>
-        </div>
+    <CardHeader class="space-y-2 p-4 pb-3">
+      <!-- Top row: status badge + controls -->
+      <div class="flex items-center justify-between gap-2">
+        <DaemonStatusBadge :status="daemon.status" />
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
           <!-- Favorite -->
           <Tooltip>
             <TooltipTrigger as-child>
               <SharedButton
                 variant="ghost"
                 size="icon"
-                class="h-6 w-6 hover:bg-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-                :class="favorite ? 'text-amber-400 opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+                class="h-6 w-6 hover:bg-white/5 opacity-0 transition-opacity group-hover:opacity-100"
+                :class="favorite ? 'text-amber-400 !opacity-100' : 'text-zinc-600 hover:text-amber-400'"
                 @click="emit('toggleFavorite')"
               >
                 <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
               </SharedButton>
             </TooltipTrigger>
-            <TooltipContent>{{ favorite ? 'Remove from favorites' : 'Add to favorites' }}</TooltipContent>
+            <TooltipContent>{{ favorite ? 'Unpin' : 'Pin' }}</TooltipContent>
           </Tooltip>
 
           <!-- Boot toggle -->
           <Tooltip>
             <TooltipTrigger as-child>
               <div class="flex items-center gap-1.5">
-                <span class="text-[10px] uppercase tracking-widest text-zinc-600">Boot</span>
+                <span class="text-[10px] uppercase tracking-widest text-zinc-700">Boot</span>
                 <SharedSwitch
                   :model-value="isEnabled"
                   :disabled="pending || isStatic"
@@ -110,12 +87,12 @@ const bootTooltip = computed(() => {
       </div>
 
       <!-- Name -->
-      <CardTitle class="mt-2 truncate font-mono text-sm text-zinc-100">
+      <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-zinc-100">
         {{ daemon.name }}
       </CardTitle>
     </CardHeader>
 
-    <CardContent class="flex-1 pb-3">
+    <CardContent class="flex-1 px-4 pb-0">
       <CardDescription
         v-if="daemon.description && daemon.description !== daemon.name"
         class="line-clamp-2 text-xs text-zinc-500"
@@ -125,8 +102,8 @@ const bootTooltip = computed(() => {
       <span v-else class="text-xs text-zinc-700">No description</span>
     </CardContent>
 
-    <CardFooter class="flex items-center justify-end gap-1 border-t border-zinc-800 pt-3">
-      <!-- Start / Stop -->
+    <!-- Footer actions -->
+    <div class="mt-3 flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-2">
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -135,17 +112,16 @@ const bootTooltip = computed(() => {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-8 w-8 hover:bg-transparent"
+            class="h-7 w-7 hover:bg-white/5"
             :class="isRunning
-              ? 'text-zinc-400 hover:text-red-400'
-              : 'text-emerald-400 hover:text-emerald-300'"
+              ? 'text-zinc-500 hover:text-red-400'
+              : 'text-emerald-500 hover:text-emerald-400'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
         <TooltipContent>{{ isRunning ? 'Stop' : 'Start' }}</TooltipContent>
       </Tooltip>
 
-      <!-- Restart -->
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -153,12 +129,12 @@ const bootTooltip = computed(() => {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-8 w-8 text-zinc-400 hover:text-zinc-200 hover:bg-transparent"
+            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
             @click="emit('restart')"
           />
         </TooltipTrigger>
         <TooltipContent>Restart</TooltipContent>
       </Tooltip>
-    </CardFooter>
+    </div>
   </Card>
 </template>

@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, RotateCcw, Circle, Star } from '@lucide/vue'
+import { Play, Square, RotateCcw, Star } from '@lucide/vue'
 import type { Daemon } from '@/types/daemon'
-import {
-  SharedButton,
-  SharedSwitch
-} from '@/components/shared'
+import { SharedButton, SharedSwitch } from '@/components/shared'
 import {
   Item,
   ItemActions,
@@ -19,6 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import DaemonStatusBadge from './DaemonStatusBadge.vue'
 
 const props = defineProps<{
   daemon: Daemon
@@ -40,9 +38,9 @@ const isStatic  = computed(() => props.daemon.enabled === 'static')
 const isEnabled = computed(() => props.daemon.enabled === 'enabled')
 
 const dotClass = computed(() => {
-  if (isRunning.value) return 'text-emerald-400 animate-pulse'
-  if (isFailed.value)  return 'text-red-400'
-  return 'text-zinc-600'
+  if (isRunning.value) return 'bg-emerald-400 shadow-[0_0_6px_theme(colors.emerald.400/0.8)] animate-pulse'
+  if (isFailed.value)  return 'bg-red-400'
+  return 'bg-zinc-600'
 })
 
 const bootTooltip = computed(() => {
@@ -54,52 +52,35 @@ const bootTooltip = computed(() => {
 <template>
   <Item
     variant="outline"
-    class="group border-zinc-800 bg-zinc-900/60 transition-colors hover:border-zinc-700 hover:bg-zinc-900"
-    :class="{ 'border-amber-500/30 bg-amber-500/5': favorite }"
+    class="group border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    :class="{ 'border-amber-500/20 bg-amber-500/[0.03]': favorite }"
   >
-
     <!-- Status dot -->
     <ItemMedia>
-      <Circle :class="['h-2 w-2 fill-current', dotClass]" />
+      <span class="h-1.5 w-1.5 rounded-full transition-colors" :class="dotClass" />
     </ItemMedia>
 
     <!-- Name + description -->
     <ItemContent>
-      <ItemTitle class="font-mono text-sm text-zinc-100">
+      <ItemTitle class="font-mono text-sm font-medium text-zinc-100">
         {{ daemon.name }}
       </ItemTitle>
       <ItemDescription
         v-if="daemon.description && daemon.description !== daemon.name"
-        class="truncate text-xs text-zinc-500"
+        class="mt-0.5 truncate text-xs text-zinc-500"
       >
         {{ daemon.description }}
       </ItemDescription>
     </ItemContent>
 
     <!-- Actions -->
-    <ItemActions class="gap-1">
-
-      <!-- Favorite -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton
-            variant="ghost"
-            size="icon"
-            class="h-8 w-8 hover:bg-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-            :class="favorite ? 'text-amber-400 opacity-100' : 'text-zinc-600 hover:text-amber-400'"
-            @click="emit('toggleFavorite')"
-          >
-            <Star class="h-3.5 w-3.5" :class="{ 'fill-current': favorite }" />
-          </SharedButton>
-        </TooltipTrigger>
-        <TooltipContent>{{ favorite ? 'Remove from favorites' : 'Add to favorites' }}</TooltipContent>
-      </Tooltip>
+    <ItemActions class="gap-0.5">
 
       <!-- Boot toggle -->
       <Tooltip>
         <TooltipTrigger as-child>
-          <div class="flex items-center gap-1.5 mr-2">
-            <span class="text-[10px] uppercase tracking-widest text-zinc-600">Boot</span>
+          <div class="mr-1 flex items-center gap-1.5">
+            <span class="text-[10px] uppercase tracking-widest text-zinc-700">Boot</span>
             <SharedSwitch
               :model-value="isEnabled"
               :disabled="pending || isStatic"
@@ -111,6 +92,22 @@ const bootTooltip = computed(() => {
         <TooltipContent side="left">{{ bootTooltip }}</TooltipContent>
       </Tooltip>
 
+      <!-- Favorite -->
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <SharedButton
+            variant="ghost"
+            size="icon"
+            class="h-7 w-7 hover:bg-white/5 opacity-0 transition-opacity group-hover:opacity-100"
+            :class="favorite ? 'text-amber-400 !opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+            @click="emit('toggleFavorite')"
+          >
+            <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
+          </SharedButton>
+        </TooltipTrigger>
+        <TooltipContent>{{ favorite ? 'Unpin' : 'Pin' }}</TooltipContent>
+      </Tooltip>
+
       <!-- Start / Stop -->
       <Tooltip>
         <TooltipTrigger as-child>
@@ -120,10 +117,10 @@ const bootTooltip = computed(() => {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-8 w-8 hover:bg-transparent"
+            class="h-7 w-7 hover:bg-white/5 opacity-0 transition-opacity group-hover:opacity-100"
             :class="isRunning
-              ? 'text-zinc-400 hover:text-red-400'
-              : 'text-emerald-400 hover:text-emerald-300'"
+              ? 'text-zinc-500 hover:text-red-400'
+              : 'text-emerald-500 hover:text-emerald-400'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
@@ -138,7 +135,7 @@ const bootTooltip = computed(() => {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-8 w-8 text-zinc-400 hover:text-zinc-200 hover:bg-transparent"
+            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200 opacity-0 transition-opacity group-hover:opacity-100"
             @click="emit('restart')"
           />
         </TooltipTrigger>
