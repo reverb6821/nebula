@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, RotateCcw, Trash2, FileText } from '@lucide/vue'
+import { Play, Square, RotateCcw, Trash2, FileText, Star } from '@lucide/vue'
 import type { DockerContainer, ContainerStats } from '@/types/docker'
 import { SharedButton } from '@/components/shared'
 import {
@@ -23,6 +23,7 @@ const props = defineProps<{
   stats: ContainerStats | undefined
   pending: boolean
   selected: boolean
+  favorite: boolean
 }>()
 
 const emit = defineEmits<{
@@ -31,6 +32,7 @@ const emit = defineEmits<{
   restart: []
   remove: []
   logs: []
+  toggleFavorite: []
 }>()
 
 const isRunning = computed(() => props.container.status === 'running')
@@ -46,7 +48,10 @@ function formatBytes(bytes: number): string {
   <Item
     variant="outline"
     class="group border-zinc-800 bg-zinc-900/60 transition-colors hover:border-zinc-700 hover:bg-zinc-900 cursor-pointer"
-    :class="{ 'border-indigo-500/50 bg-zinc-900': selected }"
+    :class="{
+      'border-indigo-500/50 bg-zinc-900': selected,
+      'border-amber-500/30 bg-amber-500/5': favorite && !selected,
+    }"
     @click="emit('logs')"
   >
     <!-- Status dot -->
@@ -82,6 +87,22 @@ function formatBytes(bytes: number): string {
 
     <!-- Actions -->
     <ItemActions class="gap-1" @click.stop>
+      <!-- Favorite -->
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <SharedButton
+            variant="ghost"
+            size="icon"
+            class="h-8 w-8 hover:bg-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+            :class="favorite ? 'text-amber-400 opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+            @click="emit('toggleFavorite')"
+          >
+            <Star class="h-3.5 w-3.5" :class="{ 'fill-current': favorite }" />
+          </SharedButton>
+        </TooltipTrigger>
+        <TooltipContent>{{ favorite ? 'Remove from favorites' : 'Add to favorites' }}</TooltipContent>
+      </Tooltip>
+
       <!-- Logs -->
       <Tooltip>
         <TooltipTrigger as-child>

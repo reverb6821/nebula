@@ -17,7 +17,7 @@ const {
   connected, loading, error,
   activeTab, search,
   filteredContainers, filteredImages,
-  pendingIds, stats,
+  pendingIds, stats, favoritesArray,
   selectedContainerId, selectedContainer,
   selectedLogs,
   runningCount,
@@ -78,7 +78,6 @@ onMounted(() => store.connect())
 
       <!-- Tabs + search + view toggle + pull -->
       <div class="flex items-center gap-3">
-        <!-- Tabs -->
         <div class="flex rounded-md border border-zinc-800 p-0.5">
           <button
             v-for="tab in (['containers', 'images'] as const)"
@@ -89,35 +88,27 @@ onMounted(() => store.connect())
                 ? 'bg-zinc-800 text-zinc-100'
                 : 'text-zinc-500 hover:text-zinc-300',
             ]"
-            @click="activeTab = tab"
+            @click="store.activeTab = tab"
           >
             {{ tab }}
           </button>
         </div>
 
-        <!-- Search -->
         <div class="relative flex-1">
           <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <Input v-model="search" placeholder="Filter…" class="pl-9" />
         </div>
 
-        <!-- View toggle -->
         <div class="flex rounded-md border border-zinc-800 p-0.5">
           <button
-            :class="[
-              'rounded p-1.5 transition-colors',
-              viewMode === 'list' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300',
-            ]"
-            @click="viewMode = 'list'"
+            :class="['rounded p-1.5 transition-colors', viewMode === 'list' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300']"
+            @click="store.viewMode = 'list'"
           >
             <List class="h-4 w-4" />
           </button>
           <button
-            :class="[
-              'rounded p-1.5 transition-colors',
-              viewMode === 'grid' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300',
-            ]"
-            @click="viewMode = 'grid'"
+            :class="['rounded p-1.5 transition-colors', viewMode === 'grid' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300']"
+            @click="store.viewMode = 'grid'"
           >
             <LayoutGrid class="h-4 w-4" />
           </button>
@@ -151,11 +142,13 @@ onMounted(() => store.connect())
               :stats="stats.get(c.id)"
               :pending="pendingIds.has(c.id)"
               :selected="selectedContainerId === c.id"
+              :favorite="favoritesArray.includes(c.id)"
               @start="store.start(c.id)"
               @stop="store.stop(c.id)"
               @restart="store.restart(c.id)"
               @remove="store.remove(c.id)"
               @logs="store.selectContainer(selectedContainerId === c.id ? null : c.id)"
+              @toggle-favorite="store.toggleFavorite(c.id)"
             />
           </template>
           <template v-else>
@@ -166,11 +159,13 @@ onMounted(() => store.connect())
               :stats="stats.get(c.id)"
               :pending="pendingIds.has(c.id)"
               :selected="selectedContainerId === c.id"
+              :favorite="favoritesArray.includes(c.id)"
               @start="store.start(c.id)"
               @stop="store.stop(c.id)"
               @restart="store.restart(c.id)"
               @remove="store.remove(c.id)"
               @logs="store.selectContainer(selectedContainerId === c.id ? null : c.id)"
+              @toggle-favorite="store.toggleFavorite(c.id)"
             />
           </template>
           <div

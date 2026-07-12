@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, RotateCcw, Trash2, FileText } from '@lucide/vue'
+import { Play, Square, RotateCcw, Trash2, FileText, Star } from '@lucide/vue'
 import type { DockerContainer, ContainerStats } from '@/types/docker'
 import { SharedButton } from '@/components/shared'
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -22,6 +21,7 @@ const props = defineProps<{
   stats: ContainerStats | undefined
   pending: boolean
   selected: boolean
+  favorite: boolean
 }>()
 
 const emit = defineEmits<{
@@ -30,6 +30,7 @@ const emit = defineEmits<{
   restart: []
   remove: []
   logs: []
+  toggleFavorite: []
 }>()
 
 const isRunning = computed(() => props.container.status === 'running')
@@ -43,8 +44,12 @@ function formatBytes(bytes: number): string {
 
 <template>
   <Card
-    class="cursor-pointer transition-colors hover:bg-zinc-900 bg-zinc-900/60"
-    :class="selected ? 'border-indigo-500/50 bg-zinc-900' : 'border-zinc-800'"
+    class="group cursor-pointer transition-colors hover:bg-zinc-900 bg-zinc-900/60"
+    :class="{
+      'border-indigo-500/50 bg-zinc-900': selected,
+      'border-amber-500/30 bg-amber-500/5': favorite && !selected,
+      'border-zinc-800': !selected && !favorite,
+    }"
     @click="emit('logs')"
   >
     <CardHeader class="pb-2">
@@ -52,7 +57,24 @@ function formatBytes(bytes: number): string {
         <CardTitle class="truncate font-mono text-sm font-medium text-zinc-100">
           {{ container.name }}
         </CardTitle>
-        <ContainerStatusBadge :status="container.status" />
+        <div class="flex items-center gap-1 shrink-0">
+          <!-- Favorite -->
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <SharedButton
+                variant="ghost"
+                size="icon"
+                class="h-6 w-6 hover:bg-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                :class="favorite ? 'text-amber-400 opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+                @click.stop="emit('toggleFavorite')"
+              >
+                <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
+              </SharedButton>
+            </TooltipTrigger>
+            <TooltipContent>{{ favorite ? 'Remove from favorites' : 'Add to favorites' }}</TooltipContent>
+          </Tooltip>
+          <ContainerStatusBadge :status="container.status" />
+        </div>
       </div>
       <p class="truncate text-xs text-zinc-500">{{ container.image }}</p>
     </CardHeader>
@@ -76,7 +98,7 @@ function formatBytes(bytes: number): string {
       </div>
     </CardContent>
 
-    <CardFooter class="flex items-center gap-1 border-t border-zinc-800 pt-2" @click.stop>
+    <div class="flex items-center gap-1 border-t border-zinc-800 px-4 py-2" @click.stop>
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -134,6 +156,6 @@ function formatBytes(bytes: number): string {
         </TooltipTrigger>
         <TooltipContent>Remove</TooltipContent>
       </Tooltip>
-    </CardFooter>
+    </div>
   </Card>
 </template>

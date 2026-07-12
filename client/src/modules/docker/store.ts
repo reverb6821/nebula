@@ -17,6 +17,20 @@ import {
 } from './composables/useDockerApi'
 
 const STORAGE_KEY_VIEW = 'docker_view_mode'
+const STORAGE_KEY_FAVS = 'docker_favorites'
+
+function loadFavorites(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_FAVS)
+    return new Set(raw ? (JSON.parse(raw) as string[]) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function saveFavorites(favs: Set<string>) {
+  localStorage.setItem(STORAGE_KEY_FAVS, JSON.stringify([...favs]))
+}
 
 export const useDockerStore = defineStore('docker', () => {
   // ─── State ────────────────────────────────────────────────────────────────
@@ -35,6 +49,7 @@ export const useDockerStore = defineStore('docker', () => {
   const selectedContainerId = ref<string | null>(null)
   const pullProgress = ref<PullProgress | null>(null)
   const pulling = ref(false)
+  const favorites = ref<Set<string>>(loadFavorites())
 
   const viewMode = ref<'list' | 'grid'>(
     (localStorage.getItem(STORAGE_KEY_VIEW) as 'list' | 'grid') || 'list',
@@ -42,20 +57,26 @@ export const useDockerStore = defineStore('docker', () => {
   watch(viewMode, (v) => localStorage.setItem(STORAGE_KEY_VIEW, v))
 
   // ─── Computed ─────────────────────────────────────────────────────────────
+  const favoritesArray = computed(() => Array.from(favorites.value))
+
   const filteredContainers = computed(() => {
     const q = search.value.toLowerCase().trim()
-    if (!q) return containers.value
-    return containers.value.filter(
-      (c) => c.name.includes(q) || c.image.includes(q),
-    )
+    const all = q
+      ? containers.value.filter((c) => c.name.includes(q) || c.image.includes(q))
+      : containers.value
+    const favs = all.filter((c) => favoritesArray.value.includes(c.id))
+    const rest = all.filter((c) => !favoritesArray.value.includes(c.id))
+    return [...favs, ...rest]
   })
 
   const filteredImages = computed(() => {
     const q = search.value.toLowerCase().trim()
-    if (!q) return images.value
-    return images.value.filter((img) =>
-      img.repoTags.some((t) => t.toLowerCase().includes(q)),
-    )
+    const all = q
+      ? images.value.filter((img) => img.repoTags.some((t) => t.toLowerCase().includes(q)))
+      : images.value
+    const favs = all.filter((img) => favoritesArray.value.includes(img.id))
+    const rest = all.filter((img) => !favoritesArray.value.includes(img.id))
+    return [...favs, ...rest]
   })
 
   const runningCount = computed(
@@ -69,6 +90,19 @@ export const useDockerStore = defineStore('docker', () => {
   const selectedLogs = computed(
     () => (selectedContainerId.value ? (logs.value.get(selectedContainerId.value) ?? []) : []),
   )
+
+  // ─── Favorites ────────────────────────────────────────────────────────────
+  function toggleFavorite(id: string) {
+    const next = new Set(favorites.value)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    favorites.value = next
+    saveFavorites(next)
+  }
+
+  function isFavorite(id: string): boolean {
+    return favoritesArray.value.includes(id)
+  }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
   async function withPending<T>(id: string, fn: () => Promise<T>): Promise<T> {
@@ -106,7 +140,7 @@ export const useDockerStore = defineStore('docker', () => {
     }
   }
 
-  // ─── Stats polling (every 3s, running containers only) ────────────────────
+  // ─── Stats polling ────────────────────────────────────────────────────────
   useIntervalFn(async () => {
     if (!connected.value) return
     const running = containers.value.filter((c) => c.status === 'running')
@@ -118,7 +152,7 @@ export const useDockerStore = defineStore('docker', () => {
     stats.value = next
   }, 3000)
 
-  // ─── Logs polling (every 2s when a container is selected) ─────────────────
+  // ─── Logs polling ─────────────────────────────────────────────────────────
   useIntervalFn(async () => {
     if (!connected.value || !selectedContainerId.value) return
     try {
@@ -143,6 +177,7 @@ export const useDockerStore = defineStore('docker', () => {
   async function remove(id: string) {
     await withPending(id, async () => {
       await removeContainer(id)
+      favorites.value.delete(id)
       if (selectedContainerId.value === id) selectedContainerId.value = null
       await refresh()
     })
@@ -150,7 +185,11 @@ export const useDockerStore = defineStore('docker', () => {
 
   // ─── Image actions ────────────────────────────────────────────────────────
   async function deleteImage(id: string) {
-    await withPending(id, async () => { await removeImage(id); await refresh() })
+    await withPending(id, async () => {
+      await removeImage(id)
+      favorites.value.delete(id)
+      await refresh()
+    })
   }
 
   async function pull(name: string) {
@@ -181,9 +220,11 @@ export const useDockerStore = defineStore('docker', () => {
     selectedLogs,
     filteredContainers, filteredImages,
     runningCount, pullProgress, pulling,
+    favorites, favoritesArray,
     viewMode,
     connect, refresh,
     start, stop, restart, remove,
     deleteImage, pull, selectContainer,
+    toggleFavorite, isFavorite,
   }
 })
