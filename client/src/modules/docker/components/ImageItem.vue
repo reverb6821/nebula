@@ -30,33 +30,33 @@ function formatBytes(bytes: number): string {
 }
 
 function formatDate(unix: number): string {
-  return new Date(unix * 1000).toLocaleDateString()
+  return new Date(unix * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 </script>
 
 <template>
   <Item
     variant="outline"
-    class="border-zinc-800 bg-zinc-900/60 transition-colors hover:border-zinc-700 hover:bg-zinc-900"
+    class="group border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
   >
     <ItemMedia>
       <HardDrive class="h-3.5 w-3.5 text-zinc-600" />
     </ItemMedia>
 
     <ItemContent>
-      <ItemTitle class="font-mono text-sm text-zinc-100">
+      <ItemTitle class="flex flex-wrap gap-x-2 font-mono text-sm text-zinc-200">
         <span v-for="tag in image.repoTags" :key="tag">{{ tag }}</span>
       </ItemTitle>
-      <ItemDescription class="font-mono text-xs text-zinc-600">
-        {{ image.id }}
-        <span class="mx-1.5 text-zinc-700">·</span>
-        {{ formatBytes(image.size) }}
-        <span class="mx-1.5 text-zinc-700">·</span>
-        {{ formatDate(image.created) }}
+      <ItemDescription class="mt-0.5 flex items-center gap-2 font-mono text-xs text-zinc-600">
+        <span class="truncate">{{ image.id }}</span>
+        <span class="text-zinc-700">·</span>
+        <span class="shrink-0 tabular-nums text-zinc-400">{{ formatBytes(image.size) }}</span>
+        <span class="text-zinc-700">·</span>
+        <span class="shrink-0 text-zinc-500">{{ formatDate(image.created) }}</span>
       </ItemDescription>
     </ItemContent>
 
-    <ItemActions>
+    <ItemActions class="opacity-0 transition-opacity duration-150 group-hover:opacity-100">
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -64,7 +64,7 @@ function formatDate(unix: number): string {
             size="icon"
             :disabled="pending"
             :icon="Trash2"
-            class="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-transparent"
+            class="h-7 w-7 text-zinc-600 hover:bg-red-500/10 hover:text-red-400"
             @click="emit('remove')"
           />
         </TooltipTrigger>
