@@ -1,4 +1,4 @@
-import { runCmd } from '@/composables/useNeutralimoCmd'
+import { runCmd } from '@/composables/useNeutralinoCmd'
 import type {
   DockerImage,
   DockerContainer,
