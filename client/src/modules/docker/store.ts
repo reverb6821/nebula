@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useIntervalFn } from '@vueuse/core'
 import type { DockerImage, DockerContainer, ContainerStats, PullProgress } from '@/types/docker'
 import {
@@ -15,6 +15,8 @@ import {
   removeImage,
   pullImage,
 } from './composables/useDockerApi'
+
+const STORAGE_KEY_VIEW = 'docker_view_mode'
 
 export const useDockerStore = defineStore('docker', () => {
   // ─── State ────────────────────────────────────────────────────────────────
@@ -33,6 +35,11 @@ export const useDockerStore = defineStore('docker', () => {
   const selectedContainerId = ref<string | null>(null)
   const pullProgress = ref<PullProgress | null>(null)
   const pulling = ref(false)
+
+  const viewMode = ref<'list' | 'grid'>(
+    (localStorage.getItem(STORAGE_KEY_VIEW) as 'list' | 'grid') || 'list',
+  )
+  watch(viewMode, (v) => localStorage.setItem(STORAGE_KEY_VIEW, v))
 
   // ─── Computed ─────────────────────────────────────────────────────────────
   const filteredContainers = computed(() => {
@@ -174,6 +181,7 @@ export const useDockerStore = defineStore('docker', () => {
     selectedLogs,
     filteredContainers, filteredImages,
     runningCount, pullProgress, pulling,
+    viewMode,
     connect, refresh,
     start, stop, restart, remove,
     deleteImage, pull, selectContainer,

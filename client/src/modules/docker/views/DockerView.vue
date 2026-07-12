@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { RefreshCw, Search, AlertTriangle } from '@lucide/vue'
+import { RefreshCw, Search, AlertTriangle, List, LayoutGrid } from '@lucide/vue'
 import { useDockerStore } from '../store'
+import ContainerItem from '../components/ContainerItem.vue'
 import ContainerCard from '../components/ContainerCard.vue'
+import ImageItem from '../components/ImageItem.vue'
 import ImageCard from '../components/ImageCard.vue'
 import LogsViewer from '../components/LogsViewer.vue'
 import PullImageDialog from '../components/PullImageDialog.vue'
@@ -20,6 +22,7 @@ const {
   selectedLogs,
   runningCount,
   images, containers,
+  viewMode,
 } = storeToRefs(store)
 
 onMounted(() => store.connect())
@@ -47,10 +50,7 @@ onMounted(() => store.connect())
           </p>
         </div>
         <Button variant="ghost" size="icon" :disabled="loading" @click="store.refresh()">
-          <RefreshCw
-            class="h-4 w-4 text-zinc-400"
-            :class="{ 'animate-spin': loading }"
-          />
+          <RefreshCw class="h-4 w-4 text-zinc-400" :class="{ 'animate-spin': loading }" />
         </Button>
       </div>
 
@@ -76,8 +76,9 @@ onMounted(() => store.connect())
         {{ error }}
       </div>
 
-      <!-- Tabs + search + pull -->
+      <!-- Tabs + search + view toggle + pull -->
       <div class="flex items-center gap-3">
+        <!-- Tabs -->
         <div class="flex rounded-md border border-zinc-800 p-0.5">
           <button
             v-for="tab in (['containers', 'images'] as const)"
@@ -94,43 +95,87 @@ onMounted(() => store.connect())
           </button>
         </div>
 
+        <!-- Search -->
         <div class="relative flex-1">
           <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <Input v-model="search" placeholder="Filter…" class="pl-9" />
+        </div>
+
+        <!-- View toggle -->
+        <div class="flex rounded-md border border-zinc-800 p-0.5">
+          <button
+            :class="[
+              'rounded p-1.5 transition-colors',
+              viewMode === 'list' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300',
+            ]"
+            @click="viewMode = 'list'"
+          >
+            <List class="h-4 w-4" />
+          </button>
+          <button
+            :class="[
+              'rounded p-1.5 transition-colors',
+              viewMode === 'grid' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300',
+            ]"
+            @click="viewMode = 'grid'"
+          >
+            <LayoutGrid class="h-4 w-4" />
+          </button>
         </div>
 
         <PullImageDialog v-if="activeTab === 'images'" />
       </div>
 
       <!-- List -->
-      <div class="flex-1 space-y-1.5 overflow-y-auto">
+      <div
+        class="flex-1 overflow-y-auto"
+        :class="viewMode === 'grid' ? 'grid grid-cols-2 gap-3 xl:grid-cols-3' : 'space-y-1.5'"
+      >
         <!-- Skeleton -->
         <template v-if="loading && containers.length === 0 && images.length === 0">
           <div
             v-for="i in 6"
             :key="i"
-            class="h-[64px] animate-pulse rounded-lg bg-zinc-800/60"
+            class="animate-pulse rounded-lg bg-zinc-800/60"
+            :class="viewMode === 'grid' ? 'h-40' : 'h-[64px]'"
           />
         </template>
 
         <!-- Containers -->
         <template v-else-if="activeTab === 'containers'">
-          <ContainerCard
-            v-for="c in filteredContainers"
-            :key="c.id"
-            :container="c"
-            :stats="stats.get(c.id)"
-            :pending="pendingIds.has(c.id)"
-            :selected="selectedContainerId === c.id"
-            @start="store.start(c.id)"
-            @stop="store.stop(c.id)"
-            @restart="store.restart(c.id)"
-            @remove="store.remove(c.id)"
-            @logs="store.selectContainer(selectedContainerId === c.id ? null : c.id)"
-          />
+          <template v-if="viewMode === 'list'">
+            <ContainerItem
+              v-for="c in filteredContainers"
+              :key="c.id"
+              :container="c"
+              :stats="stats.get(c.id)"
+              :pending="pendingIds.has(c.id)"
+              :selected="selectedContainerId === c.id"
+              @start="store.start(c.id)"
+              @stop="store.stop(c.id)"
+              @restart="store.restart(c.id)"
+              @remove="store.remove(c.id)"
+              @logs="store.selectContainer(selectedContainerId === c.id ? null : c.id)"
+            />
+          </template>
+          <template v-else>
+            <ContainerCard
+              v-for="c in filteredContainers"
+              :key="c.id"
+              :container="c"
+              :stats="stats.get(c.id)"
+              :pending="pendingIds.has(c.id)"
+              :selected="selectedContainerId === c.id"
+              @start="store.start(c.id)"
+              @stop="store.stop(c.id)"
+              @restart="store.restart(c.id)"
+              @remove="store.remove(c.id)"
+              @logs="store.selectContainer(selectedContainerId === c.id ? null : c.id)"
+            />
+          </template>
           <div
             v-if="filteredContainers.length === 0"
-            class="py-16 text-center text-sm text-zinc-600"
+            class="col-span-full py-16 text-center text-sm text-zinc-600"
           >
             No containers found.
           </div>
@@ -138,16 +183,27 @@ onMounted(() => store.connect())
 
         <!-- Images -->
         <template v-else>
-          <ImageCard
-            v-for="img in filteredImages"
-            :key="img.id"
-            :image="img"
-            :pending="pendingIds.has(img.id)"
-            @remove="store.deleteImage(img.id)"
-          />
+          <template v-if="viewMode === 'list'">
+            <ImageItem
+              v-for="img in filteredImages"
+              :key="img.id"
+              :image="img"
+              :pending="pendingIds.has(img.id)"
+              @remove="store.deleteImage(img.id)"
+            />
+          </template>
+          <template v-else>
+            <ImageCard
+              v-for="img in filteredImages"
+              :key="img.id"
+              :image="img"
+              :pending="pendingIds.has(img.id)"
+              @remove="store.deleteImage(img.id)"
+            />
+          </template>
           <div
             v-if="filteredImages.length === 0"
-            class="py-16 text-center text-sm text-zinc-600"
+            class="col-span-full py-16 text-center text-sm text-zinc-600"
           >
             No images found.
           </div>
@@ -155,7 +211,7 @@ onMounted(() => store.connect())
       </div>
     </div>
 
-    <!-- Logs panel (slide in from right) -->
+    <!-- Logs panel -->
     <Transition
       enter-active-class="transition-all duration-200 ease-out"
       enter-from-class="translate-x-full opacity-0"
