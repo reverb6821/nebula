@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { RefreshCw, Search } from '@lucide/vue'
+import { RefreshCw } from '@lucide/vue'
 import { useDaemonsStore } from '../store'
 import DaemonList from '../components/DaemonList.vue'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import DaemonFilters from '../components/DaemonFilters.vue'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { SharedButton, SharedAlert } from '@/components/shared'
 
 const store = useDaemonsStore()
-const { loading, error, search, stats, daemons } = storeToRefs(store)
+const { loading, error, stats, daemons } = storeToRefs(store)
 
 onMounted(() => store.fetch())
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-6 p-6">
+  <div class="flex h-full flex-col gap-4 p-6">
 
     <!-- Header -->
     <div class="flex items-start justify-between">
@@ -27,56 +28,34 @@ onMounted(() => store.fetch())
             {{ stats.failed }} failed
           </span>
           <span class="mx-1.5 text-zinc-700">·</span>
-          {{ stats.total }} total
+          {{ stats.shown }} / {{ stats.total }} shown
         </p>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        :disabled="loading"
-        @click="store.fetch()"
-      >
-        <RefreshCw
-          class="h-4 w-4 text-zinc-400"
-          :class="{ 'animate-spin': loading }"
-        />
-      </Button>
+      <SharedButton variant="ghost" size="icon" :disabled="loading" @click="store.fetch()">
+        <RefreshCw class="h-4 w-4 text-zinc-400" :class="{ 'animate-spin': loading }" />
+      </SharedButton>
     </div>
 
-    <!-- Error banner -->
-    <div
-      v-if="error"
-      class="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
-    >
-      {{ error }}
+    <!-- Error -->
+    <div v-if="error">
+      <SharedAlert variant="destructive" title="ERROR!" :description="error" />
     </div>
 
-    <!-- Search -->
+    <!-- Filtri -->
     <div class="relative">
-      <Search
-        class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
-      />
-      <Input
-        v-model="search"
-        placeholder="Filter by name or description…"
-        class="pl-9"
-      />
+      <DaemonFilters />
     </div>
 
     <!-- List -->
-    <div class="flex-1 overflow-y-auto">
-      <!-- Skeleton -->
-      <div v-if="loading && daemons.length === 0" class="space-y-1.5">
-        <div
-          v-for="i in 10"
-          :key="i"
-          class="h-[60px] animate-pulse rounded-lg bg-zinc-800/60"
-        />
+    <ScrollArea class="min-h-0 flex-1">
+      <div v-if="loading && daemons.length === 0" class="space-y-1.5 pr-3">
+        <div v-for="i in 10" :key="i" class="h-[60px] animate-pulse rounded-lg bg-zinc-800/60" />
       </div>
-
-      <DaemonList v-else />
-    </div>
+      <div v-else class="pr-3">
+        <DaemonList />
+      </div>
+    </ScrollArea>
 
   </div>
 </template>
