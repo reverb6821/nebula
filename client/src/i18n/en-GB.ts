@@ -1,6 +1,109 @@
 export const enGB = {
-    "demo": {
-        "title":"My App Neutralinojs + Vue",
-        "subtitle": "Check the browser/app to see folder's name."
-    }
+  common: {
+    refresh: 'Refresh',
+    search: 'Search',
+    loadMore: 'Load more',
+    reset: 'Reset',
+    cancel: 'Cancel',
+    save: 'Save',
+    remove: 'Remove',
+    start: 'Start',
+    stop: 'Stop',
+    restart: 'Restart',
+    enable: 'Enable',
+    disable: 'Disable',
+    noResults: 'No results found.',
+    comingSoon: 'Coming soon.',
+    boot: 'Boot',
+  },
+
+  nav: {
+    system: 'System',
+    containers: 'Containers',
+    ai: 'AI',
+    daemons: 'Daemons',
+    docker: 'Docker',
+    ollama: 'Ollama',
+    settings: 'Settings',
+  },
+
+  daemons: {
+    title: 'Daemons',
+    running: '{n} running',
+    failed: '{n} failed',
+    shown: '{shown} / {total} shown',
+    pinned: 'Pinned',
+    searchPlaceholder: 'Search daemons (3+ chars)…',
+    searchHint: 'Type {n} more {char} to search…',
+    searchHintChar: 'character | characters',
+    showing: 'Showing {n} daemons',
+    noMatch: 'No daemons match your search.',
+    notFound: 'No daemons found.',
+    filterStatus: 'Status',
+    filterBoot: 'Boot',
+    resetFilters: 'Reset all filters',
+    addFavorite: 'Add to favorites',
+    removeFavorite: 'Remove from favorites',
+    staticUnit: 'Static unit — cannot change',
+    enableAtBoot: 'Enable at boot',
+    disableAtBoot: 'Disable at boot',
+  },
+
+  docker: {
+    title: 'Docker',
+    running: '{n} running',
+    containers: '{n} containers',
+    images: '{n} images',
+    notConnected: 'Not connected',
+    notReachable: 'Docker not reachable',
+    notReachableHint: 'Make sure Docker is installed and the daemon is running.',
+    tabContainers: 'Containers',
+    tabImages: 'Images',
+    filterPlaceholder: 'Filter…',
+    pullImage: 'Pull image',
+    noContainers: 'No containers found.',
+    noImages: 'No images found.',
+    logs: 'Logs',
+    logsPolling: 'polling every 2s',
+    logsWaiting: 'No logs yet…',
+    logsScrollHint: '↓ Scroll to bottom to resume auto-scroll',
+    logsDownload: 'Download logs',
+  },
+
+  ollama: {
+    title: 'Ollama',
+  },
+
+  settings: {
+    title: 'Settings',
+    subtitle: 'Preferences and accessibility',
+
+    sectionLanguage: 'Language',
+    language: 'Language',
+    languageHint: 'Changes apply immediately.',
+
+    sectionAppearance: 'Appearance',
+    fontSize: 'Font size',
+    fontSizeSmall: 'Small',
+    fontSizeDefault: 'Default',
+    fontSizeLarge: 'Large',
+    fontSizeXL: 'Extra large',
+
+    fontFamily: 'Font family',
+    fontDefault: 'System default',
+    fontDyslexic: 'OpenDyslexic (dyslexia-friendly)',
+    fontMono: 'Monospace',
+    fontSans: 'Inter (sans-serif)',
+
+    lineHeight: 'Line spacing',
+    lineHeightNormal: 'Normal',
+    lineHeightRelaxed: 'Relaxed',
+    lineHeightLoose: 'Loose',
+
+    reducedMotion: 'Reduce motion',
+    reducedMotionHint: 'Minimises animations and transitions.',
+
+    highContrast: 'High contrast',
+    highContrastHint: 'Increases border and text contrast.',
+  },
 }
