@@ -1,4 +1,4 @@
-import { runCmd } from '@/composables/useNeutralimoCmd'
+import { runCmd } from '@/composables/useNeutralinoCmd'
 import type { Daemon, DaemonStatus, DaemonEnabled } from '@/types/daemon'
 
 // ─── Platform detection ───────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Trash2, HardDrive } from '@lucide/vue'
 import type { DockerImage } from '@/types/docker'
-import { Button } from '@/components/ui/button'
+import { SharedButton } from '@/components/shared'
 import {
   Tooltip,
   TooltipContent,
@@ -22,43 +22,63 @@ function formatBytes(bytes: number): string {
 }
 
 function formatDate(unix: number): string {
-  return new Date(unix * 1000).toLocaleDateString()
+  return new Date(unix * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 </script>
 
 <template>
-  <div class="flex items-center gap-4 rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 hover:bg-zinc-900 transition-colors">
-    <HardDrive class="h-4 w-4 shrink-0 text-zinc-600" />
-
-    <div class="min-w-0 flex-1">
-      <div class="flex flex-wrap gap-1">
-        <span
-          v-for="tag in image.repoTags"
-          :key="tag"
-          class="font-mono text-sm text-zinc-100"
-        >{{ tag }}</span>
+  <div class="group flex flex-col gap-0 rounded-xl border border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04] overflow-hidden">
+    <!-- Body -->
+    <div class="flex flex-1 flex-col gap-2.5 p-4">
+      <!-- Icon + tags -->
+      <div class="flex items-start gap-2.5">
+        <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] ring-1 ring-white/[0.08]">
+          <HardDrive class="h-3.5 w-3.5 text-zinc-500" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap gap-1">
+            <span
+              v-for="tag in image.repoTags"
+              :key="tag"
+              class="block truncate font-mono text-sm font-medium text-zinc-100"
+            >
+              {{ tag }}
+            </span>
+          </div>
+        </div>
       </div>
-      <p class="mt-0.5 font-mono text-xs text-zinc-600">{{ image.id }}</p>
+
+      <!-- ID -->
+      <p class="truncate font-mono text-[10px] text-zinc-600">{{ image.id }}</p>
+
+      <!-- Stat tiles -->
+      <div class="grid grid-cols-2 gap-1.5">
+        <div class="rounded-lg bg-white/[0.03] px-2.5 py-1.5 ring-1 ring-white/[0.05]">
+          <p class="text-[9px] uppercase tracking-widest text-zinc-600">Size</p>
+          <p class="mt-0.5 font-mono text-xs font-medium tabular-nums text-zinc-300">{{ formatBytes(image.size) }}</p>
+        </div>
+        <div class="rounded-lg bg-white/[0.03] px-2.5 py-1.5 ring-1 ring-white/[0.05]">
+          <p class="text-[9px] uppercase tracking-widest text-zinc-600">Created</p>
+          <p class="mt-0.5 font-mono text-xs font-medium text-zinc-300">{{ formatDate(image.created) }}</p>
+        </div>
+      </div>
     </div>
 
-    <div class="flex shrink-0 flex-col items-end gap-0.5">
-      <span class="text-xs text-zinc-400">{{ formatBytes(image.size) }}</span>
-      <span class="text-xs text-zinc-600">{{ formatDate(image.created) }}</span>
+    <!-- Footer -->
+    <div class="flex items-center justify-end border-t border-white/[0.05] px-3 py-2">
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <SharedButton
+            variant="ghost"
+            size="icon"
+            :disabled="pending"
+            :icon="Trash2"
+            class="h-7 w-7 text-zinc-600 hover:bg-red-500/10 hover:text-red-400"
+            @click="emit('remove')"
+          />
+        </TooltipTrigger>
+        <TooltipContent>Remove image</TooltipContent>
+      </Tooltip>
     </div>
-
-    <Tooltip>
-      <TooltipTrigger as-child>
-        <Button
-          variant="ghost"
-          size="icon"
-          class="h-8 w-8 text-zinc-400 hover:text-red-400"
-          :disabled="pending"
-          @click="emit('remove')"
-        >
-          <Trash2 class="h-3.5 w-3.5" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>Remove image</TooltipContent>
-    </Tooltip>
   </div>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { Search, X, SlidersHorizontal } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import { useDaemonsStore } from '../store'
@@ -11,9 +12,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Badge } from '@/components/ui/badge'
 import { SharedButton } from '@/components/shared'
-import { ref } from 'vue'
-import Badge from '@/components/ui/badge/Badge.vue'
 
 const store = useDaemonsStore()
 const { search, filters, hasActiveFilters } = storeToRefs(store)
@@ -24,7 +24,7 @@ const statusOptions: { value: DaemonStatus; label: string; dotClass: string }[] 
   { value: 'active',   label: 'Active',   dotClass: 'bg-emerald-400' },
   { value: 'inactive', label: 'Inactive', dotClass: 'bg-zinc-500'    },
   { value: 'failed',   label: 'Failed',   dotClass: 'bg-red-400'     },
-  { value: 'unknown',  label: 'Unknown',  dotClass: 'bg-yellow-400'  },
+  { value: 'unknown',  label: 'Unknown',  dotClass: 'bg-amber-400'   },
 ]
 
 const enabledOptions: { value: DaemonEnabled; label: string }[] = [
@@ -37,47 +37,50 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
 <template>
   <div class="flex flex-col gap-2">
 
-    <!-- Search + toggle filtri -->
+    <!-- Search + filter toggle -->
     <div class="flex gap-2">
-      <div class="relative w-full max-w-xs">
-        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <Input v-model="search" placeholder="Search daemons (3+ chars)…" class="pl-9 pr-9" />
+      <div class="relative flex-1">
+        <Search class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" />
+        <Input
+          v-model="search"
+          placeholder="Search daemons (3+ chars)…"
+          class="h-8 border-white/[0.06] bg-white/[0.02] pl-8 pr-8 text-xs text-zinc-300 placeholder:text-zinc-700 focus:border-white/[0.1] focus:ring-white/[0.05]"
+        />
         <SharedButton
           v-if="search.length > 0"
           variant="ghost"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:bg-transparent hover:text-zinc-300"
+          class="absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 p-0 text-zinc-600 hover:bg-transparent hover:text-zinc-300"
           @click="search = ''"
         >
-          <X class="h-3.5 w-3.5" />
+          <X class="h-3 w-3" />
         </SharedButton>
       </div>
 
-      <!-- Toggle filtri avanzati -->
+      <!-- Advanced filters toggle -->
       <Collapsible v-model:open="open">
         <CollapsibleTrigger as-child>
           <SharedButton
             variant="outline"
             size="icon"
-            class="shrink-0 bg-transparent border-zinc-700 hover:bg-transparent hover:text-zinc-300"
+            class="h-8 w-8 shrink-0 border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:text-zinc-300"
             :class="(filters.status.length > 0 || filters.enabled.length > 0)
-              ? 'border-indigo-500/50 text-indigo-400'
-              : 'text-zinc-400'"
+              ? 'border-indigo-500/40 text-indigo-400'
+              : 'text-zinc-500'"
           >
-            <SlidersHorizontal class="h-4 w-4" />
+            <SlidersHorizontal class="h-3.5 w-3.5" />
           </SharedButton>
         </CollapsibleTrigger>
 
-        <!-- Pannello filtri avanzati -->
-        <CollapsibleContent class="absolute z-10 mt-1 w-72 rounded-lg border border-zinc-800 bg-zinc-950 p-4 shadow-xl">
+        <!-- Filter panel -->
+        <CollapsibleContent class="absolute z-10 mt-1.5 w-64 rounded-xl border border-white/[0.08] bg-[#0c0c0e] p-4 shadow-2xl shadow-black/50">
           <div class="flex flex-col gap-4">
 
             <!-- Status -->
             <div>
-              <p class="mb-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+              <p class="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
                 Status
               </p>
               <div class="flex flex-col gap-2">
-                <!-- Click sul div wrapper, non sul Checkbox, per evitare doppio firing -->
                 <div
                   v-for="opt in statusOptions"
                   :key="opt.value"
@@ -88,19 +91,19 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
                     :id="`status-${opt.value}`"
                     :checked="filters.status.includes(opt.value)"
                   />
-                  <span class="flex items-center gap-1.5 text-sm text-zinc-300 select-none">
-                    <span :class="['h-1.5 w-1.5 rounded-md', opt.dotClass]" />
+                  <span class="flex select-none items-center gap-1.5 text-xs text-zinc-300">
+                    <span :class="['h-1.5 w-1.5 rounded-full', opt.dotClass]" />
                     {{ opt.label }}
                   </span>
                 </div>
               </div>
             </div>
 
-            <Separator class="bg-zinc-800" />
+            <Separator class="bg-white/[0.06]" />
 
             <!-- Boot enabled -->
             <div>
-              <p class="mb-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+              <p class="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
                 Boot
               </p>
               <div class="flex flex-col gap-2">
@@ -114,23 +117,23 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
                     :id="`enabled-${opt.value}`"
                     :checked="filters.enabled.includes(opt.value)"
                   />
-                  <span class="text-sm text-zinc-300 select-none">{{ opt.label }}</span>
+                  <span class="select-none text-xs text-zinc-300">{{ opt.label }}</span>
                 </div>
               </div>
             </div>
 
-            <Separator class="bg-zinc-800" />
+            <Separator class="bg-white/[0.06]" />
 
             <!-- Reset -->
             <SharedButton
               variant="ghost"
               size="sm"
-              class="w-full text-zinc-500 hover:bg-transparent hover:text-zinc-300"
+              class="w-full text-xs text-zinc-600 hover:bg-white/[0.04] hover:text-zinc-300"
               :disabled="!hasActiveFilters"
               @click="store.resetFilters()"
             >
-              <X class="mr-1.5 h-3.5 w-3.5" />
-              Reset all filters
+              <X class="mr-1.5 h-3 w-3" />
+              Reset filters
             </SharedButton>
 
           </div>
@@ -138,38 +141,30 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
       </Collapsible>
     </div>
 
-    <!-- Chip filtri attivi -->
-    <div v-if="filters.status.length > 0 || filters.enabled.length > 0" class="flex flex-wrap gap-1.5">
+    <!-- Active filter chips -->
+    <div v-if="filters.status.length > 0 || filters.enabled.length > 0" class="flex flex-wrap gap-1">
       <Badge
         v-for="s in filters.status"
         :key="s"
-        variant="secondary"
-        class="gap-1 rounded-md font-normal capitalize py-0 border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 hover:bg-zinc-900 text-zinc-100"
+        variant="outline"
+        class="gap-1 rounded-full border-white/[0.08] bg-white/[0.03] py-0 font-mono text-[10px] capitalize text-zinc-300 hover:bg-white/[0.06]"
       >
         {{ s }}
-        <SharedButton
-          variant="ghost"
-          class="text-muted-foreground hover:text-foreground transition-colors ml-0.5 p-0 hover:bg-transparent hover:text-red-600"
-          @click="store.toggleStatusFilter(s)"
-        >
-          <X class="h-2 w-2" />
-        </SharedButton>
+        <button class="ml-0.5 text-zinc-600 transition-colors hover:text-red-400" @click="store.toggleStatusFilter(s)">
+          <X class="h-2.5 w-2.5" />
+        </button>
       </Badge>
 
       <Badge
         v-for="e in filters.enabled"
         :key="e"
-        variant="secondary"
-        class="gap-1 rounded-md font-normal capitalize py-0 border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 hover:bg-zinc-900 text-zinc-100"
+        variant="outline"
+        class="gap-1 rounded-full border-white/[0.08] bg-white/[0.03] py-0 font-mono text-[10px] capitalize text-zinc-300 hover:bg-white/[0.06]"
       >
         boot: {{ e }}
-        <SharedButton
-          variant="ghost"
-          class="text-muted-foreground hover:text-foreground transition-colors ml-0.5 p-0 hover:bg-transparent hover:text-red-600"
-          @click="store.toggleEnabledFilter(e)"
-        >
-          <X class="h-2 w-2" />
-        </SharedButton>
+        <button class="ml-0.5 text-zinc-600 transition-colors hover:text-red-400" @click="store.toggleEnabledFilter(e)">
+          <X class="h-2.5 w-2.5" />
+        </button>
       </Badge>
     </div>
 

@@ -25,7 +25,7 @@
   },
   "cli": {
     "binaryName": "nebula-dock",
-    "resourcesPath": "/www/",
+    "resourcesPath": "/client/dist/",
     "extensionsPath": "/extensions/",
     "binaryVersion": "6.8.0",
     "clientVersion": "6.8.0",
@@ -35,7 +35,7 @@
         "projectPath": "/client/",
         "initCommand": "pnpm install",
         "devCommand": "BROWSER=none pnpm dev",
-        "buildCommand": "pnpm build"
+        "buildCommand": "pnpm test:unit && pnpm build"
     }
   }
 }

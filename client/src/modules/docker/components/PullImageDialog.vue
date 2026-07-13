@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Download } from '@lucide/vue'
+import { ref, computed } from 'vue'
+import { Download, ArrowRight } from '@lucide/vue'
 import { useDockerStore } from '../store'
 import { storeToRefs } from 'pinia'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,12 @@ const { pulling, pullProgress } = storeToRefs(store)
 const open = ref(false)
 const imageName = ref('')
 
+const progressPercent = computed(() => {
+  const d = pullProgress.value?.progressDetail
+  if (!d?.total) return null
+  return Math.round(((d.current ?? 0) / d.total) * 100)
+})
+
 async function handlePull() {
   if (!imageName.value.trim()) return
   await store.pull(imageName.value.trim())
@@ -32,52 +38,79 @@ async function handlePull() {
 <template>
   <Dialog v-model:open="open">
     <DialogTrigger as-child>
-      <Button variant="outline" size="sm" class="gap-2 border-zinc-700 text-zinc-300 hover:text-zinc-100">
+      <Button
+        variant="outline"
+        size="sm"
+        class="gap-1.5 border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:border-white/[0.14] hover:bg-white/[0.06] hover:text-zinc-100"
+      >
         <Download class="h-3.5 w-3.5" />
         Pull image
       </Button>
     </DialogTrigger>
 
-    <DialogContent class="border-zinc-800 bg-zinc-950 sm:max-w-md">
+    <DialogContent class="border-white/[0.08] bg-[#0c0c0e] sm:max-w-md">
       <DialogHeader>
-        <DialogTitle class="text-zinc-100">Pull Docker image</DialogTitle>
+        <DialogTitle class="text-base font-semibold text-zinc-100">Pull Docker image</DialogTitle>
       </DialogHeader>
 
-      <div class="flex flex-col gap-4 pt-2">
+      <div class="flex flex-col gap-4 pt-1">
         <Input
           v-model="imageName"
-          placeholder="e.g. nginx:latest, ubuntu:22.04"
-          class="font-mono"
+          placeholder="nginx:latest, ubuntu:22.04…"
+          class="border-white/[0.08] bg-white/[0.04] font-mono text-zinc-200 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-indigo-500/20"
           :disabled="pulling"
           @keydown.enter="handlePull"
         />
 
-        <!-- Progress -->
-        <div v-if="pulling || pullProgress" class="rounded-md border border-zinc-800 bg-zinc-900 p-3 font-mono text-xs text-zinc-400">
-          <div v-if="pulling && !pullProgress">Connecting…</div>
-          <template v-else-if="pullProgress">
-            <div>{{ pullProgress.status }}</div>
-            <div v-if="pullProgress.id" class="text-zinc-600">{{ pullProgress.id }}</div>
-            <div v-if="pullProgress.progressDetail?.total" class="mt-1">
-              <div class="h-1 w-full rounded bg-zinc-800">
+        <!-- Progress block -->
+        <Transition
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 -translate-y-1"
+          enter-to-class="opacity-100 translate-y-0"
+        >
+          <div
+            v-if="pulling || pullProgress"
+            class="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+          >
+            <div v-if="pulling && !pullProgress" class="flex items-center gap-2 font-mono text-xs text-zinc-500">
+              <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-400" />
+              Connecting…
+            </div>
+            <template v-else-if="pullProgress">
+              <div class="flex items-center justify-between gap-2">
+                <p class="font-mono text-xs text-zinc-300">{{ pullProgress.status }}</p>
+                <span v-if="progressPercent !== null" class="font-mono text-xs tabular-nums text-zinc-500">
+                  {{ progressPercent }}%
+                </span>
+              </div>
+              <p v-if="pullProgress.id" class="mt-0.5 font-mono text-[10px] text-zinc-600">{{ pullProgress.id }}</p>
+
+              <!-- Progress bar -->
+              <div v-if="progressPercent !== null" class="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
                 <div
-                  class="h-1 rounded bg-indigo-500 transition-all"
-                  :style="{
-                    width: `${Math.round(((pullProgress.progressDetail.current ?? 0) / pullProgress.progressDetail.total) * 100)}%`
-                  }"
+                  class="h-full rounded-full bg-indigo-500 transition-all duration-300"
+                  :style="{ width: `${progressPercent}%` }"
                 />
               </div>
-            </div>
-            <div v-if="pullProgress.error" class="text-red-400">{{ pullProgress.error }}</div>
-          </template>
-        </div>
+
+              <p v-if="pullProgress.error" class="mt-2 font-mono text-xs text-red-400">{{ pullProgress.error }}</p>
+            </template>
+          </div>
+        </Transition>
 
         <Button
           :disabled="pulling || !imageName.trim()"
-          class="bg-indigo-600 hover:bg-indigo-500"
+          class="gap-2 bg-indigo-600 font-medium hover:bg-indigo-500 disabled:opacity-40"
           @click="handlePull"
         >
-          {{ pulling ? 'Pulling…' : 'Pull' }}
+          <template v-if="pulling">
+            <span class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            Pulling…
+          </template>
+          <template v-else>
+            Pull
+            <ArrowRight class="h-3.5 w-3.5" />
+          </template>
         </Button>
       </div>
     </DialogContent>

@@ -20,35 +20,33 @@ const {
 } = storeToRefs(store)
 
 const MIN_SEARCH_CHARS = 3
-
-const hasAny = () =>
-  filteredFavorites.value.length > 0 || filteredNonFav.value.length > 0
+const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.length > 0
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-3">
+  <div class="flex flex-col gap-3">
 
-    <!-- Barra controlli vista -->
+    <!-- Controls bar -->
     <div class="flex items-center justify-between">
-      <p v-if="search.length > 0 && search.length < MIN_SEARCH_CHARS" class="text-xs text-zinc-600">
-        Type {{ MIN_SEARCH_CHARS - search.length }} more
-        {{ MIN_SEARCH_CHARS - search.length === 1 ? 'character' : 'characters' }}
-        to search…
+      <p class="text-xs text-zinc-700">
+        <template v-if="search.length > 0 && search.length < MIN_SEARCH_CHARS">
+          Type {{ MIN_SEARCH_CHARS - search.length }} more {{ MIN_SEARCH_CHARS - search.length === 1 ? 'character' : 'characters' }} to search…
+        </template>
+        <template v-else>
+          <span class="tabular-nums text-zinc-500">{{ stats.shown }}</span> daemons
+          <span v-if="filteredFavorites.length > 0" class="ml-1 text-amber-500/60">
+            · <span class="tabular-nums">{{ filteredFavorites.length }}</span> pinned
+          </span>
+        </template>
       </p>
-      <div v-else class="text-xs text-zinc-600">
-        Showing {{ stats.shown }} daemons
-        <span v-if="filteredFavorites.length > 0" class="ml-1 text-amber-500/70">
-          · {{ filteredFavorites.length }} pinned
-        </span>
-      </div>
 
-      <!-- Toggle Vista -->
-      <div class="flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-0.5">
+      <!-- View toggle -->
+      <div class="flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5">
         <SharedButton
           variant="ghost"
           size="icon"
-          class="h-7 w-7 hover:bg-zinc-800 hover:text-zinc-100"
-          :class="viewMode === 'list' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'"
+          class="h-6 w-6 transition-all duration-150"
+          :class="viewMode === 'list' ? 'bg-white/[0.08] text-zinc-100' : 'text-zinc-600 hover:text-zinc-400'"
           @click="viewMode = 'list'"
         >
           <List class="h-3.5 w-3.5" />
@@ -56,8 +54,8 @@ const hasAny = () =>
         <SharedButton
           variant="ghost"
           size="icon"
-          class="h-7 w-7 hover:bg-zinc-800 hover:text-zinc-100"
-          :class="viewMode === 'grid' ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'"
+          class="h-6 w-6 transition-all duration-150"
+          :class="viewMode === 'grid' ? 'bg-white/[0.08] text-zinc-100' : 'text-zinc-600 hover:text-zinc-400'"
           @click="viewMode = 'grid'"
         >
           <LayoutGrid class="h-3.5 w-3.5" />
@@ -65,28 +63,26 @@ const hasAny = () =>
       </div>
     </div>
 
-    <!-- Empty state globale -->
+    <!-- Empty state -->
     <SharedEmpty v-if="!hasAny()" :icon="ActivitySquare">
       <template #title>
         {{ search.length >= MIN_SEARCH_CHARS ? 'No daemons match your search.' : 'No daemons found.' }}
       </template>
-      <template #description>Try to modify or clean your filters</template>
+      <template #description>Try modifying or clearing your filters</template>
     </SharedEmpty>
 
     <template v-else>
 
-      <!-- ── LISTA ──────────────────────────────────────────────────── -->
+      <!-- ── LIST ─────────────────────────────────────────────────── -->
       <template v-if="viewMode === 'list'">
 
-        <!-- Favoriti -->
+        <!-- Pinned -->
         <template v-if="filteredFavorites.length > 0">
           <div class="flex items-center gap-2">
-            <Star class="h-3 w-3 fill-current text-amber-400" />
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/70">
-              Pinned
-            </span>
+            <Star class="h-2.5 w-2.5 fill-current text-amber-400" />
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">Pinned</span>
           </div>
-          <ItemGroup>
+          <ItemGroup class="gap-2">
             <DaemonItem
               v-for="daemon in filteredFavorites"
               :key="daemon.name"
@@ -101,16 +97,15 @@ const hasAny = () =>
             />
           </ItemGroup>
 
-          <!-- Separatore tra favoriti e resto -->
           <div v-if="filteredNonFav.length > 0" class="flex items-center gap-3">
-            <div class="h-px flex-1 bg-zinc-800" />
+            <div class="h-px flex-1 bg-white/[0.05]" />
             <span class="text-[10px] uppercase tracking-widest text-zinc-700">All</span>
-            <div class="h-px flex-1 bg-zinc-800" />
+            <div class="h-px flex-1 bg-white/[0.05]" />
           </div>
         </template>
 
-        <!-- Non favoriti -->
-        <ItemGroup v-if="filteredNonFav.length > 0">
+        <!-- Rest -->
+        <ItemGroup v-if="filteredNonFav.length > 0" class="gap-2">
           <DaemonItem
             v-for="daemon in filteredNonFav"
             :key="daemon.name"
@@ -127,18 +122,16 @@ const hasAny = () =>
 
       </template>
 
-      <!-- ── GRIGLIA ────────────────────────────────────────────────── -->
+      <!-- ── GRID ─────────────────────────────────────────────────── -->
       <template v-else>
 
-        <!-- Favoriti -->
+        <!-- Pinned -->
         <template v-if="filteredFavorites.length > 0">
           <div class="flex items-center gap-2">
-            <Star class="h-3 w-3 fill-current text-amber-400" />
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/70">
-              Pinned
-            </span>
+            <Star class="h-2.5 w-2.5 fill-current text-amber-400" />
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">Pinned</span>
           </div>
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             <DaemonCard
               v-for="daemon in filteredFavorites"
               :key="daemon.name"
@@ -154,14 +147,14 @@ const hasAny = () =>
           </div>
 
           <div v-if="filteredNonFav.length > 0" class="flex items-center gap-3">
-            <div class="h-px flex-1 bg-zinc-800" />
+            <div class="h-px flex-1 bg-white/[0.05]" />
             <span class="text-[10px] uppercase tracking-widest text-zinc-700">All</span>
-            <div class="h-px flex-1 bg-zinc-800" />
+            <div class="h-px flex-1 bg-white/[0.05]" />
           </div>
         </template>
 
-        <!-- Non favoriti -->
-        <div v-if="filteredNonFav.length > 0" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Rest -->
+        <div v-if="filteredNonFav.length > 0" class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           <DaemonCard
             v-for="daemon in filteredNonFav"
             :key="daemon.name"
@@ -180,14 +173,14 @@ const hasAny = () =>
 
     </template>
 
-    <!-- Load more (solo non-favoriti) -->
-    <SharedButton
+    <!-- Load more -->
+    <button
       v-if="hasMore"
-      class="w-full rounded-lg border border-zinc-800 py-2.5 text-xs text-zinc-500 transition-colors hover:border-zinc-700 hover:text-zinc-300"
+      class="w-full rounded-xl border border-white/[0.06] py-2.5 text-xs text-zinc-600 transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.02] hover:text-zinc-400"
       @click="store.loadMore()"
     >
-      Load more — {{ stats.matching - stats.shown }} remaining
-    </SharedButton>
+      Load more — <span class="tabular-nums">{{ stats.matching - stats.shown }}</span> remaining
+    </button>
 
   </div>
 </template>
