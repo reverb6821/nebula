@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { RefreshCw } from '@lucide/vue'
 import { useDaemonsStore } from '../store'
@@ -8,6 +9,7 @@ import DaemonFilters from '../components/DaemonFilters.vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { SharedButton, SharedAlert } from '@/components/shared'
 
+const { t } = useI18n()
 const store = useDaemonsStore()
 const { loading, error, stats, daemons } = storeToRefs(store)
 
@@ -20,16 +22,11 @@ onMounted(() => store.fetch())
     <!-- Header -->
     <div class="flex items-start justify-between">
       <div>
-        <h1 class="text-base font-semibold tracking-tight text-zinc-100">Daemons</h1>
-        <p class="mt-1 text-xs text-zinc-600">
-          <span class="text-emerald-400 tabular-nums">{{ stats.active }}</span>
-          <span class="text-zinc-700"> running · </span>
-          <span class="tabular-nums" :class="stats.failed > 0 ? 'text-red-400' : 'text-zinc-500'">{{ stats.failed }}</span>
-          <span class="text-zinc-700"> failed · </span>
-          <span class="tabular-nums text-zinc-500">{{ stats.shown }}</span>
-          <span class="text-zinc-700"> / </span>
-          <span class="tabular-nums text-zinc-500">{{ stats.total }}</span>
-          <span class="text-zinc-700"> shown</span>
+        <h1 class="text-base font-semibold tracking-tight text-zinc-100">{{ t('daemons.title') }}</h1>
+        <p class="mt-1 text-xs text-zinc-500">
+          {{ t('daemons.running', { n: stats.active }) }} ·
+          {{ t('daemons.failed', { n: stats.failed }) }} ·
+          {{ t('daemons.shown', { shown: stats.shown, total: stats.total }) }}
         </p>
       </div>
 
@@ -37,6 +34,7 @@ onMounted(() => store.fetch())
         variant="ghost"
         size="icon"
         :disabled="loading"
+        :aria-label="t('common.refresh')"
         class="h-8 w-8 text-zinc-600 hover:bg-white/5 hover:text-zinc-300"
         @click="store.fetch()"
       >
