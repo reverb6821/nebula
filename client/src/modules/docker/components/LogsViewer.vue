@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { X, Download, ArrowDown } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 
@@ -9,6 +10,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ close: [] }>()
+
+const { t } = useI18n()
 
 const scrollEl = ref<HTMLDivElement | null>(null)
 const autoScroll = ref(true)
@@ -60,9 +63,9 @@ function lineClass(line: string) {
       <div class="min-w-0">
         <p class="truncate font-mono text-sm font-semibold text-zinc-100">{{ containerName }}</p>
         <p class="mt-0.5 font-mono text-xs text-zinc-600">
-          <span class="tabular-nums text-zinc-500">{{ lines.length }}</span> lines
+          {{ t('docker.logsLines', { n: lines.length }) }}
           <span class="mx-1 text-zinc-700">·</span>
-          <span class="text-zinc-600">live</span>
+          <span class="text-zinc-600">{{ t('docker.logsLive') }}</span>
         </p>
       </div>
       <div class="flex shrink-0 items-center gap-0.5">
@@ -92,7 +95,7 @@ function lineClass(line: string) {
       @scroll="onScroll"
     >
       <div v-if="lines.length === 0" class="py-8 text-center text-xs text-zinc-700">
-        Waiting for logs…
+        {{ t('docker.logsWaiting') }}
       </div>
       <div
         v-for="(line, i) in lines"
@@ -117,7 +120,7 @@ function lineClass(line: string) {
         @click="scrollToBottom"
       >
         <ArrowDown class="h-3 w-3" />
-        Resume live tail
+        {{ t('docker.logsResumeTail') }}
       </button>
     </Transition>
   </div>

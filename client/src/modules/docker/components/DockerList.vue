@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { Box, LayoutGrid, List, Star } from '@lucide/vue'
 import { useDockerStore } from '../store'
@@ -11,6 +12,7 @@ import PullImageDialog from './PullImageDialog.vue'
 import { ItemGroup } from '@/components/ui/item'
 import { SharedButton, SharedEmpty } from '@/components/shared'
 
+const { t } = useI18n()
 const store = useDockerStore()
 const {
     activeTab,
@@ -44,18 +46,18 @@ const hasAny = computed(() =>
         <div class="flex items-center justify-between">
             <p class="text-xs text-zinc-700">
                 <template v-if="activeTab === 'containers'">
-                    <span class="tabular-nums text-zinc-500">{{ filteredContainers.length }}</span> containers
+                    {{ t('docker.containers', { n: filteredContainers.length }) }}
                     <span v-if="favContainers.length > 0" class="ml-1 text-amber-500/60">
-                        · <span class="tabular-nums">{{ favContainers.length }}</span> pinned
+                        · {{ t('docker.pinnedCount', { n: favContainers.length }) }}
                     </span>
                 </template>
                 <template v-else>
-                    <span class="tabular-nums text-zinc-500">{{ filteredImages.length }}</span> images
+                    {{ t('docker.images', { n: filteredImages.length }) }}
                 </template>
             </p>
 
             <div class="flex items-center gap-2">
-                <PullImageDialog v-if="activeTab === 'images'" />
+                <PullImageDialog v-if="activeTab === 'images'" /><!-- label internalized in PullImageDialog -->
 
                 <!-- View toggle -->
                 <div class="flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5">
@@ -82,9 +84,9 @@ const hasAny = computed(() =>
         <!-- Empty -->
         <SharedEmpty v-else-if="!hasAny" :icon="Box">
             <template #title>
-                {{ activeTab === 'containers' ? 'No containers found.' : 'No images found.' }}
+                {{ activeTab === 'containers' ? t('docker.noContainers') : t('docker.noImages') }}
             </template>
-            <template #description>Try modifying your search or filters</template>
+            <template #description>{{ t('docker.filtersModifyHint') }}</template>
         </SharedEmpty>
 
         <template v-else>
@@ -99,8 +101,7 @@ const hasAny = computed(() =>
                     <template v-if="favContainers.length > 0">
                         <div class="flex items-center gap-2">
                             <Star class="h-2.5 w-2.5 fill-current text-amber-400" />
-                            <span
-                                class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">Pinned</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">{{ t('docker.pinned') }}</span>
                         </div>
                         <ItemGroup class="gap-2">
                             <ContainerItem v-for="c in favContainers" :key="c.id" :container="c"
@@ -113,7 +114,7 @@ const hasAny = computed(() =>
 
                         <div v-if="restContainers.length > 0" class="flex items-center gap-3">
                             <div class="h-px flex-1 bg-white/[0.05]" />
-                            <span class="text-[10px] uppercase tracking-widest text-zinc-700">All</span>
+                            <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('docker.allSection') }}</span>
                             <div class="h-px flex-1 bg-white/[0.05]" />
                         </div>
                     </template>
@@ -138,7 +139,7 @@ const hasAny = computed(() =>
                         <div class="flex items-center gap-2">
                             <Star class="h-2.5 w-2.5 fill-current text-amber-400" />
                             <span
-                                class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">Pinned</span>
+                                class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">{{ t('docker.pinned') }}</span>
                         </div>
                         <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
                             <ContainerCard v-for="c in favContainers" :key="c.id" :container="c"
@@ -151,7 +152,7 @@ const hasAny = computed(() =>
 
                         <div v-if="restContainers.length > 0" class="flex items-center gap-3">
                             <div class="h-px flex-1 bg-white/[0.05]" />
-                            <span class="text-[10px] uppercase tracking-widest text-zinc-700">All</span>
+                            <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('docker.allSection') }}</span>
                             <div class="h-px flex-1 bg-white/[0.05]" />
                         </div>
                     </template>
