@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 import ImageItem from '@/modules/docker/components/ImageItem.vue'
 
 const LucideStub = { template: '<div><slot /></div>' }
@@ -7,6 +8,19 @@ const TooltipStub = { template: '<div><slot /></div>' }
 const ItemStub = { template: '<div><slot /></div>' }
 
 describe('ImageItem.vue', () => {
+  // Configurazione minimale i18n per supportare i testi dell'immagine
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'it',
+    messages: {
+      it: {
+        docker: {
+          removeImage: 'Elimina immagine'
+        }
+      }
+    }
+  })
+
   const mockImage = {
     id: 'sha256:987654321',
     repoTags: ['postgres:16'],
@@ -22,6 +36,7 @@ describe('ImageItem.vue', () => {
         ...props
       },
       global: {
+        plugins: [i18n],
         stubs: {
           Trash2: LucideStub,
           HardDrive: LucideStub,
@@ -35,8 +50,8 @@ describe('ImageItem.vue', () => {
           ItemDescription: ItemStub,
           ItemActions: ItemStub,
           SharedButton: {
-            props: ['disabled'],
-            template: '<button :disabled="disabled" @click="$emit(\'click\')"></button>'
+            props: ['disabled', 'icon'],
+            template: '<button class="mock-btn" :disabled="disabled" @click="$emit(\'click\')"></button>'
           }
         }
       }
@@ -50,14 +65,22 @@ describe('ImageItem.vue', () => {
     expect(text).toContain('postgres:16')
     expect(text).toContain('sha256:987654321')
     expect(text).toContain('400.0 MB')
+    expect(text).toContain('2026') // Verifica la formattazione dell'anno
   })
 
   it('gestisce correttamente l emissione dell evento e lo stato abilitato/disabilitato del pulsante', async () => {
     const wrapper = createWrapper()
-    const button = wrapper.find('button')
+    const button = wrapper.find('.mock-btn')
 
-    expect(button.element.disabled).toBe(false)
+    expect((button.element as HTMLButtonElement).disabled).toBe(false)
     await button.trigger('click')
     expect(wrapper.emitted('remove')).toBeTruthy()
+  })
+
+  it('disabilita il pulsante di eliminazione quando la proprietà pending è impostata su true', () => {
+    const wrapper = createWrapper({ pending: true })
+    const button = wrapper.find('.mock-btn')
+
+    expect((button.element as HTMLButtonElement).disabled).toBe(true)
   })
 })

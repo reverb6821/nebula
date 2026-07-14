@@ -1,14 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
-import { nextTick } from 'vue'
-import DockerToolbar from '@/modules/docker/components/DockerToolbar.vue' // Regola il percorso se necessario
+import { createI18n } from 'vue-i18n'
+import DockerToolbar from '@/modules/docker/components/DockerToolbar.vue'
 import { useDockerStore } from '@/modules/docker/store'
 
 const LucideStub = { template: '<div><slot /></div>' }
 
 describe('DockerToolbar.vue', () => {
   let pinia: ReturnType<typeof createTestingPinia>
+
+  // Configurazione minimale i18n per supportare i testi dei tab e i placeholder
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'it',
+    messages: {
+      it: {
+        docker: {
+          tabContainers: 'Contenitori',
+          tabImages: 'Immagini',
+          filterPlaceholder: 'Filtra elementi...'
+        }
+      }
+    }
+  })
 
   beforeEach(() => {
     pinia = createTestingPinia({
@@ -26,13 +41,12 @@ describe('DockerToolbar.vue', () => {
   const createWrapper = () => {
     return mount(DockerToolbar, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, i18n],
         stubs: {
           Search: LucideStub,
           SharedButton: {
-            template: '<button @click="$emit(\'click\')"><slot /></button>'
+            template: '<button class="mock-btn" @click="$emit(\'click\')"><slot /></button>'
           },
-          // Rimosso il cast "as HTMLInputElement" dal template string
           Input: {
             props: ['modelValue'],
             template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />'
@@ -45,7 +59,7 @@ describe('DockerToolbar.vue', () => {
   it('cambia la scheda attiva nello store quando si clicca sui pulsanti dei tab', async () => {
     const wrapper = createWrapper()
     const store = useDockerStore()
-    const buttons = wrapper.findAll('button')
+    const buttons = wrapper.findAll('.mock-btn')
 
     expect(buttons).toHaveLength(2)
 

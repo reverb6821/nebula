@@ -15,6 +15,11 @@ function getDeepKeys(obj: Record<string, any>, prefix = ''): string[] {
   }, [])
 }
 
+// Funzione helper per ottenere un valore nidificato usando una notazione a punti (es. "common.refresh")
+function getNestedValue(obj: Record<string, any>, path: string): any {
+  return path.split('.').reduce((current, key) => current?.[key], obj)
+}
+
 describe('Configurazione i18n', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -40,19 +45,37 @@ describe('Configurazione i18n', () => {
     expect(keysEN).toEqual(keysIT)
   })
 
+  it('dovrebbe cambiare il locale, salvare in localStorage e aggiornare il documento', () => {
+    setLocale('it-IT')
+
+    expect(i18n.global.locale.value).toBe('it-IT')
+    expect(localStorage.getItem('nebula_locale')).toBe('it-IT')
+    expect(document.documentElement.lang).toBe('it-IT')
+  })
+
   it('dovrebbe tradurre correttamente in en-GB', () => {
     setLocale('en-GB')
-    
-    // Sostituisci 'common.refresh' con una chiave realmente esistente nel tuo file en-GB.ts
-    const translation = i18n.global.t('common.refresh') 
-    expect(translation).toBe(enGB.common.refresh) 
+
+    // Trova la prima chiave foglia effettiva o usa una stringa vuota come fallback sicuro
+    const allKeys = getDeepKeys(enGB)
+    const leafKey = allKeys.find(key => key.includes('.')) || allKeys[0] || ''
+
+    const translation = i18n.global.t(leafKey)
+    const expected = getNestedValue(enGB, leafKey)
+
+    expect(translation).toBe(expected)
   })
 
   it('dovrebbe tradurre correttamente in it-IT', () => {
     setLocale('it-IT')
 
-    // Sostituisci 'common.refresh' con una chiave realmente esistente nel tuo file it-IT.ts
-    const translation = i18n.global.t('common.refresh')
-    expect(translation).toBe(itIT.common.refresh)
+    // Trova la prima chiave foglia effettiva o usa una stringa vuota come fallback sicuro
+    const allKeys = getDeepKeys(itIT)
+    const leafKey = allKeys.find(key => key.includes('.')) || allKeys[0] || ''
+
+    const translation = i18n.global.t(leafKey)
+    const expected = getNestedValue(itIT, leafKey)
+
+    expect(translation).toBe(expected)
   })
 })

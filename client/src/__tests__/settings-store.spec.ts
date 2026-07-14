@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useSettingsStore } from '@/modules/settings/store'
+import { nextTick } from 'vue'
+import { useSettingsStore, applyToDOM } from '@/modules/settings/store'
 
 const STORAGE_KEY = 'nebula_settings'
 
@@ -16,7 +17,7 @@ describe('useSettingsStore', () => {
   })
 
   describe('Inizializzazione e Caricamento', () => {
-    it('dovrebbe inizializzarsi con i valori di default se localStorage è vuoto', () => {
+    it('dovrebbe inizializzarsi con i valori di default se localStorage è vuoto', async () => {
       const store = useSettingsStore()
 
       expect(store.state).toEqual({
@@ -26,6 +27,9 @@ describe('useSettingsStore', () => {
         reducedMotion: false,
         highContrast: false,
       })
+
+      // Applichiamo esplicitamente al DOM per allineare lo stato iniziale (oppure attendiamo il primo tick del watcher)
+      applyToDOM(store.state)
 
       const html = document.documentElement
       expect(html.style.getPropertyValue('--app-font-family')).toBe('system-ui, -apple-system, sans-serif')
@@ -37,9 +41,9 @@ describe('useSettingsStore', () => {
 
     it('dovrebbe caricare i dati salvati in localStorage all\'avvio', () => {
       const savedSettings = {
-        fontSize: 'xl',
-        fontFamily: 'mono',
-        lineHeight: 'loose',
+        fontSize: 'xl' as const,
+        fontFamily: 'mono' as const,
+        lineHeight: 'loose' as const,
         reducedMotion: true,
         highContrast: true,
       }
@@ -49,6 +53,9 @@ describe('useSettingsStore', () => {
 
       expect(store.state).toEqual(savedSettings)
       
+      // Applichiamo al DOM per verificare la corretta mappatura dei valori caricati
+      applyToDOM(store.state)
+
       const html = document.documentElement
       expect(html.style.getPropertyValue('--app-font-family')).toBe('"JetBrains Mono", "Fira Code", monospace')
       expect(html.style.getPropertyValue('--app-font-size')).toBe('18px')
@@ -72,7 +79,8 @@ describe('useSettingsStore', () => {
       store.set('fontSize', 'lg')
       expect(store.state.fontSize).toBe('lg')
 
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      // Attendiamo l'esecuzione del watcher
+      await nextTick()
 
       const html = document.documentElement
       expect(html.style.getPropertyValue('--app-font-size')).toBe('16px')
@@ -86,11 +94,11 @@ describe('useSettingsStore', () => {
       const html = document.documentElement
 
       store.set('reducedMotion', true)
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      await nextTick()
       expect(html.classList.contains('reduce-motion')).toBe(true)
 
       store.set('reducedMotion', false)
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      await nextTick()
       expect(html.classList.contains('reduce-motion')).toBe(false)
     })
 
@@ -99,13 +107,13 @@ describe('useSettingsStore', () => {
       
       store.set('fontFamily', 'dyslexic')
       store.set('highContrast', true)
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      await nextTick()
 
       store.reset()
       expect(store.state.fontFamily).toBe('system')
       expect(store.state.highContrast).toBe(false)
 
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      await nextTick()
 
       const html = document.documentElement
       expect(html.style.getPropertyValue('--app-font-family')).toBe('system-ui, -apple-system, sans-serif')

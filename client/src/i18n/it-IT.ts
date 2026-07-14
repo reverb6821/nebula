@@ -109,11 +109,6 @@ export const itIT = {
     statusCreated: 'creato',
   },
 
-
-  ollama: {
-    title: 'Ollama',
-  },
-
   settings: {
     title: 'Impostazioni',
     subtitle: 'Preferenze e accessibilità',

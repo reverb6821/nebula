@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
+import { createI18n } from 'vue-i18n'
 import PullImageDialog from '@/modules/docker/components/PullImageDialog.vue'
 import { useDockerStore } from '@/modules/docker/store'
 
@@ -8,6 +9,23 @@ const LucideStub = { template: '<div><slot /></div>' }
 
 describe('PullImageDialog.vue', () => {
   let pinia: ReturnType<typeof createTestingPinia>
+
+  // Configurazione minimale i18n per supportare i testi e i pulsanti del dialog
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'it',
+    messages: {
+      it: {
+        docker: {
+          pullImage: 'Scarica immagine',
+          pullImageTitle: 'Scarica una nuova immagine',
+          pullConnecting: 'Connessione in corso...',
+          pullPulling: 'Download in corso...',
+          pullButton: 'Scarica'
+        }
+      }
+    }
+  })
 
   beforeEach(() => {
     pinia = createTestingPinia({
@@ -25,7 +43,7 @@ describe('PullImageDialog.vue', () => {
   const createWrapper = () => {
     return mount(PullImageDialog, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, i18n],
         stubs: {
           Download: LucideStub,
           ArrowRight: LucideStub,
@@ -36,7 +54,7 @@ describe('PullImageDialog.vue', () => {
           DialogTrigger: { template: '<div><slot /></div>' },
           Button: {
             props: ['disabled'],
-            template: '<button :disabled="disabled"><slot /></button>'
+            template: '<button class="mock-btn" :disabled="disabled"><slot /></button>'
           },
           Input: {
             props: ['modelValue'],
@@ -59,9 +77,9 @@ describe('PullImageDialog.vue', () => {
     
     await new Promise(resolve => setTimeout(resolve, 0))
 
-    // Seleziona specificatamente il bottone di invio interno che NON contiene la stringa "image"
-    const pullButton = wrapper.findAll('button').find(b => 
-      b.text().trim().includes('Pull') && !b.text().toLowerCase().includes('image')
+    // Cerca il pulsante di sottomissione basandosi sulla traduzione mockata 'Scarica'
+    const pullButton = wrapper.findAll('.mock-btn').find(b => 
+      b.text().trim() === 'Scarica'
     )
     
     expect(pullButton).toBeDefined()

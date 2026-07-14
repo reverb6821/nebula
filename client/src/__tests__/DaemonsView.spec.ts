@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
+import { createI18n } from 'vue-i18n'
 import { defineComponent } from 'vue'
 import { useDaemonsStore } from '@/modules/daemons/store'
-import DaemonsView from '@/modules/daemons/views/DaemonsView.vue' // Sostituisci con il percorso reale del file sorgente
+import DaemonsView from '@/modules/daemons/views/DaemonsView.vue'
 
 // Definizione esplicita degli stub per isolare il componente
 const DaemonListStub = defineComponent({
@@ -37,6 +38,25 @@ describe('DaemonsView.vue', () => {
   let pinia: ReturnType<typeof createTestingPinia>
   let store: any
 
+  // Configurazione minimale di i18n per supportare le chiavi presenti nella view
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'it',
+    messages: {
+      it: {
+        daemons: {
+          title: 'Servizi di Sistema',
+          running: '{n} attivi',
+          failed: '{n} falliti',
+          shown: '{shown} visualizzati su {total} totali'
+        },
+        common: {
+          refresh: 'Aggiorna'
+        }
+      }
+    }
+  })
+
   beforeEach(() => {
     pinia = createTestingPinia({
       createSpy: vi.fn,
@@ -59,7 +79,7 @@ describe('DaemonsView.vue', () => {
   const factory = () => {
     return mount(DaemonsView, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, i18n],
         stubs: {
           DaemonList: DaemonListStub,
           DaemonFilters: DaemonFiltersStub,
@@ -88,9 +108,9 @@ describe('DaemonsView.vue', () => {
     const wrapper = factory()
     const text = wrapper.text()
 
-    expect(text).toContain('3 running')
-    expect(text).toContain('1 failed')
-    expect(text).toContain('5 / 10 shown')
+    expect(text).toContain('3 attivi')
+    expect(text).toContain('1 falliti')
+    expect(text).toContain('5 visualizzati su 10 totali')
   })
 
   it('mostra il componente di alert quando lo store presenta un errore', () => {
