@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Trash2, HardDrive } from '@lucide/vue'
 import type { DockerImage } from '@/types/docker'
 import { SharedButton } from '@/components/shared'
@@ -14,6 +15,8 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{ remove: [] }>()
+
+const { t } = useI18n()
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(0)} KB`
@@ -54,11 +57,11 @@ function formatDate(unix: number): string {
       <!-- Stat tiles -->
       <div class="grid grid-cols-2 gap-1.5">
         <div class="rounded-lg bg-white/[0.03] px-2.5 py-1.5 ring-1 ring-white/[0.05]">
-          <p class="text-[9px] uppercase tracking-widest text-zinc-600">Size</p>
+          <p class="text-[9px] uppercase tracking-widest text-zinc-600">{{ t('docker.imageSizeLabel') }}</p>
           <p class="mt-0.5 font-mono text-xs font-medium tabular-nums text-zinc-300">{{ formatBytes(image.size) }}</p>
         </div>
         <div class="rounded-lg bg-white/[0.03] px-2.5 py-1.5 ring-1 ring-white/[0.05]">
-          <p class="text-[9px] uppercase tracking-widest text-zinc-600">Created</p>
+          <p class="text-[9px] uppercase tracking-widest text-zinc-600">{{ t('docker.imageCreatedLabel') }}</p>
           <p class="mt-0.5 font-mono text-xs font-medium text-zinc-300">{{ formatDate(image.created) }}</p>
         </div>
       </div>
@@ -77,7 +80,7 @@ function formatDate(unix: number): string {
             @click="emit('remove')"
           />
         </TooltipTrigger>
-        <TooltipContent>Remove image</TooltipContent>
+        <TooltipContent>{{ t('docker.removeImage') }}</TooltipContent>
       </Tooltip>
     </div>
   </div>

@@ -4,6 +4,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('/fonts/OpenDyslexic-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('/fonts/OpenDyslexic-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -121,4 +137,35 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+
+html, body, #app, #app * {
+  font-family: var(--app-font-family) !important;
+}
+ 
+html {
+  font-size: var(--app-font-size);
+  line-height: var(--app-line-height);
+}
+ 
+/* Reduced motion */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+ 
+/* High contrast */
+html.high-contrast * {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+ 
+html.high-contrast p,
+html.high-contrast span,
+html.high-contrast li,
+html.high-contrast label {
+  color: #e4e4e7 !important;
 }

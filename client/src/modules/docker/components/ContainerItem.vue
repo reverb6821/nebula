@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Play, Square, RotateCcw, Trash2, FileText, Star } from '@lucide/vue'
 import type { DockerContainer, ContainerStats } from '@/types/docker'
 import { SharedButton } from '@/components/shared'
@@ -34,6 +35,8 @@ const emit = defineEmits<{
   logs: []
   toggleFavorite: []
 }>()
+
+const { t } = useI18n()
 
 const isRunning = computed(() => props.container.status === 'running')
 
@@ -100,7 +103,7 @@ function formatBytes(bytes: number): string {
             <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
           </SharedButton>
         </TooltipTrigger>
-        <TooltipContent>{{ favorite ? 'Unpin' : 'Pin' }}</TooltipContent>
+        <TooltipContent>{{ favorite ? t('docker.unpin') : t('docker.pin') }}</TooltipContent>
       </Tooltip>
 
       <!-- Logs -->
@@ -115,7 +118,7 @@ function formatBytes(bytes: number): string {
             <FileText class="h-3.5 w-3.5" />
           </SharedButton>
         </TooltipTrigger>
-        <TooltipContent>Logs</TooltipContent>
+        <TooltipContent>{{ t('docker.logs') }}</TooltipContent>
       </Tooltip>
 
       <!-- Start / Stop -->
@@ -132,7 +135,7 @@ function formatBytes(bytes: number): string {
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
-        <TooltipContent>{{ isRunning ? 'Stop' : 'Start' }}</TooltipContent>
+        <TooltipContent>{{ isRunning ? t('common.stop') : t('common.start') }}</TooltipContent>
       </Tooltip>
 
       <!-- Restart -->
@@ -147,7 +150,7 @@ function formatBytes(bytes: number): string {
             @click="emit('restart')"
           />
         </TooltipTrigger>
-        <TooltipContent>Restart</TooltipContent>
+        <TooltipContent>{{ t('common.restart') }}</TooltipContent>
       </Tooltip>
 
       <!-- Remove -->
@@ -162,7 +165,7 @@ function formatBytes(bytes: number): string {
             @click="emit('remove')"
           />
         </TooltipTrigger>
-        <TooltipContent>Remove</TooltipContent>
+        <TooltipContent>{{ t('common.remove') }}</TooltipContent>
       </Tooltip>
     </ItemActions>
   </Item>

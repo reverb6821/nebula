@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { RefreshCw } from '@lucide/vue'
 import { useDockerStore } from '../store'
@@ -8,6 +9,7 @@ import DockerList from '../components/DockerList.vue'
 import LogsViewer from '../components/LogsViewer.vue'
 import { SharedButton, SharedAlert } from '@/components/shared'
 
+const { t } = useI18n()
 const store = useDockerStore()
 const {
   connected, loading, error,
@@ -29,17 +31,14 @@ onMounted(() => store.connect())
       <!-- Header -->
       <div class="flex items-start justify-between">
         <div>
-          <h1 class="text-base font-semibold tracking-tight text-zinc-100">Docker</h1>
+          <h1 class="text-base font-semibold tracking-tight text-zinc-100">{{ t('docker.title') }}</h1>
           <p class="mt-1 text-xs text-zinc-600">
             <template v-if="connected">
-              <span class="text-emerald-400 tabular-nums">{{ runningCount }}</span>
-              <span class="text-zinc-700"> running · </span>
-              <span class="tabular-nums text-zinc-500">{{ containers.length }}</span>
-              <span class="text-zinc-700"> containers · </span>
-              <span class="tabular-nums text-zinc-500">{{ images.length }}</span>
-              <span class="text-zinc-700"> images</span>
+              {{ t('docker.running', { n: runningCount }) }} ·
+              {{ t('docker.containers', { n: containers.length }) }} ·
+              {{ t('docker.images', { n: images.length }) }}
             </template>
-            <span v-else class="text-zinc-700">Not connected</span>
+            <span v-else class="text-zinc-700">{{ t('docker.notConnected') }}</span>
           </p>
         </div>
         <SharedButton
@@ -59,7 +58,7 @@ onMounted(() => store.connect())
         enter-from-class="opacity-0 -translate-y-1"
         enter-to-class="opacity-100 translate-y-0"
       >
-        <SharedAlert v-if="!connected && !loading" variant="warning" title="Docker not reachable" description="Make sure Docker is installed and the daemon is running." />
+        <SharedAlert v-if="!connected && !loading" variant="warning" :title="t('docker.notReachable')" :description="t('docker.notReachableHint')" />
       </Transition>
       <SharedAlert v-if="error" variant="destructive" title="Error" :description="error" />
 

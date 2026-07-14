@@ -1,11 +1,27 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 import ImageCard from '@/modules/docker/components/ImageCard.vue'
 
 const LucideStub = { template: '<div><slot /></div>' }
 const TooltipStub = { template: '<div><slot /></div>' }
 
 describe('ImageCard.vue', () => {
+  // Configurazione minimale i18n per supportare i testi dell'immagine
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'it',
+    messages: {
+      it: {
+        docker: {
+          imageSizeLabel: 'Dimensione',
+          imageCreatedLabel: 'Creata',
+          removeImage: 'Elimina immagine'
+        }
+      }
+    }
+  })
+
   const mockImage = {
     id: 'sha256:1234567890abcdef',
     repoTags: ['nginx:latest', 'nginx:1.25'],
@@ -21,6 +37,7 @@ describe('ImageCard.vue', () => {
         ...props
       },
       global: {
+        plugins: [i18n],
         stubs: {
           Trash2: LucideStub,
           HardDrive: LucideStub,
@@ -28,8 +45,8 @@ describe('ImageCard.vue', () => {
           TooltipTrigger: TooltipStub,
           TooltipContent: TooltipStub,
           SharedButton: {
-            props: ['disabled'],
-            template: '<button :disabled="disabled" @click="$emit(\'click\')"></button>'
+            props: ['disabled', 'icon'],
+            template: '<button class="mock-btn" :disabled="disabled" @click="$emit(\'click\')"></button>'
           }
         }
       }
@@ -45,11 +62,13 @@ describe('ImageCard.vue', () => {
     expect(text).toContain('sha256:1234567890abcdef')
     expect(text).toContain('128.0 MB')
     expect(text).toContain('2026') // Verifica la formattazione dell'anno
+    expect(text).toContain('Dimensione')
+    expect(text).toContain('Creata')
   })
 
   it('emette l evento remove quando si preme il pulsante di eliminazione', async () => {
     const wrapper = createWrapper()
-    const button = wrapper.find('button')
+    const button = wrapper.find('.mock-btn')
 
     await button.trigger('click')
     expect(wrapper.emitted('remove')).toBeTruthy()
@@ -57,8 +76,8 @@ describe('ImageCard.vue', () => {
 
   it('disabilita il pulsante di eliminazione quando la proprietà pending è impostata su true', () => {
     const wrapper = createWrapper({ pending: true })
-    const button = wrapper.find('button')
+    const button = wrapper.find('.mock-btn')
 
-    expect(button.element.disabled).toBe(true)
+    expect((button.element as HTMLButtonElement).disabled).toBe(true)
   })
 })

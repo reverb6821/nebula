@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Trash2, HardDrive } from '@lucide/vue'
 import type { DockerImage } from '@/types/docker'
 import { SharedButton } from '@/components/shared'
@@ -22,6 +23,8 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{ remove: [] }>()
+
+const { t } = useI18n()
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(0)} KB`
@@ -68,7 +71,7 @@ function formatDate(unix: number): string {
             @click="emit('remove')"
           />
         </TooltipTrigger>
-        <TooltipContent>Remove image</TooltipContent>
+        <TooltipContent>{{ t('docker.removeImage') }}</TooltipContent>
       </Tooltip>
     </ItemActions>
   </Item>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Download, ArrowRight } from '@lucide/vue'
 import { useDockerStore } from '../store'
 import { storeToRefs } from 'pinia'
@@ -13,6 +14,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
+const { t } = useI18n()
 const store = useDockerStore()
 const { pulling, pullProgress } = storeToRefs(store)
 
@@ -44,13 +46,13 @@ async function handlePull() {
         class="gap-1.5 border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:border-white/[0.14] hover:bg-white/[0.06] hover:text-zinc-100"
       >
         <Download class="h-3.5 w-3.5" />
-        Pull image
+        {{ t('docker.pullImage') }}
       </Button>
     </DialogTrigger>
 
     <DialogContent class="border-white/[0.08] bg-[#0c0c0e] sm:max-w-md">
       <DialogHeader>
-        <DialogTitle class="text-base font-semibold text-zinc-100">Pull Docker image</DialogTitle>
+        <DialogTitle class="text-base font-semibold text-zinc-100">{{ t('docker.pullImageTitle') }}</DialogTitle>
       </DialogHeader>
 
       <div class="flex flex-col gap-4 pt-1">
@@ -74,7 +76,7 @@ async function handlePull() {
           >
             <div v-if="pulling && !pullProgress" class="flex items-center gap-2 font-mono text-xs text-zinc-500">
               <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-indigo-400" />
-              Connecting…
+              {{ t('docker.pullConnecting') }}
             </div>
             <template v-else-if="pullProgress">
               <div class="flex items-center justify-between gap-2">
@@ -105,10 +107,10 @@ async function handlePull() {
         >
           <template v-if="pulling">
             <span class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            Pulling…
+            {{ t('docker.pullPulling') }}
           </template>
           <template v-else>
-            Pull
+            {{ t('docker.pullButton') }}
             <ArrowRight class="h-3.5 w-3.5" />
           </template>
         </Button>
