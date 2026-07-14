@@ -52,7 +52,7 @@ function load(): SettingsState {
   }
 }
 
-function applyToDOM(state: SettingsState) {
+export function applyToDOM(state: SettingsState) {
   const root = document.documentElement
   // Imposta le CSS variables — main.css le usa con !important
   root.style.setProperty('--app-font-family', fontFamilyMap[state.fontFamily])
@@ -64,8 +64,6 @@ function applyToDOM(state: SettingsState) {
 
 export const useSettingsStore = defineStore('settings', () => {
   const state = ref<SettingsState>(load())
-
-  applyToDOM(state.value)
 
   watch(state, (s) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s))

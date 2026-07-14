@@ -60,7 +60,7 @@ export const itIT = {
     statusActive: 'Attivo',
     statusInactive: 'Inattivo',
     statusFailed: 'Fallito',
-    statusUnknow: 'Sconosciuto',
+    statusUnknown: 'Sconosciuto',
     enabledEnabled: 'Abilitato',
     enabledDisabled: 'Disabilitato',
     enabledStatic: 'Statico',
