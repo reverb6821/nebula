@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Play, Square, RotateCcw, Star } from '@lucide/vue'
 import type { Daemon } from '@/types/daemon'
 import { SharedSwitch, SharedButton } from '@/components/shared'
@@ -31,13 +32,15 @@ const emit = defineEmits<{
   toggleFavorite: []
 }>()
 
+const { t } = useI18n()
+
 const isRunning = computed(() => props.daemon.status === 'active')
 const isStatic  = computed(() => props.daemon.enabled === 'static')
 const isEnabled = computed(() => props.daemon.enabled === 'enabled')
 
 const bootTooltip = computed(() => {
-  if (isStatic.value) return 'Static unit — cannot change'
-  return isEnabled.value ? 'Disable at boot' : 'Enable at boot'
+  if (isStatic.value) return t('daemons.staticUnit')
+  return isEnabled.value ? t('daemons.disableAtBoot') : t('daemons.enableAtBoot')
 })
 </script>
 
@@ -65,14 +68,14 @@ const bootTooltip = computed(() => {
                 <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
               </SharedButton>
             </TooltipTrigger>
-            <TooltipContent>{{ favorite ? 'Unpin' : 'Pin' }}</TooltipContent>
+            <TooltipContent>{{ favorite ? t('daemons.unpin') : t('daemons.pin') }}</TooltipContent>
           </Tooltip>
 
           <!-- Boot toggle -->
           <Tooltip>
             <TooltipTrigger as-child>
               <div class="flex items-center gap-1.5">
-                <span class="text-[10px] uppercase tracking-widest text-zinc-700">Boot</span>
+                <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('daemons.bootLabel') }}</span>
                 <SharedSwitch
                   :model-value="isEnabled"
                   :disabled="pending || isStatic"
@@ -99,7 +102,7 @@ const bootTooltip = computed(() => {
       >
         {{ daemon.description }}
       </CardDescription>
-      <span v-else class="text-xs text-zinc-700">No description</span>
+      <span v-else class="text-xs text-zinc-700">{{ t('daemons.noDescription') }}</span>
     </CardContent>
 
     <!-- Footer actions -->
@@ -119,7 +122,7 @@ const bootTooltip = computed(() => {
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
-        <TooltipContent>{{ isRunning ? 'Stop' : 'Start' }}</TooltipContent>
+        <TooltipContent>{{ isRunning ? t('common.stop') : t('common.start') }}</TooltipContent>
       </Tooltip>
 
       <Tooltip>
@@ -133,7 +136,7 @@ const bootTooltip = computed(() => {
             @click="emit('restart')"
           />
         </TooltipTrigger>
-        <TooltipContent>Restart</TooltipContent>
+        <TooltipContent>{{ t('common.restart') }}</TooltipContent>
       </Tooltip>
     </div>
   </Card>

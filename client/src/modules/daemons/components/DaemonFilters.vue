@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Search, X, SlidersHorizontal } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import { useDaemonsStore } from '../store'
@@ -15,22 +16,24 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { SharedButton } from '@/components/shared'
 
+const { t } = useI18n()
+
 const store = useDaemonsStore()
 const { search, filters, hasActiveFilters } = storeToRefs(store)
 
 const open = ref(false)
 
 const statusOptions: { value: DaemonStatus; label: string; dotClass: string }[] = [
-  { value: 'active',   label: 'Active',   dotClass: 'bg-emerald-400' },
-  { value: 'inactive', label: 'Inactive', dotClass: 'bg-zinc-500'    },
-  { value: 'failed',   label: 'Failed',   dotClass: 'bg-red-400'     },
-  { value: 'unknown',  label: 'Unknown',  dotClass: 'bg-amber-400'   },
+  { value: 'active',   label: t('daemons.statusActive'),   dotClass: 'bg-emerald-400' },
+  { value: 'inactive', label: t('daemons.statusInactive'), dotClass: 'bg-zinc-500'    },
+  { value: 'failed',   label: t('daemons.statusFailed'),   dotClass: 'bg-red-400'     },
+  { value: 'unknown',  label: t('daemons.statusUnknown'),  dotClass: 'bg-amber-400'   },
 ]
 
 const enabledOptions: { value: DaemonEnabled; label: string }[] = [
-  { value: 'enabled',  label: 'Enabled'  },
-  { value: 'disabled', label: 'Disabled' },
-  { value: 'static',   label: 'Static'   },
+  { value: 'enabled',  label: t('daemons.enabledEnabled')  },
+  { value: 'disabled', label: t('daemons.enabledDisabled') },
+  { value: 'static',   label: t('daemons.enabledStatic')   },
 ]
 </script>
 
@@ -43,7 +46,7 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
         <Search class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" />
         <Input
           v-model="search"
-          placeholder="Search daemons (3+ chars)…"
+          :placeholder="t('daemons.searchPlaceholder')"
           class="h-8 border-white/[0.06] bg-white/[0.02] pl-8 pr-8 text-xs text-zinc-300 placeholder:text-zinc-700 focus:border-white/[0.1] focus:ring-white/[0.05]"
         />
         <SharedButton
@@ -78,7 +81,7 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
             <!-- Status -->
             <div>
               <p class="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-                Status
+                {{ t('daemons.filterStatus') }}
               </p>
               <div class="flex flex-col gap-2">
                 <div
@@ -104,7 +107,7 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
             <!-- Boot enabled -->
             <div>
               <p class="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-                Boot
+                {{ t('daemons.filterBoot') }}
               </p>
               <div class="flex flex-col gap-2">
                 <div
@@ -133,7 +136,7 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
               @click="store.resetFilters()"
             >
               <X class="mr-1.5 h-3 w-3" />
-              Reset filters
+              {{ t('daemons.resetFilters') }}
             </SharedButton>
 
           </div>

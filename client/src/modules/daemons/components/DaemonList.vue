@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { ActivitySquare, LayoutGrid, List, Star } from '@lucide/vue'
 import { useDaemonsStore } from '../store'
@@ -6,6 +7,8 @@ import DaemonItem from './DaemonItem.vue'
 import DaemonCard from './DaemonCard.vue'
 import { ItemGroup } from '@/components/ui/item'
 import { SharedButton, SharedEmpty } from '@/components/shared'
+
+const { t } = useI18n()
 
 const store = useDaemonsStore()
 const {
@@ -30,12 +33,12 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
     <div class="flex items-center justify-between">
       <p class="text-xs text-zinc-700">
         <template v-if="search.length > 0 && search.length < MIN_SEARCH_CHARS">
-          Type {{ MIN_SEARCH_CHARS - search.length }} more {{ MIN_SEARCH_CHARS - search.length === 1 ? 'character' : 'characters' }} to search…
+          {{ t('daemons.searchHint', { n: MIN_SEARCH_CHARS - search.length, char: t('daemons.searchHintChar', MIN_SEARCH_CHARS - search.length) }) }}
         </template>
         <template v-else>
-          <span class="tabular-nums text-zinc-500">{{ stats.shown }}</span> daemons
+          {{ t('daemons.daemonsCount', { n: stats.shown }) }}
           <span v-if="filteredFavorites.length > 0" class="ml-1 text-amber-500/60">
-            · <span class="tabular-nums">{{ filteredFavorites.length }}</span> pinned
+            · {{ t('daemons.pinnedCount', { n: filteredFavorites.length }) }}
           </span>
         </template>
       </p>
@@ -66,9 +69,9 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
     <!-- Empty state -->
     <SharedEmpty v-if="!hasAny()" :icon="ActivitySquare">
       <template #title>
-        {{ search.length >= MIN_SEARCH_CHARS ? 'No daemons match your search.' : 'No daemons found.' }}
+        {{ search.length >= MIN_SEARCH_CHARS ? t('daemons.noMatch') : t('daemons.notFound') }}
       </template>
-      <template #description>Try modifying or clearing your filters</template>
+      <template #description>{{ t('daemons.filtersModifyHint') }}</template>
     </SharedEmpty>
 
     <template v-else>
@@ -80,7 +83,7 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
         <template v-if="filteredFavorites.length > 0">
           <div class="flex items-center gap-2">
             <Star class="h-2.5 w-2.5 fill-current text-amber-400" />
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">Pinned</span>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">{{ t('daemons.pinned') }}</span>
           </div>
           <ItemGroup class="gap-2">
             <DaemonItem
@@ -99,7 +102,7 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
 
           <div v-if="filteredNonFav.length > 0" class="flex items-center gap-3">
             <div class="h-px flex-1 bg-white/[0.05]" />
-            <span class="text-[10px] uppercase tracking-widest text-zinc-700">All</span>
+            <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('daemons.allSection') }}</span>
             <div class="h-px flex-1 bg-white/[0.05]" />
           </div>
         </template>
@@ -129,7 +132,7 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
         <template v-if="filteredFavorites.length > 0">
           <div class="flex items-center gap-2">
             <Star class="h-2.5 w-2.5 fill-current text-amber-400" />
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">Pinned</span>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-amber-500/60">{{ t('daemons.pinned') }}</span>
           </div>
           <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             <DaemonCard
@@ -148,7 +151,7 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
 
           <div v-if="filteredNonFav.length > 0" class="flex items-center gap-3">
             <div class="h-px flex-1 bg-white/[0.05]" />
-            <span class="text-[10px] uppercase tracking-widest text-zinc-700">All</span>
+            <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('daemons.allSection') }}</span>
             <div class="h-px flex-1 bg-white/[0.05]" />
           </div>
         </template>
@@ -179,7 +182,7 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
       class="w-full rounded-xl border border-white/[0.06] py-2.5 text-xs text-zinc-600 transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.02] hover:text-zinc-400"
       @click="store.loadMore()"
     >
-      Load more — <span class="tabular-nums">{{ stats.matching - stats.shown }}</span> remaining
+      {{ t('daemons.loadMoreRemaining', { n: stats.matching - stats.shown }) }}
     </button>
 
   </div>
