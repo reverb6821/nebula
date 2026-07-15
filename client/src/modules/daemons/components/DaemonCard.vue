@@ -46,7 +46,7 @@ const bootTooltip = computed(() => {
 
 <template>
   <Card
-    class="group flex flex-col border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    class="group flex flex-col border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04] rounded-xl"
     :class="{ 'border-amber-500/20 bg-amber-500/[0.03]': favorite }"
   >
     <CardHeader class="space-y-2 p-4 pb-3">
@@ -61,8 +61,8 @@ const bootTooltip = computed(() => {
               <SharedButton
                 variant="ghost"
                 size="icon"
-                class="h-6 w-6 hover:bg-white/5 opacity-0 transition-opacity group-hover:opacity-100"
-                :class="favorite ? 'text-amber-400 !opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+                class="h-6 w-6 hover:bg-white/5 rounded-xl text-amber-400 hover:text-amber-400"
+                :class="favorite ?? 'text-amber-400'"
                 @click="emit('toggleFavorite')"
               >
                 <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
@@ -107,6 +107,7 @@ const bootTooltip = computed(() => {
 
     <!-- Footer actions -->
     <div class="mt-3 flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-2">
+      <!-- Start / Stop -->
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -115,9 +116,9 @@ const bootTooltip = computed(() => {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-7 w-7 hover:bg-white/5"
+            class="h-7 w-7 hover:bg-white/5 rounded-xl"
             :class="isRunning
-              ? 'text-zinc-500 hover:text-red-400'
+              ? 'text-red-400 hover:text-red-400'
               : 'text-emerald-500 hover:text-emerald-400'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
@@ -125,6 +126,7 @@ const bootTooltip = computed(() => {
         <TooltipContent>{{ isRunning ? t('common.stop') : t('common.start') }}</TooltipContent>
       </Tooltip>
 
+      <!-- Restart -->
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -132,7 +134,7 @@ const bootTooltip = computed(() => {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200 rounded-xl"
             @click="emit('restart')"
           />
         </TooltipTrigger>

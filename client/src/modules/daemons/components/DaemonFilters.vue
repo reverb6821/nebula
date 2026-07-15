@@ -38,16 +38,15 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div class="flex items-center gap-2">
 
     <!-- Search + filter toggle -->
-    <div class="flex gap-2">
       <div class="relative flex-1">
         <Search class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" />
         <Input
           v-model="search"
           :placeholder="t('daemons.searchPlaceholder')"
-          class="h-8 border-white/[0.06] bg-white/[0.02] pl-8 pr-8 text-xs text-zinc-300 placeholder:text-zinc-700 focus:border-white/[0.1] focus:ring-white/[0.05]"
+          class="rounded-xl h-8 border-white/[0.06] bg-white/[0.02] pl-8 pr-8 text-xs text-zinc-300 placeholder:text-zinc-700 focus:border-white/[0.1] focus:ring-white/[0.05]"
         />
         <SharedButton
           v-if="search.length > 0"
@@ -65,7 +64,7 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
           <SharedButton
             variant="outline"
             size="icon"
-            class="h-8 w-8 shrink-0 border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:text-zinc-300"
+            class="rounded-xl h-8 w-8 shrink-0 border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:text-zinc-300"
             :class="(filters.status.length > 0 || filters.enabled.length > 0)
               ? 'border-indigo-500/40 text-indigo-400'
               : 'text-zinc-500'"
@@ -75,7 +74,7 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
         </CollapsibleTrigger>
 
         <!-- Filter panel -->
-        <CollapsibleContent class="absolute z-10 mt-1.5 w-64 rounded-xl border border-white/[0.08] bg-[#0c0c0e] p-4 shadow-2xl shadow-black/50">
+        <CollapsibleContent class="absolute right-0 z-10 mt-1.5 w-64 rounded-xl border border-white/[0.08] bg-[#0c0c0e] p-4 shadow-2xl shadow-black/50">
           <div class="flex flex-col gap-4">
 
             <!-- Status -->
@@ -127,6 +126,32 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
 
             <Separator class="bg-white/[0.06]" />
 
+            <!-- Active filter chips -->
+            <div v-if="filters.status.length > 0 || filters.enabled.length > 0" class="flex flex-wrap gap-1">
+              <Badge
+                v-for="s in filters.status"
+                :key="s"
+                variant="outline"
+                class="gap-1 rounded-full border-white/[0.08] bg-white/[0.03] py-0 font-mono text-[10px] capitalize text-zinc-300 hover:bg-white/[0.06]"
+              >
+                {{ s }}
+                <button class="ml-0.5 text-zinc-600 transition-colors hover:text-red-400" @click="store.toggleStatusFilter(s)">
+                  <X class="h-2.5 w-2.5" />
+                </button>
+              </Badge>
+              <Badge
+                v-for="e in filters.enabled"
+                :key="e"
+                variant="outline"
+                class="gap-1 rounded-full border-white/[0.08] bg-white/[0.03] py-0 font-mono text-[10px] capitalize text-zinc-300 hover:bg-white/[0.06]"
+              >
+                boot: {{ e }}
+                <button class="ml-0.5 text-zinc-600 transition-colors hover:text-red-400" @click="store.toggleEnabledFilter(e)">
+                  <X class="h-2.5 w-2.5" />
+                </button>
+              </Badge>
+            </div>
+
             <!-- Reset -->
             <SharedButton
               variant="ghost"
@@ -142,34 +167,6 @@ const enabledOptions: { value: DaemonEnabled; label: string }[] = [
           </div>
         </CollapsibleContent>
       </Collapsible>
-    </div>
-
-    <!-- Active filter chips -->
-    <div v-if="filters.status.length > 0 || filters.enabled.length > 0" class="flex flex-wrap gap-1">
-      <Badge
-        v-for="s in filters.status"
-        :key="s"
-        variant="outline"
-        class="gap-1 rounded-full border-white/[0.08] bg-white/[0.03] py-0 font-mono text-[10px] capitalize text-zinc-300 hover:bg-white/[0.06]"
-      >
-        {{ s }}
-        <button class="ml-0.5 text-zinc-600 transition-colors hover:text-red-400" @click="store.toggleStatusFilter(s)">
-          <X class="h-2.5 w-2.5" />
-        </button>
-      </Badge>
-
-      <Badge
-        v-for="e in filters.enabled"
-        :key="e"
-        variant="outline"
-        class="gap-1 rounded-full border-white/[0.08] bg-white/[0.03] py-0 font-mono text-[10px] capitalize text-zinc-300 hover:bg-white/[0.06]"
-      >
-        boot: {{ e }}
-        <button class="ml-0.5 text-zinc-600 transition-colors hover:text-red-400" @click="store.toggleEnabledFilter(e)">
-          <X class="h-2.5 w-2.5" />
-        </button>
-      </Badge>
-    </div>
 
   </div>
 </template>
