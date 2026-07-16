@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, watch } from 'vue'
+import { onMounted, onUnmounted, onActivated, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useDockerStore } from '../store'
@@ -38,20 +38,23 @@ function syncHeader() {
   })
 }
 
-syncHeader()
+onMounted(() => {
+  syncHeader()
+  store.connect()
+})
+
+onActivated(syncHeader)
+
 watch([subtitle, loading], syncHeader)
 
 onUnmounted(clearHeader)
-onMounted(() => store.connect())
 </script>
 
 <template>
   <div class="flex h-full overflow-hidden">
 
-    <!-- Main panel -->
     <div class="flex flex-1 flex-col gap-5 overflow-hidden px-2 py-3">
 
-      <!-- Alerts -->
       <Transition
         enter-active-class="transition-all duration-200 ease-out"
         enter-from-class="opacity-0 -translate-y-1"
@@ -59,15 +62,12 @@ onMounted(() => store.connect())
       >
         <SharedAlert v-if="!connected && !loading" variant="warning" :title="t('docker.notReachable')" :description="t('docker.notReachableHint')" />
       </Transition>
-      <SharedAlert v-if="error" variant="destructive" title="Error" :description="error" />
 
-      <!-- List -->
       <div class="min-h-0 flex-1 overflow-y-auto">
         <DockerList />
       </div>
     </div>
 
-    <!-- Logs panel -->
     <Transition
       enter-active-class="transition-all duration-200 ease-out"
       enter-from-class="translate-x-4 opacity-0"

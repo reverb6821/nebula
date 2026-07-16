@@ -50,7 +50,7 @@ function formatBytes(bytes: number): string {
 <template>
   <Item
     variant="outline"
-    class="group cursor-pointer border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    class="rounded-xl group cursor-pointer border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
     :class="{
       'border-indigo-500/40 bg-indigo-500/5': selected,
       'border-amber-500/20 bg-amber-500/[0.03]': favorite && !selected,
@@ -60,7 +60,7 @@ function formatBytes(bytes: number): string {
     <!-- Status dot -->
     <ItemMedia>
       <span
-        class="h-1.5 w-1.5 rounded-full transition-colors"
+        class="h-1.5 w-1.5 rounded-full transition-colors duration-150"
         :class="{
           'bg-emerald-400 shadow-[0_0_6px_theme(colors.emerald.400)] animate-pulse': container.status === 'running',
           'bg-red-400': container.status === 'dead',
@@ -89,15 +89,15 @@ function formatBytes(bytes: number): string {
     </ItemContent>
 
     <!-- Actions -->
-    <ItemActions class="gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100" @click.stop>
+    <ItemActions class="gap-0.5" @click.stop>
       <!-- Favorite -->
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
             variant="ghost"
             size="icon"
-            class="h-7 w-7 hover:bg-white/5"
-            :class="favorite ? 'text-amber-400 opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+            class="h-7 w-7 rounded-xl hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+            :class="favorite ? 'text-amber-400 !opacity-100' : 'text-zinc-600 hover:text-amber-400'"
             @click="emit('toggleFavorite')"
           >
             <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
@@ -112,7 +112,7 @@ function formatBytes(bytes: number): string {
           <SharedButton
             variant="ghost"
             size="icon"
-            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200 rounded-xl transition-all duration-150"
             @click="emit('logs')"
           >
             <FileText class="h-3.5 w-3.5" />
@@ -130,8 +130,8 @@ function formatBytes(bytes: number): string {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-7 w-7 hover:bg-white/5"
-            :class="isRunning ? 'text-zinc-500 hover:text-red-400' : 'text-emerald-500 hover:text-emerald-400'"
+            class="h-7 w-7 hover:bg-white/5 rounded-xl transition-all duration-150"
+            :class="isRunning ? 'text-red-400 hover:text-red-400' : 'text-emerald-500 hover:text-emerald-400'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
@@ -146,7 +146,7 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+            class="h-7 w-7 text-emerald-300 hover:text-emerald-300 hover:bg-white/5 rounded-xl transition-all duration-150"
             @click="emit('restart')"
           />
         </TooltipTrigger>
@@ -161,7 +161,7 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending"
             :icon="Trash2"
-            class="h-7 w-7 text-zinc-600 hover:bg-red-500/10 hover:text-red-400"
+            class="h-7 w-7 text-red-400 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all duration-150"
             @click="emit('remove')"
           />
         </TooltipTrigger>

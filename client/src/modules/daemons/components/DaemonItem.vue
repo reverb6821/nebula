@@ -114,7 +114,7 @@ const bootTooltip = computed(() => {
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton variant="ghost" size="icon" :disabled="pending || !isRunning" :icon="RotateCcw"
-            class="h-7 w-7 rounded-xl text-zinc-500 hover:bg-white/5 hover:text-zinc-200" @click="emit('restart')" />
+            class="h-7 w-7 rounded-xl text-zinc-500 text-emerald-300 hover:text-emerald-300 transition-all duration-150" @click="emit('restart')" />
         </TooltipTrigger>
         <TooltipContent>{{ t('common.restart') }}</TooltipContent>
       </Tooltip>

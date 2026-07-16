@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { SidebarProps } from "@/components/ui/sidebar"
-
+import { useI18n } from "vue-i18n";
 import {
     ActivitySquare,
-    Command,
     Container,
     Settings2,
     SquareTerminal,
@@ -19,41 +18,44 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Badge from "../ui/badge/Badge.vue";
 
 const props = withDefaults(defineProps<SidebarProps>(), {
     variant: "inset",
 })
 
+const { t } = useI18n()
+
 const data = {
     navMain: [
         {
-            title: "Dashboard",
+            title: "DASHBOARD",
             url: "#",
             icon: SquareTerminal,
             isActive: true,
         },
         {
-            title: "System",
+            title: "SYSTEM",
             url: "#",
             icon: ActivitySquare,
             items: [
                 {
-                    title: "Daemons",
+                    title: "SYSTEM_DAEMONS",
                     url: "/daemons",
                 },
                 {
-                    title: "Process",
+                    title: "SYSTEM_PROCESS",
                     url: "#",
                 },
             ],
         },
         {
-            title: "Docker",
+            title: "DOCKER",
             url: "/docker",
             icon: Container,
         },
         {
-            title: "Settings",
+            title: "SETTINGS",
             url: "/settings",
             icon: Settings2,
         },
@@ -62,26 +64,18 @@ const data = {
 </script>
 
 <template>
-    <Sidebar v-bind="props">
+    <Sidebar v-bind="props" class="h-full">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <!--
-                        Rimosso as-child: il div non e' un elemento interattivo,
-                        rompe la navigazione da tastiera. SidebarMenuButton rimane
-                        un button nativo con il contenuto dentro.
-                    -->
                     <SidebarMenuButton size="lg">
-                        <div
-                            class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
-                            aria-hidden="true"
-                        >
-                            <Command class="size-4" />
-                        </div>
-                        <div class="grid flex-1 text-left text-sm leading-tight">
-                            <span class="truncate font-medium">Nebula</span>
-                            <span class="truncate text-xs">System and Docker manager</span>
-                        </div>
+                        <div class="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground"
+                            aria-hidden="true">
+                            <img src="../../assets/logo.png" </div>
+                            <div class="grid flex-1 text-left text-sm leading-tight">
+                                <span class="truncate font-medium">Nebula</span>
+                                <span class="truncate text-xs">System and Docker manager</span>
+                            </div>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -89,11 +83,7 @@ const data = {
         <SidebarContent>
             <NavMain :items="data.navMain" />
         </SidebarContent>
-        <!-- Footer: testo grezzo stilato minimalmente per coerenza -->
         <SidebarFooter>
-            <span class="px-2 py-1 text-xs text-muted-foreground select-none">
-                Nebula v0.0.1
-            </span>
         </SidebarFooter>
     </Sidebar>
 </template>

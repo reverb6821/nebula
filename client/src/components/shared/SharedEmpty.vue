@@ -27,7 +27,7 @@ defineEmits<{
   <Empty>
     <EmptyHeader>
       <!-- Icona dinamica -->
-      <EmptyMedia v-if="icon" variant="icon">
+      <EmptyMedia v-if="icon" variant="icon" class="rounded-xl">
         <component :is="icon" />
       </EmptyMedia>
       

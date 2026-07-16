@@ -47,14 +47,14 @@ function formatBytes(bytes: number): string {
 
 <template>
   <Card
-    class="group cursor-pointer border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    class="py-2 group cursor-pointer border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04] rounded-xl"
     :class="{
       'border-indigo-500/40 bg-indigo-500/5 shadow-[inset_0_0_0_1px_theme(colors.indigo.500/0.2)]': selected,
       'border-amber-500/20 bg-amber-500/[0.03]': favorite && !selected,
     }"
     @click="emit('logs')"
   >
-    <CardHeader class="space-y-1.5 p-4 pb-3">
+    <CardHeader class="space-y-1.5">
       <!-- Name row -->
       <div class="flex items-start justify-between gap-2">
         <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-zinc-100">
@@ -66,7 +66,7 @@ function formatBytes(bytes: number): string {
             <SharedButton
               variant="ghost"
               size="icon"
-              class="h-6 w-6 shrink-0 hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+              class="h-6 w-6 shrink-0 rounded-xl hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
               :class="favorite ? 'text-amber-400 !opacity-100' : 'text-zinc-600 hover:text-amber-400'"
               @click.stop="emit('toggleFavorite')"
             >
@@ -84,9 +84,9 @@ function formatBytes(bytes: number): string {
       </div>
     </CardHeader>
 
-    <CardContent class="space-y-3 px-4 pb-0">
+    <CardContent class="space-y-3">
       <!-- Ports -->
-      <div v-if="container.ports.length" class="flex flex-wrap gap-1">
+      <div v-if="container.ports.length" class="flex flex-wrap gap-1 rounded-xl">
         <span
           v-for="port in container.ports"
           :key="port"
@@ -97,7 +97,7 @@ function formatBytes(bytes: number): string {
       </div>
 
       <!-- Stats bar -->
-      <div v-if="isRunning && stats" class="grid grid-cols-2 gap-2">
+      <div v-if="isRunning && stats" class="grid grid-cols-2 gap-2 rounded-xl">
         <div class="rounded-md bg-white/[0.03] px-2.5 py-1.5 ring-1 ring-white/[0.05]">
           <p class="text-[10px] uppercase tracking-widest text-zinc-600">CPU</p>
           <p class="mt-0.5 font-mono text-xs font-medium tabular-nums text-zinc-300">
@@ -115,7 +115,7 @@ function formatBytes(bytes: number): string {
 
     <!-- Footer actions -->
     <div
-      class="mt-3 flex items-center gap-0.5 border-t border-white/[0.05] px-3 py-2"
+      class="flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-1"
       @click.stop
     >
       <Tooltip>
@@ -123,7 +123,7 @@ function formatBytes(bytes: number): string {
           <SharedButton
             variant="ghost"
             size="icon"
-            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+            class="h-7 w-7 rounded-xl text-zinc-500 hover:bg-white/5 hover:text-zinc-200 transition-all duration-150"
             @click="emit('logs')"
           >
             <FileText class="h-3.5 w-3.5" />
@@ -140,8 +140,8 @@ function formatBytes(bytes: number): string {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-7 w-7 hover:bg-white/5"
-            :class="isRunning ? 'text-zinc-500 hover:text-red-400' : 'text-emerald-500 hover:text-emerald-400'"
+            class="h-7 w-7 rounded-xl hover:bg-white/5 transition-all duration-150"
+            :class="isRunning ? 'text-red-400 hover:text-red-400' : 'text-emerald-500 hover:text-emerald-400'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
@@ -155,7 +155,7 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+            class="h-7 w-7 rounded-xl text-zinc-500 hover:bg-white/5 text-emerald-300 hover:text-emerald-300 transition-all duration-150"
             @click="emit('restart')"
           />
         </TooltipTrigger>
@@ -169,7 +169,7 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending"
             :icon="Trash2"
-            class="h-7 w-7 text-zinc-600 hover:bg-red-500/10 hover:text-red-400"
+            class="h-7 w-7 rounded-xl text-red-400  hover:bg-red-500/20 hover:text-red-400 transition-all duration-150"
             @click="emit('remove')"
           />
         </TooltipTrigger>

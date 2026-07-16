@@ -43,7 +43,7 @@ onUnmounted(clearHeader)
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-5 px-2 py-3">
+  <div class="flex flex-col gap-5 px-2 py-3">
 
     <SharedAlert v-if="error" variant="destructive" title="Error" :description="error" />
 

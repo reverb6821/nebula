@@ -46,10 +46,10 @@ const bootTooltip = computed(() => {
 
 <template>
   <Card
-    class="group flex flex-col border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04] rounded-xl"
+    class="py-2 group flex flex-col border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04] rounded-xl"
     :class="{ 'border-amber-500/20 bg-amber-500/[0.03]': favorite }"
   >
-    <CardHeader class="space-y-2 p-4 pb-3">
+    <CardHeader class="space-y-1.5">
       <!-- Top row: status badge + controls -->
       <div class="flex items-center justify-between gap-2">
         <DaemonStatusBadge :status="daemon.status" />
@@ -106,7 +106,7 @@ const bootTooltip = computed(() => {
     </CardContent>
 
     <!-- Footer actions -->
-    <div class="mt-3 flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-2">
+    <div class="flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-1">
       <!-- Start / Stop -->
       <Tooltip>
         <TooltipTrigger as-child>
@@ -134,7 +134,7 @@ const bootTooltip = computed(() => {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200 rounded-xl"
+            class="h-7 w-7 text-zinc-500 text-emerald-300 hover:text-emerald-300 transition-all duration-150 rounded-xl"
             @click="emit('restart')"
           />
         </TooltipTrigger>

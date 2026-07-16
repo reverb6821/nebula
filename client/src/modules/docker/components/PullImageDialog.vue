@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { SharedButton } from '@/components/shared'
 
 const { t } = useI18n()
 const store = useDockerStore()
@@ -38,16 +39,16 @@ async function handlePull() {
 </script>
 
 <template>
-  <Dialog v-model:open="open">
+  <Dialog v-model:open="open" class="rounded-xl">
     <DialogTrigger as-child>
-      <Button
+      <SharedButton
         variant="outline"
         size="sm"
-        class="gap-1.5 border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:border-white/[0.14] hover:bg-white/[0.06] hover:text-zinc-100"
+        class="rougap-1.5 border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:border-white/[0.14] hover:bg-white/[0.06] hover:text-zinc-100"
       >
         <Download class="h-3.5 w-3.5" />
         {{ t('docker.pullImage') }}
-      </Button>
+      </SharedButton>
     </DialogTrigger>
 
     <DialogContent class="border-white/[0.08] bg-[#0c0c0e] sm:max-w-md">
@@ -59,7 +60,7 @@ async function handlePull() {
         <Input
           v-model="imageName"
           placeholder="nginx:latest, ubuntu:22.04…"
-          class="border-white/[0.08] bg-white/[0.04] font-mono text-zinc-200 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-indigo-500/20"
+          class="rounded-xl border-white/[0.08] bg-white/[0.04] font-mono text-zinc-200 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-indigo-500/20"
           :disabled="pulling"
           @keydown.enter="handlePull"
         />
@@ -100,9 +101,10 @@ async function handlePull() {
           </div>
         </Transition>
 
-        <Button
+        <SharedButton
+          variant="default"
           :disabled="pulling || !imageName.trim()"
-          class="gap-2 bg-indigo-600 font-medium hover:bg-indigo-500 disabled:opacity-40"
+          class="gap-2 font-medium disabled:opacity-40 bg-white/[0.08] text-zinc-100 hover:bg-white/[0.04] shadow-sm"
           @click="handlePull"
         >
           <template v-if="pulling">
@@ -113,7 +115,7 @@ async function handlePull() {
             {{ t('docker.pullButton') }}
             <ArrowRight class="h-3.5 w-3.5" />
           </template>
-        </Button>
+        </SharedButton>
       </div>
     </DialogContent>
   </Dialog>

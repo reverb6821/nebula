@@ -60,13 +60,13 @@ const hasAny = computed(() =>
                 <PullImageDialog v-if="activeTab === 'images'" /><!-- label internalized in PullImageDialog -->
 
                 <!-- View toggle -->
-                <div class="flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5">
-                    <SharedButton variant="ghost" size="icon" class="h-6 w-6 transition-all duration-150"
+                <div class="flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5 rounded-xl">
+                    <SharedButton variant="ghost" size="icon" class="h-6 w-6 rounded-xl transition-all duration-150"
                         :class="viewMode === 'list' ? 'bg-white/[0.08] text-zinc-100' : 'text-zinc-600 hover:text-zinc-400'"
                         @click="store.viewMode = 'list'">
                         <List class="h-3.5 w-3.5" />
                     </SharedButton>
-                    <SharedButton variant="ghost" size="icon" class="h-6 w-6 transition-all duration-150"
+                    <SharedButton variant="ghost" size="icon" class="h-6 w-6 rounded-xl transition-all duration-150"
                         :class="viewMode === 'grid' ? 'bg-white/[0.08] text-zinc-100' : 'text-zinc-600 hover:text-zinc-400'"
                         @click="store.viewMode = 'grid'">
                         <LayoutGrid class="h-3.5 w-3.5" />

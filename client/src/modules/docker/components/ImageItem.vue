@@ -40,7 +40,7 @@ function formatDate(unix: number): string {
 <template>
   <Item
     variant="outline"
-    class="group border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    class="group rounded-xl border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
   >
     <ItemMedia>
       <HardDrive class="h-3.5 w-3.5 text-zinc-600" />
@@ -59,7 +59,7 @@ function formatDate(unix: number): string {
       </ItemDescription>
     </ItemContent>
 
-    <ItemActions class="opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+    <ItemActions>
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -67,7 +67,7 @@ function formatDate(unix: number): string {
             size="icon"
             :disabled="pending"
             :icon="Trash2"
-            class="h-7 w-7 text-zinc-600 hover:bg-red-500/10 hover:text-red-400"
+            class="h-7 w-7 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-400 transition-all duration-150"
             @click="emit('remove')"
           />
         </TooltipTrigger>
