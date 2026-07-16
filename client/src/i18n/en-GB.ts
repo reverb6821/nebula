@@ -1,4 +1,14 @@
 export const enGB = {
+  sidebar: {
+    DASHBOARD: 'Dashboard',
+    SYSTEM: 'System',
+    SYSTEM_DAEMONS: 'Daemons',
+    SYSTEM_PROCESS: 'Process',
+    DOCKER: 'Docker',
+    SETTINGS: 'Settings',
+    expand: 'Expand',
+    navigation: 'Navigation'
+  },
   common: {
     refresh: 'Refresh',
     search: 'Search',

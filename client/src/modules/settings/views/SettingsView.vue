@@ -10,7 +10,7 @@ const settings = useSettingsStore()
 
 <template>
   <div class="flex h-full flex-col overflow-y-auto">
-    <div class="mx-auto w-full max-w-2xl space-y-8 p-6">
+    <div class="w-full max-w-2xl px-2 py-3">
 
       <!-- Header -->
       <div>

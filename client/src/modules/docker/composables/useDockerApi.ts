@@ -7,6 +7,34 @@ import type {
   PullProgress,
 } from '@/types/docker'
 
+// ─── Date parser ─────────────────────────────────────────────────────────────
+// Docker CLI restituisce date in formati non standard che rompono new Date():
+//   '2024-01-15 10:23:45 +0000 UTC'          (docker images)
+//   '2024-01-15 10:23:45 +0000 UTC m=+123.4' (monotonic clock suffix)
+//   '2024-01-15 10:23:45 +0100 CET'          (named timezone)
+//   '2025-07-16T10:23:45.123456789Z'          (ISO 8601, ok)
+// Restituisce unix timestamp in secondi, 0 se non parsabile.
+
+function parseDockerDate(s: string): number {
+  if (!s) return 0
+  // 1. rimuove il suffisso monotonic clock 'm=+123.456'
+  const clean = s.replace(/\s+m=[+-][\d.]+/, '').trim()
+  // 2. normalizza il formato spazio-separato in ISO 8601:
+  //    '2024-01-15 10:23:45 +0100 CET' -> '2024-01-15T10:23:45+0100'
+  //    '2024-01-15 10:23:45 +0000 UTC' -> '2024-01-15T10:23:45Z'
+  const normalized = clean
+    .replace(
+      /^(\d{4}-\d{2}-\d{2})\s(\d{2}:\d{2}:\d{2})\s([+-]\d{4})\s\w+$/,
+      '$1T$2$3',
+    )
+    .replace(
+      /^(\d{4}-\d{2}-\d{2})\s(\d{2}:\d{2}:\d{2})\sUTC$/,
+      '$1T$2Z',
+    )
+  const ms = new Date(normalized).getTime()
+  return isNaN(ms) ? 0 : Math.floor(ms / 1000)
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 
 export async function pingDocker(): Promise<boolean> {
@@ -56,7 +84,7 @@ export async function fetchImages(): Promise<DockerImage[]> {
         id: raw.ID,
         repoTags: [`${repo}${tag}`],
         size: parseSize(raw.Size),
-        created: Math.floor(new Date(raw.CreatedAt).getTime() / 1000),
+        created: parseDockerDate(raw.CreatedAt),
       } satisfies DockerImage
     })
 }
@@ -130,7 +158,7 @@ export async function fetchContainers(): Promise<DockerContainer[]> {
         status: mapStatus(raw.State),
         state: raw.Status,
         ports: raw.Ports ? raw.Ports.split(', ').filter(Boolean) : [],
-        created: Math.floor(new Date(raw.CreatedAt).getTime() / 1000),
+        created: parseDockerDate(raw.CreatedAt),
       } satisfies DockerContainer
     })
 }

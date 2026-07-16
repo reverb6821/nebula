@@ -42,7 +42,7 @@ const icon = computed(() => {
     // Classi custom per gestire gli stati non nativi di shadcn (success e warning)
     variant === 'success' && 'border-emerald-500/50 text-emerald-600 dark:border-emerald-500 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-500',
     variant === 'warning' && 'border-amber-500/50 text-amber-600 dark:border-amber-500 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-500'
-  ]">
+  ]" class="rounded-xl">
     <!-- Icona dinamica -->
     <component :is="icon" class="h-4 w-4" />
     

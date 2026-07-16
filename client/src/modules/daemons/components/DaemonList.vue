@@ -44,11 +44,11 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
       </p>
 
       <!-- View toggle -->
-      <div class="flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5">
+      <div class="flex rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5 rounded-xl">
         <SharedButton
           variant="ghost"
           size="icon"
-          class="h-6 w-6 transition-all duration-150"
+          class="h-6 w-6 transition-all duration-150 rounded-xl"
           :class="viewMode === 'list' ? 'bg-white/[0.08] text-zinc-100' : 'text-zinc-600 hover:text-zinc-400'"
           @click="viewMode = 'list'"
         >
@@ -57,7 +57,7 @@ const hasAny = () => filteredFavorites.value.length > 0 || filteredNonFav.value.
         <SharedButton
           variant="ghost"
           size="icon"
-          class="h-6 w-6 transition-all duration-150"
+          class="h-6 w-6 transition-all duration-150 rounded-xl"
           :class="viewMode === 'grid' ? 'bg-white/[0.08] text-zinc-100' : 'text-zinc-600 hover:text-zinc-400'"
           @click="viewMode = 'grid'"
         >

@@ -31,7 +31,7 @@ function toggle() {
       :aria-checked="modelValue"
       :disabled="disabled"
       class="relative inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
-      :class="modelValue ? 'bg-indigo-500' : 'bg-zinc-700'"
+      :class="modelValue ? 'bg-zinc-800' : 'bg-zinc-600'"
       @click="toggle"
     >
       <span

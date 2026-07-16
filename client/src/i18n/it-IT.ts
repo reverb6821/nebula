@@ -1,4 +1,14 @@
 export const itIT = {
+    sidebar: {
+    DASHBOARD: 'Dashboard',
+    SYSTEM: 'Sistema',
+    SYSTEM_DAEMONS: 'Demoni',
+    SYSTEM_PROCESS: 'Processi',
+    DOCKER: 'Docker',
+    SETTINGS: 'Impostazioni',
+    expand: 'Espandi',
+    navigation: 'Navigazione'
+  },
   common: {
     refresh: 'Aggiorna',
     search: 'Cerca',

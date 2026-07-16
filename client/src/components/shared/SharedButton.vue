@@ -25,7 +25,7 @@ withDefaults(defineProps<Props>(), {
     :variant="variant"
     :size="size"
     :disabled="disabled || loading"
-    class="relative inline-flex items-center justify-center gap-2"
+    class="relative inline-flex items-center justify-center gap-2 rounded-xl"
   >
     <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
 
