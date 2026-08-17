@@ -45,7 +45,7 @@ const data = {
                 },
                 {
                     title: "SYSTEM_PROCESS",
-                    url: "#",
+                    url: "/process",
                 },
             ],
         },

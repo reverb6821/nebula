@@ -19,7 +19,7 @@
       "height": 800,
       "minWidth": 800,
       "minHeight": 500,
-      "icon": "/client/public/favicon.ico",
+      "icon": "/client/src/assets/logo.png",
       "enableInspector": true
     }
   },

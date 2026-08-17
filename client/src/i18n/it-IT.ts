@@ -26,17 +26,6 @@ export const itIT = {
     comingSoon: 'Prossimamente.',
     boot: 'Avvio',
   },
-
-  nav: {
-    system: 'Sistema',
-    containers: 'Contenitori',
-    ai: 'AI',
-    daemons: 'Demoni',
-    docker: 'Docker',
-    ollama: 'Ollama',
-    settings: 'Impostazioni',
-  },
-
   daemons: {
     title: 'Demoni',
     running: '{n} in esecuzione',
@@ -75,7 +64,12 @@ export const itIT = {
     enabledDisabled: 'Disabilitato',
     enabledStatic: 'Statico',
   },
-
+  processes: {
+    pid: 'PID',
+    terminate: 'Termina (SIGTERM)',
+    kill: 'Kill (SIGKILL)',
+    changePriority: 'Cambia priorità'
+  },
   docker: {
     title: 'Docker',
     running: '{n} in esecuzione',
