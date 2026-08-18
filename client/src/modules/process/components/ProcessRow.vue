@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { X, Minus, ChevronDown, ArrowUpDown } from '@lucide/vue'
 import type { Process } from '@/types/process'
 import ProcessStatusBadge from './ProcessStatusBadge.vue'
+import ProcessIcon from './ProcessIcon.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,13 +47,16 @@ function formatBytes(bytes: number): string {
   >
     <!-- Name -->
     <td class="py-2 pl-2 pr-4">
-      <div class="flex flex-col">
-        <span class="max-w-[180px] truncate font-mono text-xs font-medium text-zinc-200">
-          {{ process.name }}
-        </span>
-        <span class="max-w-[180px] truncate text-[10px] text-zinc-600" :title="process.cmd">
-          {{ process.cmd }}
-        </span>
+      <div class="flex items-center gap-2">
+        <ProcessIcon :process="process" />
+        <div class="flex min-w-0 flex-col">
+          <span class="max-w-[180px] truncate font-mono text-xs font-medium text-zinc-200">
+            {{ process.name }}
+          </span>
+          <span class="max-w-[180px] truncate text-[10px] text-zinc-600" :title="process.cmd">
+            {{ process.cmd }}
+          </span>
+        </div>
       </div>
     </td>
 
