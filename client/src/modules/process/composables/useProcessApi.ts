@@ -1,9 +1,17 @@
-import { runCmd } from '@/composables/useNeutralinoCmd'
+import { runCmd, spawnStream } from '@/composables/useNeutralinoCmd'
+import type { CmdStream } from '@/composables/useNeutralinoCmd'
 import type { Process, ProcessStatus } from '@/types/process'
 
+// ─── Comando ps ─────────────────────────────────────────────────────────────
+// rss è già espresso in KB da ps: non serve più leggere /proc/<pid>/status
+// a mano per la memoria, un solo comando basta.
+// Output: "  1234  5678 root     S  0.0  0.1  02:14:33  4120 systemd /sbin/init"
+
+const PS_FIELDS = 'pid,ppid,user,stat,pcpu,pmem,etime,rss,comm,args'
+const PS_CMD = `ps -eo ${PS_FIELDS} --no-headers --sort=-pcpu`
+const STREAM_MARKER = '__PS_SNAPSHOT_END__'
+
 // ─── Parser ───────────────────────────────────────────────────────────────────
-// ps -eo pid,ppid,user,stat,pcpu,pmem,etime,comm,args --no-headers
-// Output: "  1234  5678 root     S  0.0  0.1  02:14:33 systemd /sbin/init"
 
 function parsePs(raw: string): Process[] {
   return raw
@@ -13,7 +21,7 @@ function parsePs(raw: string): Process[] {
     .map((line): Process | null => {
       // Usa campi separati da spazi — etime può contenere ':'
       const cols = line.trimStart().split(/\s+/)
-      if (cols.length < 8) return null
+      if (cols.length < 9) return null
 
       const pid        = parseInt(cols[0] ?? '0', 10)
       const ppid       = parseInt(cols[1] ?? '0', 10)
@@ -22,54 +30,64 @@ function parsePs(raw: string): Process[] {
       const cpuPercent = parseFloat(cols[4] ?? '0') || 0
       const memPercent = parseFloat(cols[5] ?? '0') || 0
       const elapsed    = cols[6] ?? '-'
-      const name       = cols[7] ?? '?'
-      const cmd        = cols.slice(8).join(' ') || name
+      const rssKb       = parseInt(cols[7] ?? '0', 10) || 0
+      const name        = cols[8] ?? '?'
+      const cmd         = cols.slice(9).join(' ') || name
 
       if (isNaN(pid)) return null
 
-      return { pid, ppid, name, cmd, user, status, cpuPercent, memPercent, memBytes: 0, elapsed }
+      return {
+        pid, ppid, name, cmd, user, status,
+        cpuPercent, memPercent, elapsed,
+        memBytes: rssKb * 1024,
+      }
     })
     .filter((p): p is Process => p !== null)
 }
 
-// ─── List ─────────────────────────────────────────────────────────────────────
+// ─── One-shot (caricamento iniziale / refresh manuale) ─────────────────────
 
 export async function listProcesses(): Promise<Process[]> {
-  const { stdout, exitCode } = await runCmd(
-    'ps -eo pid,ppid,user,stat,pcpu,pmem,etime,comm,args --no-headers --sort=-pcpu',
-  )
-
+  const { stdout, exitCode } = await runCmd(PS_CMD)
   if (exitCode !== 0 || !stdout.trim()) return []
+  return parsePs(stdout)
+}
 
-  const procs = parsePs(stdout)
+// ─── Stream (auto-refresh) ──────────────────────────────────────────────────
+// Un solo processo bash persistente ristampa lo snapshot ogni
+// `intervalSeconds` e lo notifica via evento — al posto di un setInterval
+// lato JS che rilancia execCommand (quindi un roundtrip IPC + fork/exec di
+// ps) ad ogni tick.
 
-  // Arricchisci con memoria in bytes tramite /proc/<pid>/status (Linux)
-  // In batch: leggi VmRSS da /proc in un solo comando
-  const pids = procs.map((p) => p.pid)
-  if (pids.length === 0) return procs
+export function startProcessStream(
+  onSnapshot: (processes: Process[]) => void,
+  onError?: (message: string) => void,
+  intervalSeconds = 3,
+): Promise<CmdStream> {
+  let buffer = ''
 
-  try {
-    const memCmd = pids
-      .map((pid) => `awk '/VmRSS/{print "${pid} " $2}' /proc/${pid}/status 2>/dev/null`)
-      .join('; ')
+  const loopCmd = `bash -c '
+    while true; do
+      ${PS_CMD}
+      echo "${STREAM_MARKER}"
+      sleep ${intervalSeconds}
+    done
+  '`
 
-    const { stdout: memOut } = await runCmd(`{ ${memCmd}; }`)
-    const memMap = new Map<number, number>()
-
-    for (const line of memOut.trim().split('\n')) {
-      const [pidStr, kbStr] = line.trim().split(/\s+/)
-      const pid = parseInt(pidStr ?? '', 10)
-      const kb  = parseInt(kbStr  ?? '', 10)
-      if (!isNaN(pid) && !isNaN(kb)) memMap.set(pid, kb * 1024)
-    }
-
-    return procs.map((p) => ({
-      ...p,
-      memBytes: memMap.get(p.pid) ?? 0,
-    }))
-  } catch {
-    return procs
-  }
+  return spawnStream(loopCmd, {
+    onStdout: (data) => {
+      buffer += data
+      const chunks = buffer.split(`${STREAM_MARKER}\n`)
+      buffer = chunks.pop() ?? '' // ultimo pezzo: snapshot ancora incompleto
+      for (const chunk of chunks) {
+        if (chunk.trim()) onSnapshot(parsePs(chunk))
+      }
+    },
+    onStderr: (data) => onError?.(data.trim()),
+    onExit: (code) => {
+      if (code !== 0) onError?.(`process stream terminato inaspettatamente (exit ${code})`)
+    },
+  })
 }
 
 // ─── Kill ─────────────────────────────────────────────────────────────────────

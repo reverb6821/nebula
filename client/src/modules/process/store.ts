@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { useIntervalFn, refDebounced } from '@vueuse/core'
+import { ref, computed, watch, onScopeDispose } from 'vue'
+import { refDebounced } from '@vueuse/core'
 import type { Process, ProcessStatus, SortKey, SortDir } from '@/types/process'
+import type { CmdStream } from '@/composables/useNeutralinoCmd'
 import {
   listProcesses,
+  startProcessStream,
   killProcess,
   terminateProcess,
   reniceProcess,
@@ -92,7 +94,7 @@ export const useProcessesStore = defineStore('processes', () => {
     }
   }
 
-  // ─── Fetch ──────────────────────────────────────────────────────────────────
+  // ─── Fetch (caricamento iniziale / refresh manuale) ────────────────────────
 
   async function fetch() {
     loading.value = true
@@ -106,10 +108,38 @@ export const useProcessesStore = defineStore('processes', () => {
     }
   }
 
-  // Auto-refresh ogni 3s
-  useIntervalFn(() => {
-    if (autoRefresh.value) fetch()
-  }, 3000)
+  // ─── Auto-refresh (stream) ──────────────────────────────────────────────────
+  // Un solo processo nativo persistente invece di un setInterval che
+  // rilancia execCommand ogni 3s: vedi useProcessApi.startProcessStream.
+
+  let stream: CmdStream | null = null
+
+  async function startAutoRefresh() {
+    if (stream) return
+    stream = await startProcessStream(
+      (snapshot) => {
+        processes.value = snapshot
+        loading.value = false
+        error.value = null
+      },
+      (message) => { error.value = message },
+      1, // intervalSeconds — refresh veloce per un feel "live"
+    )
+  }
+
+  async function stopAutoRefresh() {
+    if (!stream) return
+    const s = stream
+    stream = null
+    await s.stop()
+  }
+
+  watch(autoRefresh, (enabled) => {
+    if (enabled) startAutoRefresh()
+    else stopAutoRefresh()
+  }, { immediate: true })
+
+  onScopeDispose(stopAutoRefresh)
 
   // ─── Actions ────────────────────────────────────────────────────────────────
 
