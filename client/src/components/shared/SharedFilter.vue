@@ -7,10 +7,10 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Tooltip,
   TooltipContent,
@@ -65,7 +65,7 @@ const props = withDefaults(defineProps<{
   activeTab?: TTab
 
   /**
-   * Optional advanced-filter groups rendered in the collapsible panel.
+   * Optional advanced-filter groups rendered in the popover panel.
    * If omitted, the filter toggle button is hidden.
    */
   filterGroups?: FilterGroup<TFilter>[]
@@ -113,7 +113,6 @@ const anyFilterActive = computed(
 function onKeydown(e: KeyboardEvent) {
   if (e.ctrlKey && e.key === 'f') {
     e.preventDefault()
-    // Input is wrapped by shadcn — grab the real <input> element
     const el = (searchInput.value?.$el as HTMLElement | undefined)
       ?.querySelector?.('input') as HTMLInputElement | null
       ?? (searchInput.value?.$el as HTMLInputElement | null)
@@ -190,23 +189,29 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     </div>
 
     <!-- ── Advanced filters toggle ────────────────────────────────────────── -->
-    <Collapsible v-if="hasFilters" v-model:open="open" class="relative">
-      <CollapsibleTrigger as-child>
-        <SharedButton
-          variant="outline"
-          size="icon"
-          class="h-8 w-8 shrink-0 rounded-xl border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:text-zinc-300"
-          :class="anyFilterActive
-            ? 'border-indigo-500/40 text-indigo-400'
-            : 'text-zinc-500'"
-        >
-          <SlidersHorizontal class="h-3.5 w-3.5" />
-        </SharedButton>
-      </CollapsibleTrigger>
+    <!--
+      Popover invece di Collapsible: PopoverContent viene teleportato (Portal)
+      dentro <body>, uscendo completamente da qualsiasi ancestor con
+      overflow-hidden (come SidebarProvider/SidebarInset in AppLayout).
+      Collapsible invece renderizza inline nel DOM — se un ancestor ha
+      overflow-hidden, il pannello si "apre" ma resta invisibile perché
+      clippato, senza alcun errore in console.
+    -->
+    <Popover v-if="hasFilters" v-model:open="open">
+      <PopoverTrigger
+        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.02] transition-colors hover:bg-white/[0.05]"
+        :class="anyFilterActive
+          ? 'border-indigo-500/40 text-indigo-400'
+          : 'text-zinc-500 hover:text-zinc-300'"
+      >
+        <SlidersHorizontal class="h-3.5 w-3.5" />
+      </PopoverTrigger>
 
       <!-- ── Filter panel ──────────────────────────────────────────────────── -->
-      <CollapsibleContent
-        class="absolute right-0 z-10 mt-1.5 w-64 rounded-xl border border-white/[0.08] bg-[#0c0c0e] p-4 shadow-2xl shadow-black/50"
+      <PopoverContent
+        align="end"
+        :side-offset="6"
+        class="w-64 rounded-xl border border-white/[0.08] bg-[#0c0c0e] p-4 shadow-2xl shadow-black/50"
       >
         <div class="flex flex-col gap-4">
 
@@ -277,8 +282,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </SharedButton>
 
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      </PopoverContent>
+    </Popover>
 
   </div>
 </template>

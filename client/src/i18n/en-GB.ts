@@ -26,17 +26,6 @@ export const enGB = {
     comingSoon: 'Coming soon.',
     boot: 'Boot',
   },
-
-  nav: {
-    system: 'System',
-    containers: 'Containers',
-    ai: 'AI',
-    daemons: 'Daemons',
-    docker: 'Docker',
-    ollama: 'Ollama',
-    settings: 'Settings',
-  },
-
   daemons: {
     title: 'Daemons',
     running: '{n} running',
@@ -75,7 +64,12 @@ export const enGB = {
     enabledDisabled: 'Disabled',
     enabledStatic: 'Static',
   },
-
+  processes: {
+    pid: 'PID',
+    terminate: 'Terminate (SIGTERM)',
+    kill: 'Kill (SIGKILL)',
+    changePriority: 'Change Priority'
+  },
   docker: {
     title: 'Docker',
     running: '{n} running',
