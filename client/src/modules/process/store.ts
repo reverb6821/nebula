@@ -12,6 +12,7 @@ import {
 } from './composables/useProcessApi'
 
 const MIN_SEARCH = 2
+const PAGE_SIZE_DEFAULT = 50
 
 export const useProcessesStore = defineStore('processes', () => {
   const processes    = ref<Process[]>([])
@@ -23,6 +24,7 @@ export const useProcessesStore = defineStore('processes', () => {
   const sortDir      = ref<SortDir>('desc')
   const pendingPids  = ref<Set<number>>(new Set())
   const autoRefresh  = ref(true)
+  const selectedPid  = ref<number | null>(null)
 
   const searchDebounced = refDebounced(search, 250)
 
@@ -49,7 +51,6 @@ export const useProcessesStore = defineStore('processes', () => {
       return true
     })
 
-    // Sort
     list.sort((a, b) => {
       const av = a[sortKey.value]
       const bv = b[sortKey.value]
@@ -68,6 +69,32 @@ export const useProcessesStore = defineStore('processes', () => {
     running: processes.value.filter((p) => p.status === 'R').length,
     cpuTop:  processes.value.reduce((max, p) => Math.max(max, p.cpuPercent), 0),
   }))
+
+  // ─── Pagination ─────────────────────────────────────────────────────────────
+
+  const page     = ref(1)
+  const pageSize = ref(PAGE_SIZE_DEFAULT)
+
+  const totalPages = computed(() =>
+    Math.max(1, Math.ceil(filtered.value.length / pageSize.value)),
+  )
+
+  const paginated = computed(() => {
+    const start = (page.value - 1) * pageSize.value
+    return filtered.value.slice(start, start + pageSize.value)
+  })
+
+  function setPage(n: number) {
+    page.value = Math.min(Math.max(1, n), totalPages.value)
+  }
+
+  function setPageSize(n: number) {
+    pageSize.value = n
+    page.value = 1
+  }
+
+  watch([searchDebounced, statusFilter], () => { page.value = 1 })
+  watch(totalPages, (tp) => { if (page.value > tp) page.value = tp })
 
   // ─── Filters ────────────────────────────────────────────────────────────────
 
@@ -94,6 +121,12 @@ export const useProcessesStore = defineStore('processes', () => {
     }
   }
 
+  // ─── Selezione riga (stile htop: seleziona, poi agisci con gli F-tasti) ────
+
+  function select(pid: number) {
+    selectedPid.value = selectedPid.value === pid ? null : pid
+  }
+
   // ─── Fetch (caricamento iniziale / refresh manuale) ────────────────────────
 
   async function fetch() {
@@ -109,8 +142,6 @@ export const useProcessesStore = defineStore('processes', () => {
   }
 
   // ─── Auto-refresh (stream) ──────────────────────────────────────────────────
-  // Un solo processo nativo persistente invece di un setInterval che
-  // rilancia execCommand ogni 3s: vedi useProcessApi.startProcessStream.
 
   let stream: CmdStream | null = null
 
@@ -118,12 +149,19 @@ export const useProcessesStore = defineStore('processes', () => {
     if (stream) return
     stream = await startProcessStream(
       (snapshot) => {
-        processes.value = snapshot
+        // SHR non viaggia sullo stream (costerebbe una lettura di
+        // /proc/<pid>/statm per pid ogni secondo): resta "appiccicata"
+        // dall'ultimo fetch/refresh manuale finché il pid esiste ancora.
+        const prevByPid = new Map(processes.value.map((p) => [p.pid, p]))
+        processes.value = snapshot.map((p) => ({
+          ...p,
+          shrBytes: prevByPid.get(p.pid)?.shrBytes ?? p.shrBytes,
+        }))
         loading.value = false
         error.value = null
       },
       (message) => { error.value = message },
-      1, // intervalSeconds — refresh veloce per un feel "live"
+      1,
     )
   }
 
@@ -157,6 +195,7 @@ export const useProcessesStore = defineStore('processes', () => {
     await withPending(pid, async () => {
       await killProcess(pid)
       processes.value = processes.value.filter((p) => p.pid !== pid)
+      if (selectedPid.value === pid) selectedPid.value = null
     })
   }
 
@@ -171,11 +210,19 @@ export const useProcessesStore = defineStore('processes', () => {
     await withPending(pid, () => reniceProcess(pid, nice))
   }
 
+  function niceStep(pid: number, delta: number) {
+    const proc = processes.value.find((p) => p.pid === pid)
+    if (!proc) return
+    return renice(pid, proc.ni + delta)
+  }
+
   return {
     processes, filtered, loading, error,
     search, statusFilter, hasActiveFilters,
     sortKey, sortDir, pendingPids, autoRefresh, stats,
-    fetch, setSort, kill, terminate, renice,
+    page, pageSize, totalPages, paginated, setPage, setPageSize,
+    selectedPid, select,
+    fetch, setSort, kill, terminate, renice, niceStep,
     toggleStatusFilter, resetFilters,
   }
 })
