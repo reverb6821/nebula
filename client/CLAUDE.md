@@ -1,67 +1,74 @@
-# Nebula Dock — UI (Vue 3)
+# CLAUDE.md - Assistant Guidelines for Vue 3 + Neutralinojs Client
 
-## Stack
-- Vue 3 (Composition API, `<script setup>`) + TypeScript 5
-- Vite 6
-- Tailwind CSS 4
-- shadcn-vue + class-variance-authority (component variants)
-- clsx + tailwind-merge (class management via `cn()`)
-- Lucide Vue Next (icons)
-- Pinia 3 (global state)
-- Vue Router 4
-- VueUse (composable utilities)
-- Chart.js + vue-chartjs (container stats charts)
+This document defines the guidelines and workflows for AI assistants working on this codebase.
 
-## Testing
-- Vitest + @vue/test-utils (unit)
-- Playwright (e2e)
+---
 
-## Linting
-- ESLint 9 with eslint-plugin-vue + typescript-eslint
-- eslint-plugin-import + eslint-import-resolver-typescript
-- eslint-plugin-better-tailwindcss
+## Project Overview
 
-## Commands
+Desktop client for PC management and system diagnostics built with Vue 3, Neutralinojs, Pinia, and TailwindCSS.
+
+- **Frontend Framework**: Vue 3 (Composition API `<script setup lang="ts">`)
+- **Desktop Runtime**: Neutralinojs (`@neutralinojs/lib`)
+- **State Management**: Pinia & Pinia Colada
+- **UI Components**: shadcn-vue, TailwindCSS, Lucide Vue Icons
+- **i18n**: vue-i18n
+- **Testing**: Vitest (Unit), Playwright (E2E)
+
+---
+
+## Commands & Workflows
+
+### Development
 ```bash
-pnpm dev        # Vite dev server on :5173
-pnpm build      # vue-tsc --noEmit + vite build → dist/
-pnpm test       # vitest
-pnpm lint       # ESLint
-pnpm typecheck  # vue-tsc --noEmit
+# Start frontend dev server
+npm run dev
+
+# Start Neutralino app in dev mode
+neu run
 ```
 
-## Structure
-- `modules/` — one folder per domain (daemons, docker, ollama)
-- `components/` — shared/layout components; `components/ui/` for shadcn-vue (do not edit)
-- `composables/` — app-wide composables (Neutralino wrapper, sudo helper)
-- `stores/` — global Pinia stores (app state, theme)
-- `router/` — Vue Router config
-- `lib/` — pure logic (daemon.ts, docker.ts, ollama.ts) — no Vue imports here
+### Testing & Linting
+```bash
+# Run unit tests
+npm run test:unit
 
-## Module structure
-Each module under `modules/` follows the same shape:
-```
-<module>/
-├── store.ts          # use<Module>Store() — Pinia, one per module
-├── composables/      # async logic, all system/fetch calls
-├── views/            # routed page components (suffix: View.vue)
-└── components/       # presentational components, props-in/emit-out
+# Run unit tests with coverage
+npm run test:unit -- --coverage
+
+# Run E2E tests
+npm run test:e2e
+
+# Type check & lint
+npm run type-check
+npm run lint
 ```
 
-## System communication
-- OS commands: `Neutralino.os.execCommand()`
-- Only available at desktop runtime — always guard with `window.NL_VERSION` before use
-- Never call Neutralino directly from components or stores — use `composables/useNeutralinoCmd.ts`
+---
 
-## External APIs
-- Docker: CLI via `execCommand` with `--format json` (future: REST at `http://localhost:2375`)
-- Ollama: REST at `http://localhost:11434` — fetch directly, no proxy needed
-- Daemons: `systemctl` / `launchctl` via `execCommand`
+## Architecture & Code Conventions
 
-## Conventions
-- Each feature has a folder in `modules/` and a dedicated store + composables
-- No system/fetch logic inside components — keep it in `lib/` or module `composables/`
-- Use `pkexec` for privilege escalation on Linux, never pass passwords as CLI args
-- CSS classes: always use `cn()` (clsx + tailwind-merge) — never raw string concatenation
-- Use `storeToRefs()` when destructuring reactive state from Pinia stores
-- shadcn-vue components: add via `pnpm dlx shadcn-vue@latest add <component>`, never edit `components/ui/` directly
+### 1. IPC Execution (`useNeutralinoCmd`)
+- Execute OS commands via `runCmd` or `spawnStream` from `@/composables/useNeutralinoCmd`.
+- Always check for `window.NL_PORT` to allow fallback mocking in pure browser environments.
+
+### 2. Cross-Platform OS Logic
+- Isolate system-level actions (e.g., Windows PowerShell vs. Linux `systemctl`) inside module composables (e.g., `modules/<feature>/composables/`).
+
+### 3. Store Pattern (Pinia)
+- Use Setup Store syntax (`defineStore('name', () => { ... })`).
+- Use `refDebounced` from `@vueuse/core` for search inputs to avoid rapid refetches.
+
+### 4. Vue Components
+- Use strictly `<script setup lang="ts">`.
+- Use `storeToRefs` when destructuring state/getters from Pinia stores to preserve reactivity.
+- Leverage primitive UI components from `@/components/ui` (shadcn-vue) and shared UI controls from `@/components/shared`.
+
+---
+
+## Critical Rules
+
+1. **No Emojis**: Do not use emojis in code, comments, commit messages, or documentation.
+2. **Neutralino Execution Guard**: Always wrap native calls so non-desktop environments do not crash.
+3. **No Console Logs**: Use `console.debug` only for development mocks.
+4. **Immutability**: Maintain clean Vue reactivity; do not mutate nested reactive state directly.

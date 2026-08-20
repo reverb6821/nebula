@@ -1,82 +1,96 @@
-# Nebula Dock — Design System
-
-## Design Identity
-
-Nebula Dock is a desktop system tool: dense, precise, dark-native.
-The visual language reads as **professional developer tooling** — not a marketing page.
-Think: VS Code meets Linear meets a terminal. No decorative chrome.
-
+---
+version: "alpha"
+name: "nebula-pc-manager"
+description: "Tema scuro atmosferico ottimizzato per la diagnostica di sistema e la gestione del PC su desktop."
+colors:
+  primary: "#5A7A9A"
+  secondary: "#3A4A5C"
+  tertiary: "#1E2830"
+  neutral: "#C8CDD3"
+  surface: "#141A22"
+typography:
+  h1:
+    fontFamily: Gothic Display
+    fontSize: 2.25rem
+    fontWeight: 700
+  body-md:
+    fontFamily: Inter
+    fontSize: 1rem
+    fontWeight: 400
+  label-caps:
+    fontFamily: Inter
+    fontSize: 0.75rem
+    fontWeight: 500
+rounded:
+  sm: 8px
+  md: 12px
+  lg: 16px
+spacing:
+  sm: 1.0rem
+  md: 1.5rem
+  lg: 2.0rem
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.neutral}"
+    rounded: "{rounded.md}"
+    padding: 12px
 ---
 
-## Dials (taste-skill v2)
+## Panoramica
 
-DESIGN_VARIANCE: 5   — structured asymmetry, clean sidebar/main split, no chaos
-MOTION_INTENSITY: 4  — meaningful micro-interactions only; no scroll theatrics
-VISUAL_DENSITY: 8    — dense dashboard UI; data must breathe via dividers, not cards
+Tema scuro atmosferico riadattato per applicazioni di ottimizzazione del sistema e monitoraggio hardware. Le superfici blu-grigio scuro offrono un ambiente privo di distrazioni e antiriflesso, ideale per lunghe sessioni di monitoraggio, dashboard in background e strumenti di gestione delle risorse del PC.
 
----
 
-## UI Style
 
-**Primary:** Minimalism & Swiss Style + Dark Mode (OLED)
-**Secondary:** Bento Box Grid for stats/container panels
-**Pattern:** Real-Time Monitoring Dashboard
+## Colori
+- **Sfondo:** #0A0E14 (nero-blu profondo)
+- **Superficie:** #141A22 (pannello rialzato)
+- **Testo:** #C8CDD3 (bianco opaco ad alta leggibilità per ridurre l'affaticamento visivo)
+- **Accento:** #5A7A9A (blu acciaio per stati attivi, indicatori e interruttori)
+- **Secondario:** #3A4A5C (blu-grigio opaco per barre di stato del sistema)
+- **Bordo:** #1E2830 (linee sottili di separazione dei componenti)
 
-Best for: DevOps tools, system monitoring, terminal-adjacent UIs.
-Reference feel: Docker Desktop, Raycast, Linear, VS Code sidebar.
 
----
+## Tipografia
+- **Display:** Tipografia rovinata/gotica per l'intestazione della dashboard e le statistiche d'impatto
+- **Corpo:** Inter / Sans-serif pulito per i log di sistema e le tabelle dei processi
+- **Codice:** SF Mono / JetBrains Mono per percorsi di file, righe di comando e metriche
+- **Scala:** base 14px (0.875rem), rapporto 1.2
 
-## Color Palette
-
-| Token              | Value       | Usage                              |
-|--------------------|-------------|------------------------------------|
-| `--bg-base`        | `#0A0A0A`   | App background (OLED black)        |
-| `--bg-surface`     | `#111111`   | Panels, sidebar                    |
-| `--bg-elevated`    | `#1A1A1A`   | Cards, dropdowns, modals           |
-| `--bg-hover`       | `#222222`   | Row/item hover state               |
-| `--border`         | `#2A2A2A`   | Dividers, borders                  |
-| `--border-strong`  | `#3A3A3A`   | Active/focused borders             |
-| `--text-primary`   | `#F0F0F0`   | Primary text                       |
-| `--text-secondary` | `#888888`   | Labels, metadata, timestamps       |
-| `--text-muted`     | `#555555`   | Disabled, placeholder              |
-| `--accent`         | `#3B82F6`   | Primary action, active state       |
-| `--accent-hover`   | `#2563EB`   | Accent hover                       |
-| `--success`        | `#22C55E`   | Running daemon/container           |
-| `--warning`        | `#F59E0B`   | Degraded, high CPU/RAM             |
-| `--danger`         | `#EF4444`   | Stopped, error, destructive action |
-| `--purple`         | `#A855F7`   | Ollama accent, AI-related UI       |
-
-No gradients in UI chrome. Gradients allowed only in status indicators or sparklines.
-No light mode. This app is dark-only.
-
----
-
-## Typography
-
-**Font pair:** Inter (UI) + JetBrains Mono (values, logs, stats, code)
-
-```css
---font-ui:   'Inter', system-ui, sans-serif;
---font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-```
-
-**Scale (Tailwind):**
-- Page title: `text-sm font-semibold uppercase tracking-widest text-[--text-secondary]`
-- Section heading: `text-base font-medium text-[--text-primary]`
-- Body / labels: `text-sm text-[--text-secondary]`
-- Stat values: `text-2xl font-semibold font-mono text-[--text-primary]`
-- Log output: `text-xs font-mono text-[--text-secondary]`
-- Timestamps: `text-xs font-mono text-[--text-muted]`
-
-**Rules:**
-- No em-dashes (—) anywhere. Use hyphen or restructure.
-- No section number eyebrows (e.g. "01 · Daemons"). Banned.
-- No decorative text strips or version labels in UI chrome.
-- Stat numbers always in `font-mono`.
-
----
 
 ## Layout
+- **Struttura:** Barra di navigazione laterale + griglia dashboard principale (widget CPU, GPU, memoria e archiviazione)
+- **Scala spaziature:** 0/2/4/6/8/12/16/20/24/28/32/36/40/44/48 px
+- **Raggio angoli:** interno 8px, elemento 12px, contenitore 16px, finestra 32px
+- **Dimensioni elementi:** piccolo 28px, medio 32px, grande 36px
 
-**Shell:**
+
+## Elevazione e Profondità
+- Sfumature scure e discrete per separare visivamente le sezioni hardware (CPU/RAM/Disco).
+- Bagliore minimo sugli indicatori di stato e sui grafici in tempo reale.
+- Nessuna ombra tradizionale — separazione visiva basata sul contrasto di luminosità tra le superfici.
+
+
+## Forme
+
+Raggio d'angolo di base: 8px per le schede di monitoraggio. Consulta i token `rounded` per la scala completa.
+
+
+## Componenti
+- **Indicatori di sistema e Grafici:** Monitoraggio dell'hardware con accento blu acciaio (#5A7A9A)
+- **Lista processi e Tabelle:** Schede e righe con superficie #141A22 e bordi #1E2830
+- **Pulsanti principali:** Azioni rapide (es. "Pulisci RAM", "Ottimizza") in blu acciaio con testo chiaro
+- **Testo Display:** Titoli di sezione e metriche principali con stile rovinato/gotico
+
+
+## Cose da fare e da evitare
+- ✓ Mantieni un alto contrasto per la lettura rapida di log e metriche
+- ✓ Usa il font rovinato/gotico solo per numeri grandi o intestazioni principali
+- ✗ Non implementare una modalità chiara (impatto visivo eccessivo su desktop)
+- ✗ Non usare colori saturi o neon per evitare di affaticare la vista durante il monitoraggio
+
+
+## Casi d'uso
+
+Gestione del sistema desktop, strumenti di diagnostica hardware, ottimizzatori PC, analizzatori di disco e pannelli di controllo tecnici.
