@@ -12,8 +12,9 @@ import './assets/main.css'
 const pinia = createPinia()
 const app = createApp(App)
 
-app.use(PiniaColada, {})
 app.use(pinia)
+app.use(PiniaColada, {})
+
 app.use(router)
 app.use(i18n)
 

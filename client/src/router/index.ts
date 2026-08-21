@@ -12,7 +12,7 @@ const Placeholder = (label: string) =>
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', component: Placeholder('Dashboard — coming soon') },
+    { path: '/', component: DashboardView },
     { path: '/daemons',  component: DaemonsView },
     { path: '/docker',   component: DockerView },
     { path: '/process',   component: ProcessView },
