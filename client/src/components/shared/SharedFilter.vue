@@ -224,8 +224,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 >
                   <Checkbox
                     :id="`filter-${group.label}-${opt.value}`"
-                    :checked="group.active.includes(opt.value)"
-                    @update:checked="group.onToggle(opt.value)"
+                    :model-value="group.active.includes(opt.value)"
+                    @update:model-value="group.onToggle(opt.value)"
                   />
                   <span class="flex select-none items-center gap-1.5 text-xs text-foreground">
                     <span

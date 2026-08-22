@@ -41,9 +41,15 @@ const isStatic = computed(() => props.daemon.enabled === 'static')
 const isEnabled = computed(() => props.daemon.enabled === 'enabled')
 
 const dotClass = computed(() => {
-  if (isRunning.value) return 'bg-emerald-400 shadow-[0_0_6px_theme(colors.emerald.400/0.8)] animate-pulse'
-  if (isFailed.value) return 'bg-red-400'
-  return 'bg-zinc-600'
+  // shadow-[...theme(colors.emerald.400/0.8)] usava la sintassi
+  // theme() di Tailwind v3 dentro un valore arbitrario: in v4 non è
+  // più il modo previsto per leggere i colori del tema e può non
+  // risolversi. color-mix() con var(--success) è CSS nativo e legge
+  // il token direttamente, quindi resta corretto anche se il tema
+  // cambia.
+  if (isRunning.value) return 'bg-success shadow-[0_0_6px_color-mix(in_srgb,var(--success)_80%,transparent)] animate-pulse'
+  if (isFailed.value) return 'bg-destructive'
+  return 'bg-muted-foreground/50'
 })
 
 const bootTooltip = computed(() => {
@@ -53,21 +59,22 @@ const bootTooltip = computed(() => {
 </script>
 
 <template>
+  <!-- rounded-xl → rounded-lg: vedi nota in DaemonCard.vue -->
   <Item variant="outline"
-    class="group border-white/[0.06] rounded-xl bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
-    :class="{ 'border-amber-500/20 bg-amber-500/[0.03]': favorite }">
+    class="group border-border rounded-lg bg-card transition-all duration-150 hover:bg-accent"
+    :class="{ 'border-warning/20 bg-warning/[0.03]': favorite }">
     <!-- Status dot -->
     <ItemMedia>
-      <span class="h-1.5 w-1.5 rounded-full transition-colors" :class="dotClass" />
+      <span class="h-1.5 w-1.5 rounded-full transition-colors" :class="dotClass" aria-hidden="true" />
     </ItemMedia>
 
     <!-- Name + description -->
     <ItemContent>
-      <ItemTitle class="font-mono text-sm font-medium text-zinc-100">
+      <ItemTitle class="font-mono text-sm font-medium text-foreground">
         {{ daemon.name }}
       </ItemTitle>
       <ItemDescription v-if="daemon.description && daemon.description !== daemon.name"
-        class="mt-0.5 truncate text-xs text-zinc-500">
+        class="mt-0.5 truncate text-xs text-muted-foreground">
         {{ daemon.description }}
       </ItemDescription>
     </ItemContent>
@@ -79,8 +86,8 @@ const bootTooltip = computed(() => {
       <Tooltip>
         <TooltipTrigger as-child>
           <div class="mr-1 flex items-center gap-1.5">
-            <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('daemons.bootLabel') }}</span>
-            <SharedSwitch :model-value="isEnabled" :disabled="pending || isStatic" class="scale-75"
+            <span class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ t('daemons.bootLabel') }}</span>
+            <SharedSwitch :model-value="isEnabled" :disabled="pending || isStatic" :aria-label="bootTooltip" class="scale-75"
               @update:model-value="emit('toggleEnabled')" />
           </div>
         </TooltipTrigger>
@@ -90,10 +97,10 @@ const bootTooltip = computed(() => {
       <!-- Favorite -->
       <Tooltip>
         <TooltipTrigger as-child>
-          <SharedButton variant="ghost" size="icon" class="h-7 w-7 hover:bg-white/5 rounded-xl text-amber-400 hover:text-amber-400"
-            :class="favorite ?? 'text-amber-400'"
+          <SharedButton variant="ghost" size="icon" class="h-7 w-7 rounded-md text-warning hover:bg-accent hover:text-warning"
+            :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
             @click="emit('toggleFavorite')">
-            <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
+            <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true" />
           </SharedButton>
         </TooltipTrigger>
         <TooltipContent>{{ favorite ? t('daemons.unpin') : t('daemons.pin') }}</TooltipContent>
@@ -103,9 +110,10 @@ const bootTooltip = computed(() => {
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton variant="ghost" size="icon" :loading="pending" :disabled="pending"
-            :icon="isRunning ? Square : Play" class="h-7 w-7 hover:bg-white/5 rounded-xl" :class="isRunning
-              ? 'text-red-400 hover:text-red-400'
-              : 'text-emerald-400 hover:text-emerald-400'" @click="isRunning ? emit('stop') : emit('start')" />
+            :icon="isRunning ? Square : Play" :aria-label="isRunning ? t('common.stop') : t('common.start')"
+            class="h-7 w-7 rounded-md hover:bg-accent" :class="isRunning
+              ? 'text-destructive hover:text-destructive'
+              : 'text-success hover:text-success'" @click="isRunning ? emit('stop') : emit('start')" />
         </TooltipTrigger>
         <TooltipContent>{{ isRunning ? t('common.stop') : t('common.start') }}</TooltipContent>
       </Tooltip>
@@ -114,7 +122,8 @@ const bootTooltip = computed(() => {
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton variant="ghost" size="icon" :disabled="pending || !isRunning" :icon="RotateCcw"
-            class="h-7 w-7 rounded-xl text-zinc-500 text-emerald-300 hover:text-emerald-300 transition-all duration-150" @click="emit('restart')" />
+            :aria-label="t('common.restart')"
+            class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150" @click="emit('restart')" />
         </TooltipTrigger>
         <TooltipContent>{{ t('common.restart') }}</TooltipContent>
       </Tooltip>

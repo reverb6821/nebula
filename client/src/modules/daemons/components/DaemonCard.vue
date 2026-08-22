@@ -45,9 +45,16 @@ const bootTooltip = computed(() => {
 </script>
 
 <template>
+  <!--
+    rounded-xl → rounded-lg: con i nuovi token del tema rounded-xl vale
+    20px (troppo per una card di lista); rounded-lg (16px) è il livello
+    "contenitore" del DESIGN.md. "Preferito" ora usa il token --warning
+    invece di amber hardcoded (stesso ambra, ma tracciabile a un solo
+    token se il tema cambia).
+  -->
   <Card
-    class="py-2 group flex flex-col border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04] rounded-xl"
-    :class="{ 'border-amber-500/20 bg-amber-500/[0.03]': favorite }"
+    class="py-2 group flex flex-col border-border bg-card transition-all duration-200 hover:bg-accent rounded-lg"
+    :class="{ 'border-warning/20 bg-warning/[0.03]': favorite }"
   >
     <CardHeader class="space-y-1.5">
       <!-- Top row: status badge + controls -->
@@ -61,11 +68,11 @@ const bootTooltip = computed(() => {
               <SharedButton
                 variant="ghost"
                 size="icon"
-                class="h-6 w-6 hover:bg-white/5 rounded-xl text-amber-400 hover:text-amber-400"
-                :class="favorite ?? 'text-amber-400'"
+                class="h-6 w-6 rounded-md text-warning hover:bg-accent hover:text-warning"
+                :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
                 @click="emit('toggleFavorite')"
               >
-                <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
+                <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true" />
               </SharedButton>
             </TooltipTrigger>
             <TooltipContent>{{ favorite ? t('daemons.unpin') : t('daemons.pin') }}</TooltipContent>
@@ -75,10 +82,11 @@ const bootTooltip = computed(() => {
           <Tooltip>
             <TooltipTrigger as-child>
               <div class="flex items-center gap-1.5">
-                <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('daemons.bootLabel') }}</span>
+                <span class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ t('daemons.bootLabel') }}</span>
                 <SharedSwitch
                   :model-value="isEnabled"
                   :disabled="pending || isStatic"
+                  :aria-label="bootTooltip"
                   class="scale-75"
                   @update:model-value="emit('toggleEnabled')"
                 />
@@ -90,7 +98,7 @@ const bootTooltip = computed(() => {
       </div>
 
       <!-- Name -->
-      <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-zinc-100">
+      <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-foreground">
         {{ daemon.name }}
       </CardTitle>
     </CardHeader>
@@ -98,15 +106,15 @@ const bootTooltip = computed(() => {
     <CardContent class="flex-1 px-4 pb-0">
       <CardDescription
         v-if="daemon.description && daemon.description !== daemon.name"
-        class="line-clamp-2 text-xs text-zinc-500"
+        class="line-clamp-2 text-xs text-muted-foreground"
       >
         {{ daemon.description }}
       </CardDescription>
-      <span v-else class="text-xs text-zinc-700">{{ t('daemons.noDescription') }}</span>
+      <span v-else class="text-xs text-muted-foreground/70">{{ t('daemons.noDescription') }}</span>
     </CardContent>
 
     <!-- Footer actions -->
-    <div class="flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-1">
+    <div class="flex items-center justify-end gap-0.5 border-t border-border px-3 py-1">
       <!-- Start / Stop -->
       <Tooltip>
         <TooltipTrigger as-child>
@@ -116,10 +124,11 @@ const bootTooltip = computed(() => {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-7 w-7 hover:bg-white/5 rounded-xl"
+            :aria-label="isRunning ? t('common.stop') : t('common.start')"
+            class="h-7 w-7 rounded-md hover:bg-accent"
             :class="isRunning
-              ? 'text-red-400 hover:text-red-400'
-              : 'text-emerald-500 hover:text-emerald-400'"
+              ? 'text-destructive hover:text-destructive'
+              : 'text-success hover:text-success'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
@@ -134,7 +143,8 @@ const bootTooltip = computed(() => {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 text-zinc-500 text-emerald-300 hover:text-emerald-300 transition-all duration-150 rounded-xl"
+            :aria-label="t('common.restart')"
+            class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150"
             @click="emit('restart')"
           />
         </TooltipTrigger>
