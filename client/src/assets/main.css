@@ -224,7 +224,21 @@ html, body, #app, #app * {
 
 html {
   font-size: var(--app-font-size);
-  line-height: var(--app-line-height);
+}
+
+/*
+  Prima: `line-height: var(--app-line-height)` stava solo su <html>,
+  senza !important. Quasi ogni elemento di testo dell'app usa classi
+  Tailwind (text-sm, text-xs, text-[11px]…) che portano già un proprio
+  line-height esplicito insieme al font-size — un valore impostato
+  DIRETTAMENTE su un elemento non eredita nulla dall'antenato, quindi
+  vinceva sempre quello di Tailwind. Risultato: cambiare l'interlinea
+  nelle impostazioni non aveva alcun effetto visibile. Stesso
+  trattamento già riservato a font-family qui sopra: forzare con
+  !important su #app * fa vincere il valore scelto dall'utente.
+*/
+#app, #app * {
+  line-height: var(--app-line-height) !important;
 }
 
 /* Reduced motion */

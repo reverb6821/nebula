@@ -7,10 +7,10 @@ defineProps<{ title: string }>()
 <template>
   <section class="space-y-6">
     <div>
-      <h2 class="text-xs font-semibold uppercase tracking-widest text-zinc-600">
+      <h2 class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         {{ title }}
       </h2>
-      <Separator class="mt-2 bg-zinc-800" />
+      <Separator class="mt-2 bg-border" />
     </div>
     <slot />
   </section>

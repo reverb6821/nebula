@@ -22,21 +22,23 @@ function onLocaleChange(value: AcceptableValue) {
 <template>
   <SettingsSection :title="t('settings.sectionLanguage')">
     <SettingsRow :label="t('settings.language')" :hint="t('settings.languageHint')">
-      <Select  :model-value="locale" @update:model-value="onLocaleChange">
-        <SelectTrigger class="w-52 border-zinc-700 bg-zinc-900 rounded-xl">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent class="border-zinc-800 bg-zinc-900 rounded-xl">
-          <SelectItem
-            v-for="loc in availableLocales"
-            :key="loc.code"
-            :value="loc.code"
-            class="rounded-xl text-zinc-300 focus:bg-zinc-800 focus:text-zinc-100"
-          >
-            {{ loc.flag }} {{ loc.label }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+      <template #default="{ labelId }">
+        <Select :model-value="locale" @update:model-value="onLocaleChange">
+          <SelectTrigger :aria-labelledby="labelId" class="w-52 rounded-md border-border bg-card">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent class="rounded-md border-border bg-popover">
+            <SelectItem
+              v-for="loc in availableLocales"
+              :key="loc.code"
+              :value="loc.code"
+              class="rounded-sm text-foreground focus:bg-accent focus:text-foreground"
+            >
+              {{ loc.flag }} {{ loc.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </template>
     </SettingsRow>
   </SettingsSection>
 </template>
