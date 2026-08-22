@@ -19,7 +19,6 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
-// Prop opzionale con default [] — risolve il warning "Missing required prop"
 withDefaults(
   defineProps<{
     items?: {
@@ -45,7 +44,12 @@ const { t } = useI18n()
     <SidebarMenu>
       <Collapsible v-for="item in items" :key="item.title" as-child :default-open="item.isActive">
         <SidebarMenuItem>
-          <SidebarMenuButton as-child :tooltip="item.title" class="rounded-xl">
+          <!--
+            rounded-md (12px, "elemento" da DESIGN.md) invece di rounded-xl:
+            con i nuovi token del tema rounded-xl ora vale 20px, troppo per
+            una voce di navigazione compatta.
+          -->
+          <SidebarMenuButton as-child :tooltip="item.title" class="rounded-md">
             <RouterLink :to="item.url">
               <component :is="item.icon" aria-hidden="true" />
               <span>{{ t(`sidebar.${item.title}`) }}</span>
@@ -53,7 +57,7 @@ const { t } = useI18n()
           </SidebarMenuButton>
           <template v-if="item.items?.length">
             <CollapsibleTrigger as-child>
-              <SidebarMenuAction class="data-[state=open]:rotate-90 rounded-xl">
+              <SidebarMenuAction class="rounded-md data-[state=open]:rotate-90">
                 <ChevronRight aria-hidden="true" />
                 <span class="sr-only">{{ t('sidebar.expand') }} {{ t(`sidebar.${item.title}`) }}</span>
               </SidebarMenuAction>
@@ -62,7 +66,7 @@ const { t } = useI18n()
               <SidebarMenuSub>
                 <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
                   <SidebarMenuSubButton as-child>
-                    <RouterLink :to="subItem.url" class="rounded-xl">
+                    <RouterLink :to="subItem.url" class="rounded-md">
                       <span>{{ t(`sidebar.${subItem.title}`) }}</span>
                     </RouterLink>
                   </SidebarMenuSubButton>

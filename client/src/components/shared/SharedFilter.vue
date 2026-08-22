@@ -24,17 +24,14 @@ import { SharedButton } from '@/components/shared'
 export interface FilterOption<T extends string = string> {
   value: T
   label: string
-  /** Optional colored dot class (e.g. 'bg-emerald-400') */
+  /** Optional colored dot class (e.g. 'bg-success') */
   dotClass?: string
 }
 
 export interface FilterGroup<T extends string = string> {
-  /** Section heading shown in the panel */
   label: string
   options: FilterOption<T>[]
-  /** Currently active values in this group */
   active: T[]
-  /** Called when the user toggles an option */
   onToggle: (value: T) => void
 }
 
@@ -51,35 +48,15 @@ export interface TabOption<T extends string = string> {
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 const props = withDefaults(defineProps<{
-  /** v-model for the search string */
   search: string
-  /** Search input placeholder */
   placeholder?: string
-
-  /**
-   * Optional tabs rendered to the left of the search bar.
-   * Pair with `activeTab` + `onUpdate:activeTab`.
-   */
   tabs?: TabOption<TTab>[]
-  /** Currently active tab value */
   activeTab?: TTab
-
-  /**
-   * Optional advanced-filter groups rendered in the popover panel.
-   * If omitted, the filter toggle button is hidden.
-   */
   filterGroups?: FilterGroup<TFilter>[]
-
-  /**
-   * Active filter chips shown at the bottom of the panel.
-   * Build this array from whichever filters are currently on.
-   */
   activeChips?: ActiveChip[]
-
-  /** Controls whether the "Reset filters" button is enabled */
   hasActiveFilters?: boolean
 }>(), {
-  placeholder: 'Search…',
+  placeholder: 'Cerca…',
   tabs: undefined,
   activeTab: undefined,
   filterGroups: undefined,
@@ -131,16 +108,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <!-- ── Optional tabs ──────────────────────────────────────────────────── -->
     <div
       v-if="tabs && tabs.length"
-      class="flex rounded-xl border border-white/[0.06] bg-white/[0.02] p-0.5"
+      class="flex rounded-md border border-border bg-card p-0.5"
     >
       <SharedButton
         v-for="tab in tabs"
         :key="tab.value"
         variant="outline"
-        class="rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-all duration-150"
+        class="rounded-sm px-3 py-1.5 text-xs font-medium capitalize transition-all duration-150 border-transparent"
         :class="activeTab === tab.value
-          ? 'bg-white/[0.08] text-zinc-100 shadow-sm'
-          : 'text-zinc-500 hover:text-zinc-300'"
+          ? 'bg-primary/15 text-foreground border-primary/40'
+          : 'text-muted-foreground hover:text-foreground'"
         @click="emit('update:activeTab', tab.value)"
       >
         {{ tab.label }}
@@ -149,13 +126,20 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
     <!-- ── Search input ───────────────────────────────────────────────────── -->
     <div class="relative flex-1">
-      <Search class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" />
+      <Search
+        class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/60"
+        aria-hidden="true"
+      />
 
       <Input
         ref="searchInput"
         :model-value="search"
         :placeholder="placeholder"
-        class="h-8 rounded-xl border-white/[0.06] bg-white/[0.02] pl-8 text-xs text-zinc-300 placeholder:text-zinc-700 transition-all duration-150 focus:border-white/[0.1] focus:ring-white/[0.05]"
+        aria-label="Cerca"
+        class="h-8 rounded-md border-border bg-card
+          pl-8 text-xs text-foreground placeholder:text-muted-foreground/60
+          transition-all duration-150
+          focus:border-primary/40 focus:ring-ring"
         :class="search.length > 0 ? 'pr-8' : 'pr-16'"
         @update:model-value="emit('update:search', $event as string)"
       />
@@ -164,10 +148,13 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <SharedButton
         v-if="search.length > 0"
         variant="ghost"
-        class="absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 p-0 text-zinc-600 hover:bg-transparent hover:text-zinc-300"
+        aria-label="Cancella ricerca"
+        class="absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 p-0
+          text-muted-foreground/60 hover:bg-transparent hover:text-foreground
+          before:absolute before:-inset-[13px] before:content-['']"
         @click="emit('update:search', '')"
       >
-        <X class="h-3 w-3" />
+        <X class="h-3 w-3" aria-hidden="true" />
       </SharedButton>
 
       <!-- Ctrl+F hint (hidden when there's text or filters panel is open) -->
@@ -181,7 +168,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               </KbdGroup>
             </TooltipTrigger>
             <TooltipContent side="bottom" class="text-xs">
-              Focus search
+              Vai alla ricerca
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -199,86 +186,97 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     -->
     <Popover v-if="hasFilters" v-model:open="open">
       <PopoverTrigger
-        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.02] transition-colors hover:bg-white/[0.05]"
+        aria-label="Filtri avanzati"
+        class="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md
+          border border-border bg-card
+          transition-colors hover:bg-accent
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+          focus-visible:ring-offset-2 focus-visible:ring-offset-background
+          before:absolute before:-inset-[6px] before:content-['']"
         :class="anyFilterActive
-          ? 'border-indigo-500/40 text-indigo-400'
-          : 'text-zinc-500 hover:text-zinc-300'"
+          ? 'border-primary/40 text-primary'
+          : 'text-muted-foreground hover:text-foreground'"
       >
-        <SlidersHorizontal class="h-3.5 w-3.5" />
+        <SlidersHorizontal class="h-3.5 w-3.5" aria-hidden="true" />
       </PopoverTrigger>
 
-      <!-- ── Filter panel ──────────────────────────────────────────────────── -->
+      <!-- ── Filter panel (contenitore → rounded.lg 16px) ─────────────────── -->
       <PopoverContent
         align="end"
         :side-offset="6"
-        class="w-64 rounded-xl border border-white/[0.08] bg-[#0c0c0e] p-4 shadow-2xl shadow-black/50"
+        class="w-64 rounded-lg border border-border
+          bg-popover p-4 shadow-2xl shadow-black/50"
       >
         <div class="flex flex-col gap-4">
 
           <template v-for="(group, gi) in filterGroups" :key="group.label">
-            <!-- Separator between groups -->
-            <Separator v-if="gi > 0" class="bg-white/[0.06]" />
+            <Separator v-if="gi > 0" class="bg-border" />
 
-            <!-- Group -->
             <div>
-              <p class="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+              <p class="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
                 {{ group.label }}
               </p>
               <div class="flex flex-col gap-2">
-                <div
+                <label
                   v-for="opt in group.options"
                   :key="opt.value"
                   class="flex cursor-pointer items-center gap-2.5"
-                  @click="group.onToggle(opt.value)"
                 >
                   <Checkbox
                     :id="`filter-${group.label}-${opt.value}`"
                     :checked="group.active.includes(opt.value)"
+                    @update:checked="group.onToggle(opt.value)"
                   />
-                  <span class="flex select-none items-center gap-1.5 text-xs text-zinc-300">
+                  <span class="flex select-none items-center gap-1.5 text-xs text-foreground">
                     <span
                       v-if="opt.dotClass"
                       :class="['h-1.5 w-1.5 rounded-full', opt.dotClass]"
+                      aria-hidden="true"
                     />
                     {{ opt.label }}
                   </span>
-                </div>
+                </label>
               </div>
             </div>
           </template>
 
           <!-- Active chips -->
           <template v-if="activeChips && activeChips.length > 0">
-            <Separator class="bg-white/[0.06]" />
+            <Separator class="bg-border" />
             <div class="flex flex-wrap gap-1">
               <Badge
                 v-for="(chip, ci) in activeChips"
                 :key="ci"
                 variant="outline"
-                class="gap-1 rounded-full border-white/[0.08] bg-white/[0.03] py-0 font-mono text-[10px] capitalize text-zinc-300 hover:bg-white/[0.06]"
+                class="gap-1 rounded-full border-border
+                  bg-accent py-0 font-mono text-[10px]
+                  capitalize text-foreground hover:bg-secondary"
               >
                 {{ chip.label }}
                 <button
-                  class="ml-0.5 text-zinc-600 transition-colors hover:text-red-400"
+                  type="button"
+                  class="relative ml-0.5 text-muted-foreground/70 transition-colors hover:text-destructive
+                    before:absolute before:-inset-2 before:content-['']"
+                  :aria-label="`Rimuovi filtro ${chip.label}`"
                   @click.stop="chip.onRemove()"
                 >
-                  <X class="h-2.5 w-2.5" />
+                  <X class="h-2.5 w-2.5" aria-hidden="true" />
                 </button>
               </Badge>
             </div>
           </template>
 
           <!-- Reset button -->
-          <Separator class="bg-white/[0.06]" />
+          <Separator class="bg-border" />
           <SharedButton
             variant="ghost"
             size="sm"
-            class="w-full text-xs text-zinc-600 hover:bg-white/[0.04] hover:text-zinc-300"
+            class="w-full text-xs text-muted-foreground/70 hover:bg-accent hover:text-foreground"
             :disabled="!hasActiveFilters"
             @click="emit('reset')"
           >
-            <X class="mr-1.5 h-3 w-3" />
-            Reset filters
+            <X class="mr-1.5 h-3 w-3" aria-hidden="true" />
+            Azzera filtri
           </SharedButton>
 
         </div>

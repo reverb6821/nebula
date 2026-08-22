@@ -25,14 +25,19 @@ withDefaults(defineProps<Props>(), {
     :variant="variant"
     :size="size"
     :disabled="disabled || loading"
-    class="relative inline-flex items-center justify-center gap-2 rounded-xl"
+    :aria-busy="loading"
+    class="relative inline-flex items-center justify-center gap-2 rounded-md
+      focus-visible:ring-2 focus-visible:ring-ring
+      focus-visible:ring-offset-2 focus-visible:ring-offset-background"
   >
-    <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
+    <!-- rounded-md = 12px = rounded.md (DESIGN.md → button-primary) -->
+    <Loader2 v-if="loading" class="h-4 w-4 animate-spin" aria-hidden="true" />
 
     <component
       :is="icon"
       v-else-if="icon"
       class="h-4 w-4 shrink-0"
+      aria-hidden="true"
     />
 
     <slot>
