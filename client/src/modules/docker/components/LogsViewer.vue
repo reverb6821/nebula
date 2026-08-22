@@ -48,42 +48,48 @@ function downloadLogs() {
   URL.revokeObjectURL(url)
 }
 
+// Colori legati ai token semantici (destructive/warning) invece di
+// red-400/90 e amber-400/90 hardcoded.
 function lineClass(line: string) {
-  if (/error|err|fatal/i.test(line)) return 'text-red-400/90'
-  if (/warn|warning/i.test(line)) return 'text-amber-400/90'
-  if (/info|success|ok/i.test(line)) return 'text-zinc-300'
-  return 'text-zinc-500'
+  if (/error|err|fatal/i.test(line)) return 'text-destructive/90'
+  if (/warn|warning/i.test(line)) return 'text-warning/90'
+  if (/info|success|ok/i.test(line)) return 'text-foreground/90'
+  return 'text-muted-foreground'
 }
 </script>
 
 <template>
-  <div class="flex h-full flex-col border-l border-white/[0.06] bg-[#080809]">
+  <!-- bg-[#080809] → bg-background: era un nero custom leggermente
+       diverso dal token reale, ora coerente col resto dell'app. -->
+  <div class="flex h-full flex-col border-l border-border bg-background">
     <!-- Header -->
-    <div class="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-4 py-3">
+    <div class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
       <div class="min-w-0">
-        <p class="truncate font-mono text-sm font-semibold text-zinc-100">{{ containerName }}</p>
-        <p class="mt-0.5 font-mono text-xs text-zinc-600">
+        <p class="truncate font-mono text-sm font-semibold text-foreground">{{ containerName }}</p>
+        <p class="mt-0.5 font-mono text-xs text-muted-foreground">
           {{ t('docker.logsLines', { n: lines.length }) }}
-          <span class="mx-1 text-zinc-700">·</span>
-          <span class="text-zinc-600">{{ t('docker.logsLive') }}</span>
+          <span class="mx-1 text-muted-foreground/60">·</span>
+          <span class="text-muted-foreground">{{ t('docker.logsLive') }}</span>
         </p>
       </div>
       <div class="flex shrink-0 items-center gap-0.5">
         <Button
           variant="ghost"
           size="icon"
-          class="h-7 w-7 text-zinc-600 hover:bg-white/5 hover:text-zinc-300"
+          class="h-7 w-7 text-muted-foreground hover:bg-accent hover:text-foreground"
+          :aria-label="t('docker.downloadLogs')"
           @click="downloadLogs"
         >
-          <Download class="h-3.5 w-3.5" />
+          <Download class="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          class="h-7 w-7 text-zinc-600 hover:bg-white/5 hover:text-zinc-300"
+          class="h-7 w-7 text-muted-foreground hover:bg-accent hover:text-foreground"
+          :aria-label="t('common.close')"
           @click="emit('close')"
         >
-          <X class="h-3.5 w-3.5" />
+          <X class="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
       </div>
     </div>
@@ -94,7 +100,7 @@ function lineClass(line: string) {
       class="flex-1 overflow-y-auto px-4 py-3 font-mono text-xs leading-5"
       @scroll="onScroll"
     >
-      <div v-if="lines.length === 0" class="py-8 text-center text-xs text-zinc-700">
+      <div v-if="lines.length === 0" class="py-8 text-center text-xs text-muted-foreground/70">
         {{ t('docker.logsWaiting') }}
       </div>
       <div
@@ -116,10 +122,10 @@ function lineClass(line: string) {
     >
       <button
         v-if="!autoScroll"
-        class="flex w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 border-t border-white/[0.06] bg-white/[0.03] py-2 text-xs text-zinc-500 transition-colors hover:bg-white/[0.05] hover:text-zinc-300"
+        class="flex w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 border-t border-border bg-muted py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         @click="scrollToBottom"
       >
-        <ArrowDown class="h-3 w-3" />
+        <ArrowDown class="h-3 w-3" aria-hidden="true" />
         {{ t('docker.logsResumeTail') }}
       </button>
     </Transition>

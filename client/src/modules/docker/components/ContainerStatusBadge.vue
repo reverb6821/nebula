@@ -11,16 +11,21 @@ const { t } = useI18n()
 
 type StatusConfig = { class: string; icon: unknown; labelKey: string }
 
+// Colori legati ai token del tema invece di emerald/amber/blue/red/zinc
+// hardcoded. "restarting" usa --primary (blu acciaio): è uno stato
+// transitorio "in corso", non un vero successo/errore/attenzione, e
+// l'accento primario è già il colore che l'app usa per "operazione
+// attiva" altrove (tab/righe selezionate).
 const config: Record<string, StatusConfig> = {
-  running:    { class: 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30', icon: Play,        labelKey: 'docker.statusRunning' },
-  paused:     { class: 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/20 border-amber-500/30',        icon: Square,      labelKey: 'docker.statusPaused' },
-  restarting: { class: 'bg-blue-500/15 text-blue-400 hover:bg-blue-500/20 border-blue-500/30',            icon: RotateCcw,   labelKey: 'docker.statusRestarting' },
-  dead:       { class: 'bg-red-500/15 text-red-400 hover:bg-red-500/20 border-red-500/30',                icon: AlertCircle, labelKey: 'docker.statusDead' },
-  exited:     { class: 'bg-zinc-500/15 text-zinc-400 hover:bg-zinc-500/20 border-zinc-500/30',            icon: Square,      labelKey: 'docker.statusExited' },
-  created:    { class: 'bg-zinc-500/15 text-zinc-400 hover:bg-zinc-500/20 border-zinc-500/30',            icon: Clock,       labelKey: 'docker.statusCreated' },
+  running:    { class: 'bg-success/15 text-success hover:bg-success/20 border-success/30', icon: Play,        labelKey: 'docker.statusRunning' },
+  paused:     { class: 'bg-warning/15 text-warning hover:bg-warning/20 border-warning/30',  icon: Square,      labelKey: 'docker.statusPaused' },
+  restarting: { class: 'bg-primary/15 text-primary hover:bg-primary/20 border-primary/30',  icon: RotateCcw,   labelKey: 'docker.statusRestarting' },
+  dead:       { class: 'bg-destructive/15 text-destructive hover:bg-destructive/20 border-destructive/30', icon: AlertCircle, labelKey: 'docker.statusDead' },
+  exited:     { class: 'bg-muted text-muted-foreground hover:bg-accent border-border',      icon: Square,      labelKey: 'docker.statusExited' },
+  created:    { class: 'bg-muted text-muted-foreground hover:bg-accent border-border',      icon: Clock,       labelKey: 'docker.statusCreated' },
 }
 
-const fallback: StatusConfig = { class: 'bg-zinc-500/15 text-zinc-400 hover:bg-zinc-500/20 border-zinc-500/30', icon: HelpCircle, labelKey: '' }
+const fallback: StatusConfig = { class: 'bg-muted text-muted-foreground hover:bg-accent border-border', icon: HelpCircle, labelKey: '' }
 </script>
 
 <template>
@@ -32,6 +37,7 @@ const fallback: StatusConfig = { class: 'bg-zinc-500/15 text-zinc-400 hover:bg-z
       :is="(config[status] ?? fallback).icon"
       class="h-3 w-3"
       :class="{ 'animate-pulse': status === 'running', 'animate-spin': status === 'restarting' }"
+      aria-hidden="true"
     />
     {{ (config[status] ?? fallback).labelKey ? t((config[status] ?? fallback).labelKey) : status }}
   </Badge>
