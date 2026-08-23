@@ -3,7 +3,7 @@ import Badge from '../ui/badge/Badge.vue'
 </script>
 
 <template>
-    <footer class="shrink-0 border-t border-border">
+    <footer class="shrink-0">
         <div class="w-full flex flex-start max-w-screen-xl px-4 pt-4 py-2 md:flex md:items-center md:justify-between">
 
             <div class="flex items-center gap-4 text-sm text-muted-foreground">

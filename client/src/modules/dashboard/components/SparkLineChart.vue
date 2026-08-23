@@ -53,8 +53,15 @@ const gridLines = [0, 0.5, 1]
 
 <template>
   <div>
-    <div class="relative" :style="{ height: `${height}px` }">
-      <svg :viewBox="`0 0 ${WIDTH} ${height}`" preserveAspectRatio="none" class="h-full w-full">
+    <!--
+      Prima la colonna delle etichette Y stava in absolute sopra
+      l'SVG (inset-y-0 right-0): con valori vicini al massimo, il
+      testo finiva letteralmente sopra il tracciato. Ora è un flex
+      row — SVG e label si dividono lo spazio, zero sovrapposizione
+      possibile qualunque sia l'andamento della serie.
+    -->
+    <div class="flex gap-2" :style="{ height: `${height}px` }">
+      <svg :viewBox="`0 0 ${WIDTH} ${height}`" preserveAspectRatio="none" class="h-full flex-1">
         <line
           v-for="g in gridLines"
           :key="g"
@@ -62,7 +69,7 @@ const gridLines = [0, 0.5, 1]
           :y1="g * height"
           :x2="WIDTH"
           :y2="g * height"
-          stroke="#3f3f46"
+          stroke="var(--border)"
           stroke-width="1"
         />
         <polyline
@@ -76,14 +83,14 @@ const gridLines = [0, 0.5, 1]
         />
       </svg>
 
-      <div class="pointer-events-none absolute inset-y-0 right-0 flex flex-col justify-between py-0.5 text-[10px] text-zinc-600">
+      <div class="flex w-10 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] text-muted-foreground/70">
         <span>{{ formatY(max) }}</span>
         <span>{{ formatY(max / 2) }}</span>
         <span>{{ formatY(0) }}</span>
       </div>
     </div>
 
-    <div class="mt-1 flex justify-between text-[10px] text-zinc-600">
+    <div class="mt-1 flex justify-between text-[10px] text-muted-foreground/70">
       <span v-for="label in xLabels" :key="label">{{ label }}</span>
     </div>
   </div>

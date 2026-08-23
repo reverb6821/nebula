@@ -29,7 +29,7 @@ const data = {
     navMain: [
         {
             title: "DASHBOARD",
-            url: "#",
+            url: "/",
             icon: SquareTerminal,
             isActive: true,
         },
