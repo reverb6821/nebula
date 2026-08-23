@@ -37,8 +37,23 @@ function parseDockerDate(s: string): number {
 
 // ─── Health ───────────────────────────────────────────────────────────────────
 
+function isWindows(): boolean {
+  return window.NL_OS === 'Windows'
+}
+
 export async function pingDocker(): Promise<boolean> {
   try {
+    if (!isWindows()) {
+      // `docker info` parla col socket di Docker. Su systemd, docker.service
+      // è quasi sempre abbinato a docker.socket con socket activation: se il
+      // servizio è stato fermato ma il socket è ancora attivo, la prima
+      // richiesta (anche solo per un ping) lo fa ripartire da sola — quindi
+      // aprire questa tab "riaccenderebbe" un demone che l'utente ha fermato
+      // apposta. `systemctl is-active` non tocca il socket, solo lo stato
+      // dell'unit: è sicuro chiamarlo anche a demone fermo.
+      const { stdout, exitCode } = await runCmd('systemctl is-active docker.service')
+      if (exitCode !== 0 || stdout.trim() !== 'active') return false
+    }
     const { exitCode } = await runCmd('docker info --format "ok"')
     return exitCode === 0
   } catch {

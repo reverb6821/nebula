@@ -188,40 +188,52 @@ export const useDaemonsStore = defineStore('daemons', () => {
 
   // ─── Actions ────────────────────────────────────────────────────────────────
 
-  async function start(name: string) {
+  // Azione privilegiata (start/stop/enable/disable): se il comando fallisce
+  // (pkexec annullato, permessi negati...) niente patch ottimistica — lo
+  // stato mostrato deve restare quello vero, non quello sperato.
+  async function runAction(
+    name: string,
+    action: (name: string) => Promise<void>,
+    patch: Partial<Daemon>,
+  ) {
     await withPending(name, async () => {
-      await startDaemon(name)
-      patchDaemon(name, { status: 'active' })
+      try {
+        await action(name)
+        patchDaemon(name, patch)
+        error.value = null
+      } catch (e) {
+        error.value = e instanceof Error ? e.message : 'Failed to update daemon'
+      }
     })
   }
 
+  async function start(name: string) {
+    await runAction(name, startDaemon, { status: 'active' })
+  }
+
   async function stop(name: string) {
-    await withPending(name, async () => {
-      await stopDaemon(name)
-      patchDaemon(name, { status: 'inactive' })
-    })
+    await runAction(name, stopDaemon, { status: 'inactive' })
+  }
+
+  async function enable(name: string) {
+    await runAction(name, enableDaemon, { enabled: 'enabled' })
+  }
+
+  async function disable(name: string) {
+    await runAction(name, disableDaemon, { enabled: 'disabled' })
   }
 
   async function restart(name: string) {
     await withPending(name, async () => {
-      await restartDaemon(name)
-      const fresh = await listDaemons()
-      const updated = fresh.find((d) => d.name === name)
-      if (updated) patchDaemon(name, updated)
-    })
-  }
-
-  async function enable(name: string) {
-    await withPending(name, async () => {
-      await enableDaemon(name)
-      patchDaemon(name, { enabled: 'enabled' })
-    })
-  }
-
-  async function disable(name: string) {
-    await withPending(name, async () => {
-      await disableDaemon(name)
-      patchDaemon(name, { enabled: 'disabled' })
+      try {
+        await restartDaemon(name)
+        const fresh = await listDaemons()
+        const updated = fresh.find((d) => d.name === name)
+        if (updated) patchDaemon(name, updated)
+        error.value = null
+      } catch (e) {
+        error.value = e instanceof Error ? e.message : 'Failed to restart daemon'
+      }
     })
   }
 
