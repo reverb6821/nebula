@@ -1,3 +1,4 @@
+import { defineStore } from 'pinia'
 import { shallowRef, ref, type Component } from 'vue'
 
 interface HeaderState {
@@ -9,14 +10,14 @@ interface HeaderState {
   refreshLoading?: boolean
 }
 
-const title          = ref('Nebula')
-const subtitle       = ref<string | undefined>(undefined)
-const toolsComponent = shallowRef<Component | null>(null)
-const toolsProps     = ref<Record<string, unknown>>({})
-const onRefresh      = ref<(() => void) | null>(null)
-const refreshLoading = ref(false)
+export const usePageHeader = defineStore('pageHeader', () => {
+  const title          = ref('Nebula')
+  const subtitle       = ref<string | undefined>(undefined)
+  const toolsComponent = shallowRef<Component | null>(null)
+  const toolsProps     = ref<Record<string, unknown>>({})
+  const onRefresh      = ref<(() => void) | null>(null)
+  const refreshLoading = ref(false)
 
-export function usePageHeader() {
   function setHeader(state: HeaderState) {
     title.value          = state.title
     subtitle.value       = state.subtitle
@@ -36,13 +37,7 @@ export function usePageHeader() {
   }
 
   return {
-    title,
-    subtitle,
-    toolsComponent,
-    toolsProps,
-    onRefresh,
-    refreshLoading,
-    setHeader,
-    clearHeader,
+    title, subtitle, toolsComponent, toolsProps, onRefresh, refreshLoading,
+    setHeader, clearHeader,
   }
-}
+})

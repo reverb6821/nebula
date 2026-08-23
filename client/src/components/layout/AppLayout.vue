@@ -15,30 +15,10 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { RefreshCw } from '@lucide/vue'
 import { SharedButton } from '@/components/shared'
 import { usePageHeader } from "@/composables/usePageHeader"
-import { ref, onMounted, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import Footer from "./Footer.vue"
 
-const { title, subtitle, toolsComponent, toolsProps, onRefresh, refreshLoading } = usePageHeader()
-
-const scrollAreaHeight = ref('500px') // valore di fallback iniziale
-
-const updateHeight = () => {
-  // 64px (Header) + 16px (Margini vari) + 60px (Footer stimato) = ~140px
-  const offset = 140 
-  const availableHeight = window.innerHeight - offset
-  scrollAreaHeight.value = `${Math.max(100, availableHeight)}px`
-}
-
-onMounted(() => {
-  updateHeight()
-  // Ricalcola l'altezza ogni volta che l'utente ridimensiona la finestra di Neutralino
-  window.addEventListener('resize', updateHeight)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateHeight)
-})
-
+const { title, subtitle, toolsComponent, toolsProps, onRefresh, refreshLoading } = storeToRefs(usePageHeader())
 </script>
 
 <template>
@@ -68,12 +48,12 @@ onUnmounted(() => {
 
       </header>
 
-      <main class="flex flex-col p-4 pt-0">
-        <ScrollArea :style="{ height: scrollAreaHeight }" class="my-2">
+      <main class="flex min-h-0 flex-1 flex-col p-4 pt-0">
+        <ScrollArea class="my-2 h-full">
           <RouterView />
         </ScrollArea>
       </main>
-       <Footer />
+      <Footer />
     </SidebarInset>
   </SidebarProvider>
 </template>

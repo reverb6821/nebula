@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { refDebounced } from '@vueuse/core'
 import type { Daemon, DaemonStatus, DaemonEnabled } from '@/types/daemon'
+import { useAsyncState } from '@/composables/useAsyncState'
+import { usePendingSet } from '@/composables/usePendingSet'
 import {
   listDaemons,
   startDaemon,
@@ -35,13 +37,17 @@ function saveFavorites(favs: Set<string>) {
 }
 
 export const useDaemonsStore = defineStore('daemons', () => {
-  const daemons      = ref<Daemon[]>([])
-  const loading      = ref(false)
-  const error        = ref<string | null>(null)
-  const search       = ref('')
-  const page         = ref(1)
-  const pendingNames = ref<Set<string>>(new Set())
-  const favorites    = ref<Set<string>>(loadFavorites())
+  const daemons = ref<Daemon[]>([])
+  const search  = ref('')
+  const page    = ref(1)
+  const favorites = ref<Set<string>>(loadFavorites())
+
+  // Prima: loading/error locali + un withPending scritto a mano quasi
+  // identico a quello di docker/processes store. Ora dai due
+  // composable condivisi (vedi src/composables/), stesso trattamento
+  // già applicato a useDockerStore.
+  const { loading, error, run } = useAsyncState('Failed to load daemons')
+  const { pending: pendingNames, withPending } = usePendingSet<string>()
 
   // Persistenza viewMode
   const viewMode = ref<'list' | 'grid'>(
@@ -167,16 +173,10 @@ export const useDaemonsStore = defineStore('daemons', () => {
   // ─── Fetch ──────────────────────────────────────────────────────────────────
 
   async function fetch() {
-    loading.value = true
-    error.value = null
-    try {
-      daemons.value = await listDaemons()
-      page.value = 1
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to load daemons'
-    } finally {
-      loading.value = false
-    }
+    const result = await run(() => listDaemons())
+    if (result === undefined) return
+    daemons.value = result
+    page.value = 1
   }
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -184,16 +184,6 @@ export const useDaemonsStore = defineStore('daemons', () => {
   function patchDaemon(name: string, patch: Partial<Daemon>) {
     const idx = daemons.value.findIndex((d) => d.name === name)
     if (idx !== -1) daemons.value[idx] = { ...daemons.value[idx]!, ...patch } as Daemon
-  }
-
-  async function withPending<T>(name: string, fn: () => Promise<T>): Promise<T> {
-    pendingNames.value = new Set([...pendingNames.value, name])
-    try { return await fn() }
-    finally {
-      const next = new Set(pendingNames.value)
-      next.delete(name)
-      pendingNames.value = next
-    }
   }
 
   // ─── Actions ────────────────────────────────────────────────────────────────
