@@ -24,34 +24,11 @@ const settings = useSettingsStore()
 <template>
   <div class="flex h-full flex-col overflow-y-auto">
     <div class="w-full max-w-2xl px-2 py-3">
-
-      <!--
-        Prima non c'era alcuno spazio tra header e sezioni, né tra le
-        due sezioni: si sarebbero visivamente accavallate (ogni
-        SettingsSection ha solo space-y-6 al proprio interno, niente
-        gestiva lo spazio *tra* i blocchi). space-y-8 = 2rem, in linea
-        con spacing.lg del DESIGN.md.
-      -->
       <div class="space-y-8">
-
-        <!-- Header -->
-        <div>
-          <h1 class="text-lg font-semibold text-foreground">{{ t('settings.title') }}</h1>
-          <p class="mt-0.5 text-sm text-muted-foreground">{{ t('settings.subtitle') }}</p>
-        </div>
-
         <SettingsLanguage />
         <SettingsAppearance />
-
         <!-- Reset -->
         <div class="flex justify-end border-t border-border pt-4">
-          <!--
-            Prima: `{{ t('common.reset') }} to defaults` — mezza
-            traduzione, mezza stringa inglese hardcoded. E il click
-            eseguiva subito settings.reset() senza conferma, azzerando
-            tutte le preferenze in un colpo solo per un click
-            accidentale. Ora una chiave i18n unica + conferma.
-          -->
           <AlertDialog>
             <AlertDialogTrigger as-child>
               <SharedButton
@@ -80,7 +57,6 @@ const settings = useSettingsStore()
             </AlertDialogContent>
           </AlertDialog>
         </div>
-
       </div>
     </div>
   </div>

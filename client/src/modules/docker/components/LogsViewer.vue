@@ -77,7 +77,7 @@ function lineClass(line: string) {
           variant="ghost"
           size="icon"
           class="h-7 w-7 text-muted-foreground hover:bg-accent hover:text-foreground"
-          :aria-label="t('docker.downloadLogs')"
+          :aria-label="t('docker.logsDownload')"
           @click="downloadLogs"
         >
           <Download class="h-3.5 w-3.5" aria-hidden="true" />

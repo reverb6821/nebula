@@ -25,6 +25,14 @@ export const enGB = {
     noResults: 'No results found.',
     comingSoon: 'Coming soon.',
     boot: 'Boot',
+    // Aggiunte: mancavano del tutto — DaemonsView/ProcessView le usano
+    // per il titolo di SharedAlert in caso di errore di fetch.
+    error: 'Error',
+    // Usato da LogsViewer.vue per il pulsante di chiusura pannello log.
+    close: 'Close',
+    // Usato da AppLayout.vue per il trigger della sidebar (prima era
+    // una stringa italiana hardcoded nel componente, non passava da qui).
+    toggleSidebar: 'Toggle sidebar',
   },
   daemons: {
     title: 'Daemons',
@@ -63,12 +71,23 @@ export const enGB = {
     enabledEnabled: 'Enabled',
     enabledDisabled: 'Disabled',
     enabledStatic: 'Static',
+    // Aggiunta: il tipo DaemonEnabled include anche 'unknown', il
+    // Record in DaemonFilters.vue lo richiede per compilare.
+    enabledUnknown: 'Unknown',
+    // Aggiunte: usate dal toggle vista lista/griglia in DaemonList.vue
+    // (e riusate anche da DockerList.vue per lo stesso controllo).
+    viewList: 'List view',
+    viewGrid: 'Grid view',
   },
   processes: {
     pid: 'PID',
     terminate: 'Terminate (SIGTERM)',
     kill: 'Kill (SIGKILL)',
-    changePriority: 'Change Priority'
+    changePriority: 'Change Priority',
+    // Aggiunte: mancava l'intera coppia titolo/sottotitolo usata da
+    // ProcessView.vue nell'header di pagina.
+    title: 'Processes',
+    subtitle: '{running} running · {shown}/{total} shown',
   },
   docker: {
     title: 'Docker',
@@ -111,6 +130,9 @@ export const enGB = {
     statusDead: 'dead',
     statusExited: 'exited',
     statusCreated: 'created',
+    // Aggiunta: usata da ContainerCard/ContainerItem come aria-label
+    // dell'intera card cliccabile ("Open logs for {name}").
+    openLogsFor: 'Open logs for {name}',
   },
 
   settings: {
@@ -138,11 +160,61 @@ export const enGB = {
     lineHeightNormal: 'Normal',
     lineHeightRelaxed: 'Relaxed',
     lineHeightLoose: 'Loose',
+    // Aggiunta: testo di esempio nel riquadro di anteprima dello slider.
+    lineHeightPreviewText: 'The quick brown fox jumps over the lazy dog. This is how your text will look.',
 
     reducedMotion: 'Reduce motion',
     reducedMotionHint: 'Minimises animations and transitions.',
 
     highContrast: 'High contrast',
     highContrastHint: 'Increases border and text contrast.',
+
+    // Aggiunte: bottone di reset e relativo dialog di conferma in
+    // SettingsView.vue (prima eseguiva il reset senza chiedere conferma).
+    resetToDefaults: 'Reset to defaults',
+    resetConfirmTitle: 'Reset all settings?',
+    resetConfirmDescription: 'This will restore every appearance and language preference to its default value. This cannot be undone.',
+  },
+
+  // Aggiunta: DashboardView.vue aveva ogni etichetta scritta in
+  // italiano direttamente nel template, mai passata da t() — l'unica
+  // vista dell'app rimasta non localizzata.
+  dashboard: {
+    cpu: 'CPU',
+    gpu: 'GPU',
+    memory: 'Memory',
+    memoryAndSwap: 'Memory & swap',
+    swap: 'Swap',
+    cache: 'Cache',
+    diskRoot: 'Disk (/)',
+    disk: 'Disk',
+    network: 'Network',
+    readWriteCombined: 'read + write combined',
+    // {used}/{percent}/{total} sono già formattati dal chiamante — la
+    // chiave traduce solo la frase, non concatena parole sciolte:
+    // l'ordine può cambiare liberamente da una lingua all'altra.
+    usedOfTotal: '{used} ({percent}) of {total}',
+    received: 'Received',
+    sent: 'Sent',
+    totalReceived: 'Total received {value}',
+    totalSent: 'Total sent {value}',
+    read: 'Read',
+    write: 'Write',
+    totalRead: 'Total read {value}',
+    totalWritten: 'Total written {value}',
+    tempAndPower: 'Temperature & power',
+    // Placeholder con nome per <i18n-t>: {lmSensors}/{nvidiaSmi}
+    // vengono riempiti da due <code> nel template, non da testo — così
+    // il markup resta nel punto giusto qualunque sia l'ordine delle
+    // parole nella lingua.
+    sensorsUnavailable: 'No sensors detected — requires {lmSensors} (temperatures) and/or RAPL on Intel CPUs / {nvidiaSmi} for NVIDIA GPUs (power draw).',
+    avg60s: '60s avg: {value}',
+    filesystem: 'File system',
+    fsDirectory: 'Directory',
+    fsType: 'Type',
+    fsTotal: 'Total',
+    fsAvailable: 'Available',
+    fsUsed: 'Used',
+    fsEmpty: 'No file systems found.',
   },
 }

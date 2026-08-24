@@ -25,13 +25,17 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 
 const { t } = useI18n()
 
+// Prima "DASHBOARD" aveva isActive: true hardcoded — un flag statico
+// che non riflette mai la rotta corrente, solo lo stato al primo
+// render. NavMain.vue ora calcola l'evidenziazione da useRoute(), quindi
+// questo campo non serve più a nulla: era codice morto (peggio,
+// fuorviante, sembrava fare qualcosa).
 const data = {
     navMain: [
         {
             title: "DASHBOARD",
             url: "/",
             icon: SquareTerminal,
-            isActive: true,
         },
         {
             title: "SYSTEM",

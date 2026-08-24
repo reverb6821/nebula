@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import {
   ArrowDown, ArrowUp, Thermometer, Zap, HardDrive, Cpu, MemoryStick, Network,
 } from '@lucide/vue'
@@ -14,6 +15,7 @@ import { formatBytesDecimal, formatRateBinary, formatPercent, formatTemp, format
 import { listFilesystems } from '../composables/useFileSystemApi.ts'
 import type { FsEntry } from '@/types/resources'
 
+const { t } = useI18n()
 const store = useResourcesStore()
 const {
   snapshot, sensors, sensorsUnavailable,
@@ -30,14 +32,8 @@ const cpuSeries = computed(() =>
   cpuCoreHistory.value.map((values, i) => ({ id: i, color: cpuColor(i), values })),
 )
 
-// Prima: hex letterali (#ef4444, #3b82f6, #f97316...) scollegati dal
-// tema, e due di questi (#3b82f6 blu acceso, #f97316 arancio acceso)
-// violano direttamente DESIGN.md ("no colori saturi o neon"). Ora
-// var(--destructive/--success/--primary/--warning): stessi ruoli
-// semantici usati ovunque nell'app, mai un one-off nuovo. Read/Rx e
-// Write/Tx riusano lo stesso binomio primary/warning sia per rete che
-// per disco — stesso linguaggio visivo per "in entrata" vs "in uscita"
-// invece di due coppie di colori arbitrarie diverse.
+// var(--x) invece di hex letterali: vedi nota precedente, stessi ruoli
+// semantici usati ovunque nell'app.
 const memSeries = computed(() => [
   { id: 'mem', color: 'var(--destructive)', values: memHistory.value },
 ])
@@ -55,10 +51,6 @@ const diskSeries = computed(() => [
   { id: 'read', color: 'var(--primary)', values: diskReadHistory.value },
   { id: 'write', color: 'var(--warning)', values: diskWriteHistory.value },
 ])
-
-// tempColor() resta: usato dai riquadri temperatura più sotto, che
-// mostrano il numero colorato sempre (contesto diverso dalle KpiCard:
-// lì il colore è già l'unico segnale, non c'è un pallino separato).
 
 function tempColor(c: number | null): string {
   if (c === null) return 'text-muted-foreground'
@@ -101,8 +93,6 @@ function selectFsRow(mount: string) {
 }
 
 // ─── KPI overview (riga in cima) ─────────────────────────────────────────────
-// Un colpo d'occhio prima del dettaglio: CPU/RAM correnti, disco radice,
-// throughput di rete combinato (rx+tx).
 
 const rootFs = computed(
   () => fsSorted.value.find((e) => e.mount === '/') ?? fsSorted.value[0] ?? null,
@@ -120,36 +110,36 @@ const netTotalRate = computed(
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <KpiCard
         :icon="Cpu"
-        label="CPU"
+        :label="t('dashboard.cpu')"
         :value="formatPercent(snapshot?.cpuOverallPercent ?? 0)"
         :severity="severityFor(snapshot?.cpuOverallPercent ?? 0, { danger: 85, warning: 60 })"
       />
       <KpiCard
         :icon="MemoryStick"
-        label="Memoria"
+        :label="t('dashboard.memory')"
         :value="formatPercent(snapshot?.memUsedPercent ?? 0)"
         :sub="formatBytesDecimal(snapshot?.memUsedBytes ?? 0) + ' / ' + formatBytesDecimal(snapshot?.memTotalBytes ?? 0)"
         :severity="severityFor(snapshot?.memUsedPercent ?? 0, { danger: 85, warning: 60 })"
       />
       <KpiCard
         :icon="HardDrive"
-        label="Disco (/)"
+        :label="t('dashboard.diskRoot')"
         :value="rootFs ? formatPercent(rootFs.usedPercent, 0) : '–'"
         :sub="rootFs ? formatBytesDecimal(rootFs.usedBytes) + ' / ' + formatBytesDecimal(rootFs.totalBytes) : undefined"
         :severity="rootFs ? severityFor(rootFs.usedPercent, { danger: 85, warning: 60 }) : undefined"
       />
       <KpiCard
         :icon="Network"
-        label="Rete"
+        :label="t('dashboard.network')"
         :value="formatRateBinary(netTotalRate)"
-        sub="lettura + scrittura combinate"
+        :sub="t('dashboard.readWriteCombined')"
       />
     </div>
 
     <!-- Griglia principale: CPU / Memoria / Rete / Disco -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
-      <DashboardCard title="CPU">
+      <DashboardCard :title="t('dashboard.cpu')">
         <SparklineChart :series="cpuSeries" :max="100" :format-y="(v) => `${v} %`" />
 
         <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
@@ -158,84 +148,95 @@ const netTotalRate = computed(
             :key="core.id"
             class="flex items-center gap-2 text-xs"
           >
+            <!-- "CPU{n}" resta invariato: è un indice tecnico (CPU1,
+                 CPU2…), non una frase da tradurre. -->
             <span class="h-2.5 w-2.5 shrink-0 rounded-sm" :style="{ backgroundColor: cpuColor(i) }" aria-hidden="true" />
-            <span class="text-muted-foreground">CPU{{ core.id + 1 }}</span>
+            <span class="text-muted-foreground">{{ t('dashboard.cpu') }}{{ core.id + 1 }}</span>
             <span class="ml-auto font-mono tabular-nums text-foreground">{{ formatPercent(core.percent) }}</span>
           </div>
         </div>
       </DashboardCard>
 
-      <DashboardCard title="Memoria e swap">
+      <DashboardCard :title="t('dashboard.memoryAndSwap')">
         <SparklineChart :series="[...memSeries, ...swapSeries]" :max="100" :format-y="(v) => `${v} %`" />
 
         <div class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
           <div class="flex items-start gap-2">
             <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-destructive" aria-hidden="true" />
             <div>
-              <div class="text-muted-foreground">Memoria</div>
+              <div class="text-muted-foreground">{{ t('dashboard.memory') }}</div>
+              <!--
+                usedOfTotal traduce la frase intera, non concatena
+                "di"/"of" a mano tra i pezzi: l'ordine delle parole può
+                cambiare liberamente da una lingua all'altra.
+              -->
               <div class="font-mono text-foreground">
-                {{ formatBytesDecimal(snapshot?.memUsedBytes ?? 0) }}
-                ({{ formatPercent(snapshot?.memUsedPercent ?? 0) }})
-                di {{ formatBytesDecimal(snapshot?.memTotalBytes ?? 0) }}
+                {{ t('dashboard.usedOfTotal', {
+                  used: formatBytesDecimal(snapshot?.memUsedBytes ?? 0),
+                  percent: formatPercent(snapshot?.memUsedPercent ?? 0),
+                  total: formatBytesDecimal(snapshot?.memTotalBytes ?? 0),
+                }) }}
               </div>
-              <div class="text-muted-foreground/70">Cache {{ formatBytesDecimal(snapshot?.memCacheBytes ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.cache') }} {{ formatBytesDecimal(snapshot?.memCacheBytes ?? 0) }}</div>
             </div>
           </div>
           <div class="flex items-start gap-2">
             <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-success" aria-hidden="true" />
             <div>
-              <div class="text-muted-foreground">Swap</div>
+              <div class="text-muted-foreground">{{ t('dashboard.swap') }}</div>
               <div class="font-mono text-foreground">
-                {{ formatBytesDecimal(snapshot?.swapUsedBytes ?? 0) }}
-                ({{ formatPercent(snapshot?.swapUsedPercent ?? 0) }})
-                di {{ formatBytesDecimal(snapshot?.swapTotalBytes ?? 0) }}
+                {{ t('dashboard.usedOfTotal', {
+                  used: formatBytesDecimal(snapshot?.swapUsedBytes ?? 0),
+                  percent: formatPercent(snapshot?.swapUsedPercent ?? 0),
+                  total: formatBytesDecimal(snapshot?.swapTotalBytes ?? 0),
+                }) }}
               </div>
             </div>
           </div>
         </div>
       </DashboardCard>
 
-      <DashboardCard title="Rete">
+      <DashboardCard :title="t('dashboard.network')">
         <SparklineChart :series="netSeries" :max="netMaxRate" :format-y="formatRateBinary" />
 
         <div class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
           <div class="flex items-start gap-2">
             <ArrowDown class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
             <div>
-              <div class="text-muted-foreground">Ricezione</div>
+              <div class="text-muted-foreground">{{ t('dashboard.received') }}</div>
               <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.netRxRate ?? 0) }}</div>
-              <div class="text-muted-foreground/70">Totale ricevuti {{ formatBytesDecimal(snapshot?.netRxTotal ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalReceived', { value: formatBytesDecimal(snapshot?.netRxTotal ?? 0) }) }}</div>
             </div>
           </div>
           <div class="flex items-start gap-2">
             <ArrowUp class="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" aria-hidden="true" />
             <div>
-              <div class="text-muted-foreground">Invio</div>
+              <div class="text-muted-foreground">{{ t('dashboard.sent') }}</div>
               <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.netTxRate ?? 0) }}</div>
-              <div class="text-muted-foreground/70">Totale inviati {{ formatBytesDecimal(snapshot?.netTxTotal ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalSent', { value: formatBytesDecimal(snapshot?.netTxTotal ?? 0) }) }}</div>
             </div>
           </div>
         </div>
       </DashboardCard>
 
-      <DashboardCard title="Disco">
+      <DashboardCard :title="t('dashboard.disk')">
         <SparklineChart :series="diskSeries" :max="diskMaxRate" :format-y="formatRateBinary" />
 
         <div class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
           <div class="flex items-start gap-2">
             <ArrowUp class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
             <div>
-              <div class="text-muted-foreground">Lettura</div>
+              <div class="text-muted-foreground">{{ t('dashboard.read') }}</div>
               <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.diskReadRate ?? 0) }}</div>
-              <div class="text-muted-foreground/70">Totale letti {{ formatBytesDecimal(snapshot?.diskReadTotal ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalRead', { value: formatBytesDecimal(snapshot?.diskReadTotal ?? 0) }) }}</div>
             </div>
           </div>
           <div class="flex items-start gap-2">
             <ArrowDown class="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" aria-hidden="true" />
             <div>
-              <div class="text-muted-foreground">Scrittura</div>
+              <div class="text-muted-foreground">{{ t('dashboard.write') }}</div>
               <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.diskWriteRate ?? 0) }}</div>
-              <div class="text-muted-foreground/70">Totale scritti {{ formatBytesDecimal(snapshot?.diskWriteTotal ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalWritten', { value: formatBytesDecimal(snapshot?.diskWriteTotal ?? 0) }) }}</div>
             </div>
           </div>
         </div>
@@ -244,93 +245,86 @@ const netTotalRate = computed(
     </div>
 
     <!-- Temperatura e consumi -->
-    <DashboardCard title="Temperatura e consumi">
-      <div
+    <DashboardCard :title="t('dashboard.tempAndPower')">
+      <!--
+        Il messaggio ha due <code> incorporati nel mezzo della frase:
+        concatenare pezzi tradotti a mano avrebbe rotto l'ordine delle
+        parole in inglese. <i18n-t> risolve la keypath e lascia che gli
+        slot con nome inseriscano il markup nel punto giusto, qualunque
+        sia l'ordine deciso dalla traduzione.
+      -->
+      <i18n-t
         v-if="sensorsUnavailable"
+        keypath="dashboard.sensorsUnavailable"
+        tag="div"
         class="rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
       >
-        Nessun sensore rilevato — richiede <code class="text-foreground">lm-sensors</code>
-        (temperature) e/o RAPL su CPU Intel / <code class="text-foreground">nvidia-smi</code>
-        per GPU NVIDIA (consumi).
-      </div>
+        <template #lmSensors><code class="text-foreground">lm-sensors</code></template>
+        <template #nvidiaSmi><code class="text-foreground">nvidia-smi</code></template>
+      </i18n-t>
 
       <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div class="rounded-md border border-border bg-card p-3">
           <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-            <Thermometer class="h-3 w-3" aria-hidden="true" /> CPU
+            <Thermometer class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.cpu') }}
           </div>
           <div class="mt-1 font-mono text-lg" :class="tempColor(sensors.cpuTempC)">
             {{ formatTemp(sensors.cpuTempC) }}
           </div>
-          <div class="text-[10px] text-muted-foreground/70">media 60s: {{ formatTemp(cpuTempAvg) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatTemp(cpuTempAvg) }) }}</div>
         </div>
 
         <div class="rounded-md border border-border bg-card p-3">
           <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-            <Thermometer class="h-3 w-3" aria-hidden="true" /> GPU
+            <Thermometer class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.gpu') }}
           </div>
           <div class="mt-1 font-mono text-lg" :class="tempColor(sensors.gpuTempC)">
             {{ formatTemp(sensors.gpuTempC) }}
           </div>
-          <div class="text-[10px] text-muted-foreground/70">media 60s: {{ formatTemp(gpuTempAvg) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatTemp(gpuTempAvg) }) }}</div>
         </div>
 
         <div class="rounded-md border border-border bg-card p-3">
           <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-            <Zap class="h-3 w-3" aria-hidden="true" /> CPU
+            <Zap class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.cpu') }}
           </div>
           <div class="mt-1 font-mono text-lg text-foreground">{{ formatWatts(sensors.cpuPowerW) }}</div>
-          <div class="text-[10px] text-muted-foreground/70">media 60s: {{ formatWatts(cpuPowerAvg) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatWatts(cpuPowerAvg) }) }}</div>
         </div>
 
         <div class="rounded-md border border-border bg-card p-3">
           <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-            <Zap class="h-3 w-3" aria-hidden="true" /> GPU
+            <Zap class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.gpu') }}
           </div>
           <div class="mt-1 font-mono text-lg text-foreground">{{ formatWatts(sensors.gpuPowerW) }}</div>
-          <div class="text-[10px] text-muted-foreground/70">media 60s: {{ formatWatts(gpuPowerAvg) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatWatts(gpuPowerAvg) }) }}</div>
         </div>
       </div>
     </DashboardCard>
 
     <!-- File system -->
-    <DashboardCard title="File system">
+    <DashboardCard :title="t('dashboard.filesystem')">
       <table class="w-full border-collapse text-left text-xs">
         <thead>
           <tr class="border-b border-border text-muted-foreground">
             <th class="w-10 py-2"></th>
-            <!--
-              Prima: sort al click su <th>, nessun tabindex/tastiera,
-              nessun aria-sort — non ordinabile senza mouse. Stesso
-              trattamento già applicato a ProcessTableHeader.vue: un
-              <button> dentro il <th> porta focus/Enter/Space gratis,
-              aria-sort resta sul <th> (pattern ARIA corretto).
-            -->
             <th class="py-2 pr-4 font-medium" :aria-sort="fsSortDir === 'asc' ? 'ascending' : 'descending'">
               <button
                 type="button"
                 class="inline-flex items-center gap-1 text-left transition-colors hover:text-foreground"
                 @click="toggleFsSort"
               >
-                Directory
+                {{ t('dashboard.fsDirectory') }}
                 <span class="text-muted-foreground/70" aria-hidden="true">{{ fsSortDir === 'asc' ? '▲' : '▼' }}</span>
               </button>
             </th>
-            <th class="py-2 pr-4 font-medium">Tipo</th>
-            <th class="py-2 pr-4 font-medium">Totale</th>
-            <th class="py-2 pr-4 font-medium">Disponibile</th>
-            <th class="py-2 pr-4 font-medium">Usato</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsType') }}</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsTotal') }}</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsAvailable') }}</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsUsed') }}</th>
           </tr>
         </thead>
         <tbody>
-          <!--
-            Prima: riga selezionata in bg-red-950/40 — rosso comunica
-            errore/pericolo, non "selezionato". Ora bg-primary/15, la
-            stessa convenzione di "selezionato" usata in tutta l'app
-            (tab attivi, righe processo, ecc.). Aggiunto anche
-            tabindex/tastiera: prima la selezione funzionava solo col
-            mouse.
-          -->
           <tr
             v-for="entry in fsSorted"
             :key="`${entry.device}-${entry.mount}`"
@@ -358,12 +352,6 @@ const netTotalRate = computed(
                 <span class="font-mono text-foreground/90">{{ formatBytesDecimal(entry.usedBytes) }}</span>
                 <span class="text-muted-foreground">{{ formatPercent(entry.usedPercent, 0) }}</span>
               </div>
-              <!--
-                Prima: bg-red-500 fisso, qualunque fosse la percentuale
-                — un disco al 5% e uno al 95% mostravano la stessa
-                barra rossa allarmante. Ora severityBgClass() con le
-                stesse soglie usate per le KPI in cima alla pagina.
-              -->
               <div class="mt-1 h-1 w-32 overflow-hidden rounded-full bg-muted">
                 <div
                   class="h-full rounded-full transition-all"
@@ -377,7 +365,7 @@ const netTotalRate = computed(
       </table>
 
       <div v-if="!fsLoading && fsSorted.length === 0" class="py-10 text-center text-sm text-muted-foreground/70">
-        Nessun file system trovato.
+        {{ t('dashboard.fsEmpty') }}
       </div>
     </DashboardCard>
 
