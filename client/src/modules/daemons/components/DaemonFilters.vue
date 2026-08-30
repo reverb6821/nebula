@@ -13,16 +13,34 @@ const { t } = useI18n()
 const store = useDaemonsStore()
 const { search, filters, hasActiveFilters } = storeToRefs(store)
 
+// ── Label maps (riusate anche dai chip, per restare coerenti) ─────────────────
+
+const statusLabels: Record<DaemonStatus, string> = {
+  active: 'daemons.statusActive',
+  inactive: 'daemons.statusInactive',
+  failed: 'daemons.statusFailed',
+  unknown: 'daemons.statusUnknown',
+}
+
+const enabledLabels: Record<DaemonEnabled, string> = {
+  enabled: 'daemons.enabledEnabled',
+  disabled: 'daemons.enabledDisabled',
+  static: 'daemons.enabledStatic',
+  unknown: 'daemons.enabledUnknown',
+}
+
 // ── Filter groups ─────────────────────────────────────────────────────────────
 
 const filterGroups = computed<FilterGroup[]>(() => [
   {
     label: t('daemons.filterStatus'),
+    // I pallini colore ora usano i token semantici (bg-success/…)
+    // invece di emerald/red/amber hardcoded.
     options: [
-      { value: 'active',   label: t('daemons.statusActive'),   dotClass: 'bg-emerald-400' },
-      { value: 'inactive', label: t('daemons.statusInactive'), dotClass: 'bg-zinc-500'    },
-      { value: 'failed',   label: t('daemons.statusFailed'),   dotClass: 'bg-red-400'     },
-      { value: 'unknown',  label: t('daemons.statusUnknown'),  dotClass: 'bg-amber-400'   },
+      { value: 'active',   label: t('daemons.statusActive'),   dotClass: 'bg-success' },
+      { value: 'inactive', label: t('daemons.statusInactive'), dotClass: 'bg-muted-foreground' },
+      { value: 'failed',   label: t('daemons.statusFailed'),   dotClass: 'bg-destructive' },
+      { value: 'unknown',  label: t('daemons.statusUnknown'),  dotClass: 'bg-warning' },
     ] as FilterGroup<DaemonStatus>['options'],
     active: filters.value.status,
     onToggle: (v) => store.toggleStatusFilter(v as DaemonStatus),
@@ -40,14 +58,17 @@ const filterGroups = computed<FilterGroup[]>(() => [
 ])
 
 // ── Active chips ──────────────────────────────────────────────────────────────
+// Prima mostravano l'enum grezzo ('active', 'boot: enabled', …) invece
+// della label tradotta già usata nel pannello — incoerente col resto
+// dell'interfaccia, che è sempre localizzata.
 
 const activeChips = computed<ActiveChip[]>(() => [
   ...filters.value.status.map(s => ({
-    label: s,
+    label: t(statusLabels[s]),
     onRemove: () => store.toggleStatusFilter(s),
   })),
   ...filters.value.enabled.map(e => ({
-    label: `boot: ${e}`,
+    label: t(enabledLabels[e]),
     onRemove: () => store.toggleEnabledFilter(e),
   })),
 ])

@@ -45,88 +45,106 @@ const bootTooltip = computed(() => {
 </script>
 
 <template>
+  <!--
+    rounded-lg = 16px, livello "contenitore" del DESIGN.md. Niente
+    ombre (DESIGN.md: "Nessuna ombra tradizionale — separazione
+    visiva basata sul contrasto di luminosità"): l'elevazione viene
+    solo da bg-card vs bg-accent in hover e dal pannello bg-muted/50
+    per la riga boot, mai da un box-shadow.
+
+    Preferito: un bordo sinistro sottile invece del tint diffuso su
+    tutta la card di prima (troppo debole per notarsi davvero) — un
+    segnale netto, unico accento oltre alla stella piena.
+  -->
   <Card
-    class="py-2 group flex flex-col border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.1] hover:bg-white/[0.04] rounded-xl"
-    :class="{ 'border-amber-500/20 bg-amber-500/[0.03]': favorite }"
+    class="group relative flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all duration-200 hover:border-ring/30 hover:bg-accent"
+    :class="favorite ? 'border-l-2 border-l-warning' : ''"
   >
-    <CardHeader class="space-y-1.5">
-      <!-- Top row: status badge + controls -->
-      <div class="flex items-center justify-between gap-2">
-        <DaemonStatusBadge :status="daemon.status" />
+    <!-- Pin: angolo in alto a destra, visibile in hover o se già attivo -->
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <SharedButton
+          variant="ghost"
+          size="icon"
+          class="absolute right-3 top-3 h-6 w-6 rounded-md opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+          :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
+          :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
+          @click="emit('toggleFavorite')"
+        >
+          <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true" />
+        </SharedButton>
+      </TooltipTrigger>
+      <TooltipContent>{{ favorite ? t('daemons.unpin') : t('daemons.pin') }}</TooltipContent>
+    </Tooltip>
 
-        <div class="flex items-center gap-1">
-          <!-- Favorite -->
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <SharedButton
-                variant="ghost"
-                size="icon"
-                class="h-6 w-6 hover:bg-white/5 rounded-xl text-amber-400 hover:text-amber-400"
-                :class="favorite ?? 'text-amber-400'"
-                @click="emit('toggleFavorite')"
-              >
-                <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
-              </SharedButton>
-            </TooltipTrigger>
-            <TooltipContent>{{ favorite ? t('daemons.unpin') : t('daemons.pin') }}</TooltipContent>
-          </Tooltip>
-
-          <!-- Boot toggle -->
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <div class="flex items-center gap-1.5">
-                <span class="text-[10px] uppercase tracking-widest text-zinc-700">{{ t('daemons.bootLabel') }}</span>
-                <SharedSwitch
-                  :model-value="isEnabled"
-                  :disabled="pending || isStatic"
-                  class="scale-75"
-                  @update:model-value="emit('toggleEnabled')"
-                />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{{ bootTooltip }}</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-
-      <!-- Name -->
-      <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-zinc-100">
+    <!-- Header: nome + stato, unico fuoco visivo in alto -->
+    <CardHeader class="gap-1.5 p-0 pr-7">
+      <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-foreground">
         {{ daemon.name }}
       </CardTitle>
+      <DaemonStatusBadge :status="daemon.status" />
     </CardHeader>
 
-    <CardContent class="flex-1 px-4 pb-0">
+    <!-- Descrizione -->
+    <CardContent class="p-0">
       <CardDescription
         v-if="daemon.description && daemon.description !== daemon.name"
-        class="line-clamp-2 text-xs text-zinc-500"
+        class="line-clamp-2 text-xs text-muted-foreground"
       >
         {{ daemon.description }}
       </CardDescription>
-      <span v-else class="text-xs text-zinc-700">{{ t('daemons.noDescription') }}</span>
+      <span v-else class="text-xs text-muted-foreground/70">{{ t('daemons.noDescription') }}</span>
     </CardContent>
 
-    <!-- Footer actions -->
-    <div class="flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-1">
-      <!-- Start / Stop -->
+    <!--
+      Riga boot: prima accalcata nell'header insieme a badge e stella,
+      ora una riga propria con un pannello leggero (bg-muted/50) — lo
+      stesso linguaggio delle righe in Settings, invece di reinventarne
+      uno nuovo qui.
+    -->
+    <div class="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2">
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <span class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ t('daemons.bootLabel') }}</span>
+        </TooltipTrigger>
+        <TooltipContent>{{ bootTooltip }}</TooltipContent>
+      </Tooltip>
+      <SharedSwitch
+        :model-value="isEnabled"
+        :disabled="pending || isStatic"
+        :aria-label="bootTooltip"
+        @update:model-value="emit('toggleEnabled')"
+      />
+    </div>
+
+    <!--
+      Footer: Start/Stop è l'azione primaria e ora si vede — pillola
+      con tinta semantica morbida invece di un'icona nuda uguale alle
+      altre. Restart resta icona neutra, spinta a destra: secondaria,
+      non compete visivamente con l'azione principale.
+    -->
+    <div class="-mx-4 -mb-4 mt-1 flex items-center gap-1.5 border-t border-border px-4 py-2.5">
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
             variant="ghost"
-            size="icon"
+            size="sm"
             :loading="pending"
             :disabled="pending"
-            :icon="isRunning ? Square : Play"
-            class="h-7 w-7 hover:bg-white/5 rounded-xl"
+            :aria-label="isRunning ? t('common.stop') : t('common.start')"
+            class="h-7 gap-1.5 rounded-md px-2.5 text-xs font-medium"
             :class="isRunning
-              ? 'text-red-400 hover:text-red-400'
-              : 'text-emerald-500 hover:text-emerald-400'"
+              ? 'bg-destructive/10 text-destructive hover:bg-destructive/15'
+              : 'bg-success/10 text-success hover:bg-success/15'"
             @click="isRunning ? emit('stop') : emit('start')"
-          />
+          >
+            <component :is="isRunning ? Square : Play" class="h-3 w-3" aria-hidden="true" />
+            {{ isRunning ? t('common.stop') : t('common.start') }}
+          </SharedButton>
         </TooltipTrigger>
         <TooltipContent>{{ isRunning ? t('common.stop') : t('common.start') }}</TooltipContent>
       </Tooltip>
 
-      <!-- Restart -->
       <Tooltip>
         <TooltipTrigger as-child>
           <SharedButton
@@ -134,7 +152,8 @@ const bootTooltip = computed(() => {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 text-zinc-500 text-emerald-300 hover:text-emerald-300 transition-all duration-150 rounded-xl"
+            :aria-label="t('common.restart')"
+            class="ml-auto h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150"
             @click="emit('restart')"
           />
         </TooltipTrigger>

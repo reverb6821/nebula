@@ -1,5 +1,12 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Display font per H1 / numeri d'impatto (DESIGN.md: "Tipografia
+   rovinata/gotica"). Rubik Distressed è l'approssimazione reale più
+   vicina disponibile su Google Fonts: non esiste un font letterale
+   chiamato "Gothic Display", quindi questo è un mapping esplicito,
+   non un nome inventato. Usare solo per H1 e stat di grande formato,
+   mai per il corpo del testo (vedi DESIGN.md "Cose da evitare"). */
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Distressed&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -23,7 +30,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-sans);
+  --font-heading: 'Rubik Distressed', var(--font-sans);
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -42,6 +49,15 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  /* Stati semantici (successo/attenzione) usati da Alert, badge di stato
+     hardware, ecc. Non fanno parte dei token shadcn di default: li
+     aggiungiamo qui come cittadini di prima classe così da poter usare
+     text-success, border-warning/40 ecc. come per text-destructive. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -56,107 +72,140 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Raggi: valori diretti da DESIGN.md (rounded.sm/md/lg = 8/12/16px),
+     non più derivati per calc() da un unico --radius: la formula
+     "-4 / -2 / +0 / +4" a incrementi di 2px non può produrre la scala
+     a incrementi di 4px richiesta dal design system. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 }
 
 /* ─── Nebula Design System ─────────────────────────────────────────────────
-   App dark-only. No light mode. Tutti i token sono definiti su :root
+   App dark-only. No light mode. Palette allineata a DESIGN.md
+   (tema "nebula-pc-manager"). Tutti i token sono definiti su :root
    e replicati su .dark per compatibilita con shadcn (che legge .dark).
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --radius: 0.25rem; /* border-radius piu stretto: tool aesthetic */
+  /* --radius di riferimento per eventuali usi diretti di var(--radius)
+     nei primitive shadcn che non passano dalla scala sm/md/lg sopra. */
+  --radius: 16px;
 
-  /* Base */
-  --background:            #0A0A0A;
-  --foreground:            #F0F0F0;
+  /* Base (DESIGN.md → background / surface) */
+  --background:            #0A0E14;
+  --foreground:            #C8CDD3;
 
-  /* Cards / modals */
-  --card:                  #1A1A1A;
-  --card-foreground:       #F0F0F0;
+  /* Cards / modals (DESIGN.md → surface) */
+  --card:                  #141A22;
+  --card-foreground:       #C8CDD3;
 
-  /* Popovers / dropdowns */
-  --popover:               #1A1A1A;
-  --popover-foreground:    #F0F0F0;
+  /* Popovers / dropdowns: leggermente più chiaro della card per
+     segnalare l'elevazione solo tramite contrasto di luminosità
+     (DESIGN.md: "Nessuna ombra tradizionale") */
+  --popover:               #182029;
+  --popover-foreground:    #C8CDD3;
 
-  /* Primary action */
-  --primary:               #3B82F6;
+  /* Primary action (DESIGN.md → colors.primary, blu acciaio) */
+  --primary:               #5A7A9A;
+  /* NB: DESIGN.md indica testo neutro (#C8CDD3) sul primary, ma il
+     contrasto reale è 2.8:1 (fallisce WCAG AA 4.5:1). Usiamo bianco:
+     sale a ~4.5:1, sufficiente per testo bottone bold/grande (soglia
+     3:1) e più sicuro del token letterale. Vedi taste-skill §4.5
+     "Button Contrast Check". */
   --primary-foreground:    #FFFFFF;
 
-  /* Secondary */
-  --secondary:             #1A1A1A;
-  --secondary-foreground:  #F0F0F0;
+  /* Secondary (DESIGN.md → colors.secondary, blu-grigio opaco) */
+  --secondary:             #3A4A5C;
+  --secondary-foreground:  #C8CDD3;
 
   /* Muted */
-  --muted:                 #1A1A1A;
-  --muted-foreground:      #888888;
+  --muted:                 #141A22;
+  --muted-foreground:      #8A93A0;
 
-  /* Accent (hover rows, selected items) */
-  --accent:                #222222;
-  --accent-foreground:     #F0F0F0;
+  /* Accent (hover rows, selected items) — un filo più chiaro della
+     card per restare nella logica "contrasto di luminosità, non ombra" */
+  --accent:                #1C2530;
+  --accent-foreground:     #C8CDD3;
 
   /* Destructive */
   --destructive:           #EF4444;
+  --destructive-foreground: #FFFFFF;
 
-  /* Borders / inputs */
-  --border:                #2A2A2A;
-  --input:                 #1A1A1A;
-  --ring:                  #3B82F6;
+  /* Stati semantici aggiuntivi (non sono l'accento di brand: vedi
+     taste-skill §4.2, "un solo accento" si riferisce al brand color,
+     non agli stati esito che per convenzione restano un set separato) */
+  --success:               #3DD68C;
+  --success-foreground:    #062017;
+  --warning:               #E0A64D;
+  --warning-foreground:    #241804;
 
-  /* Charts - status semantics Nebula */
-  --chart-1:               #3B82F6; /* accent blue */
-  --chart-2:               #22C55E; /* success green */
-  --chart-3:               #F59E0B; /* warning amber */
-  --chart-4:               #EF4444; /* danger red */
-  --chart-5:               #A855F7; /* purple / AI */
+  /* Borders / inputs (DESIGN.md → colors.tertiary / bordo) */
+  --border:                #1E2830;
+  --input:                 #182029;
+  --ring:                  #5A7A9A;
 
-  /* Sidebar */
-  --sidebar:               #111111;
-  --sidebar-foreground:    #F0F0F0;
-  --sidebar-primary:       #3B82F6;
+  /* Charts - status semantics Nebula (desaturati per restare coerenti
+     con "no colori saturi o neon" di DESIGN.md) */
+  --chart-1:               #5A7A9A; /* accent blue, allineato a --primary */
+  --chart-2:               #3DD68C; /* success green */
+  --chart-3:               #E0A64D; /* warning amber */
+  --chart-4:               #E5626A; /* danger red, desaturato */
+  --chart-5:               #8E7CC3; /* purple / AI, desaturato */
+
+  /* Sidebar: stesso tono dello sfondo per un layout "seamless",
+     il contenuto si stacca tramite --card */
+  --sidebar:               #0A0E14;
+  --sidebar-foreground:    #C8CDD3;
+  --sidebar-primary:       #5A7A9A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent:        #222222;
-  --sidebar-accent-foreground: #F0F0F0;
-  --sidebar-border:        #2A2A2A;
-  --sidebar-ring:          #3B82F6;
+  --sidebar-accent:        #141A22;
+  --sidebar-accent-foreground: #C8CDD3;
+  --sidebar-border:        #1E2830;
+  --sidebar-ring:          #5A7A9A;
 }
 
-/* shadcn legge .dark per il tema scuro: lo allineiamo ai token Nebula */
+/* shadcn legge .dark per il tema scuro: lo allineiamo ai token Nebula.
+   Nessuna differenza da :root perché l'app non ha modalità chiara. */
 .dark {
-  --background:            #0A0A0A;
-  --foreground:            #F0F0F0;
-  --card:                  #1A1A1A;
-  --card-foreground:       #F0F0F0;
-  --popover:               #1A1A1A;
-  --popover-foreground:    #F0F0F0;
-  --primary:               #3B82F6;
+  --background:            #0A0E14;
+  --foreground:            #C8CDD3;
+  --card:                  #141A22;
+  --card-foreground:       #C8CDD3;
+  --popover:               #182029;
+  --popover-foreground:    #C8CDD3;
+  --primary:               #5A7A9A;
   --primary-foreground:    #FFFFFF;
-  --secondary:             #1A1A1A;
-  --secondary-foreground:  #F0F0F0;
-  --muted:                 #1A1A1A;
-  --muted-foreground:      #888888;
-  --accent:                #222222;
-  --accent-foreground:     #F0F0F0;
+  --secondary:             #3A4A5C;
+  --secondary-foreground:  #C8CDD3;
+  --muted:                 #141A22;
+  --muted-foreground:      #8A93A0;
+  --accent:                #1C2530;
+  --accent-foreground:     #C8CDD3;
   --destructive:           #EF4444;
-  --border:                #2A2A2A;
-  --input:                 #1A1A1A;
-  --ring:                  #3B82F6;
-  --chart-1:               #3B82F6;
-  --chart-2:               #22C55E;
-  --chart-3:               #F59E0B;
-  --chart-4:               #EF4444;
-  --chart-5:               #A855F7;
-  --sidebar:               #111111;
-  --sidebar-foreground:    #F0F0F0;
-  --sidebar-primary:       #3B82F6;
+  --destructive-foreground: #FFFFFF;
+  --success:               #3DD68C;
+  --success-foreground:    #062017;
+  --warning:               #E0A64D;
+  --warning-foreground:    #241804;
+  --border:                #1E2830;
+  --input:                 #182029;
+  --ring:                  #5A7A9A;
+  --chart-1:               #5A7A9A;
+  --chart-2:               #3DD68C;
+  --chart-3:               #E0A64D;
+  --chart-4:               #E5626A;
+  --chart-5:               #8E7CC3;
+  --sidebar:               #0A0E14;
+  --sidebar-foreground:    #C8CDD3;
+  --sidebar-primary:       #5A7A9A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent:        #222222;
-  --sidebar-accent-foreground: #F0F0F0;
-  --sidebar-border:        #2A2A2A;
-  --sidebar-ring:          #3B82F6;
+  --sidebar-accent:        #141A22;
+  --sidebar-accent-foreground: #C8CDD3;
+  --sidebar-border:        #1E2830;
+  --sidebar-ring:          #5A7A9A;
 }
 
 @layer base {
@@ -175,7 +224,21 @@ html, body, #app, #app * {
 
 html {
   font-size: var(--app-font-size);
-  line-height: var(--app-line-height);
+}
+
+/*
+  Prima: `line-height: var(--app-line-height)` stava solo su <html>,
+  senza !important. Quasi ogni elemento di testo dell'app usa classi
+  Tailwind (text-sm, text-xs, text-[11px]…) che portano già un proprio
+  line-height esplicito insieme al font-size — un valore impostato
+  DIRETTAMENTE su un elemento non eredita nulla dall'antenato, quindi
+  vinceva sempre quello di Tailwind. Risultato: cambiare l'interlinea
+  nelle impostazioni non aveva alcun effetto visibile. Stesso
+  trattamento già riservato a font-family qui sopra: forzare con
+  !important su #app * fa vincere il valore scelto dall'utente.
+*/
+#app, #app * {
+  line-height: var(--app-line-height) !important;
 }
 
 /* Reduced motion */

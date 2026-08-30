@@ -48,42 +48,54 @@ function formatBytes(bytes: number): string {
 </script>
 
 <template>
+  <!--
+    L'intera riga è cliccabile (apre i log): prima nessun tabindex/
+    tastiera. shadow con theme(colors...) → color-mix() nativo, stessa
+    correzione fatta in DaemonItem.vue.
+  -->
   <Item
     variant="outline"
-    class="rounded-xl group cursor-pointer border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    tabindex="0"
+    role="button"
+    :aria-pressed="selected"
+    :aria-label="t('docker.openLogsFor', { name: container.name })"
+    class="rounded-lg group cursor-pointer border-border bg-card transition-all duration-150 hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     :class="{
-      'border-indigo-500/40 bg-indigo-500/5': selected,
-      'border-amber-500/20 bg-amber-500/[0.03]': favorite && !selected,
+      'border-primary/40 bg-primary/5': selected,
+      'border-warning/20 bg-warning/[0.03]': favorite && !selected,
     }"
     @click="emit('logs')"
+    @keydown.enter="emit('logs')"
+    @keydown.space.prevent="emit('logs')"
   >
     <!-- Status dot -->
     <ItemMedia>
       <span
         class="h-1.5 w-1.5 rounded-full transition-colors duration-150"
         :class="{
-          'bg-emerald-400 shadow-[0_0_6px_theme(colors.emerald.400)] animate-pulse': container.status === 'running',
-          'bg-red-400': container.status === 'dead',
-          'bg-amber-400': container.status === 'paused',
-          'bg-blue-400 animate-pulse': container.status === 'restarting',
-          'bg-zinc-600': !['running','dead','paused','restarting'].includes(container.status),
+          'bg-success shadow-[0_0_6px_color-mix(in_srgb,var(--success)_80%,transparent)] animate-pulse': container.status === 'running',
+          'bg-destructive': container.status === 'dead',
+          'bg-warning': container.status === 'paused',
+          'bg-primary animate-pulse': container.status === 'restarting',
+          'bg-muted-foreground/50': !['running','dead','paused','restarting'].includes(container.status),
         }"
+        aria-hidden="true"
       />
     </ItemMedia>
 
     <!-- Name + image -->
     <ItemContent>
-      <ItemTitle class="flex items-center gap-2 font-mono text-sm font-medium text-zinc-100">
+      <ItemTitle class="flex items-center gap-2 font-mono text-sm font-medium text-foreground">
         {{ container.name }}
         <ContainerStatusBadge :status="container.status" />
       </ItemTitle>
-      <ItemDescription class="mt-0.5 truncate font-mono text-xs text-zinc-500">
+      <ItemDescription class="mt-0.5 truncate font-mono text-xs text-muted-foreground">
         {{ container.image }}
         <template v-if="isRunning && stats">
-          <span class="mx-1.5 text-zinc-700">·</span>
-          <span class="tabular-nums text-zinc-400">CPU {{ stats.cpuPercent.toFixed(1) }}%</span>
-          <span class="mx-1.5 text-zinc-700">·</span>
-          <span class="tabular-nums text-zinc-400">{{ formatBytes(stats.memUsage) }}</span>
+          <span class="mx-1.5 text-muted-foreground/60">·</span>
+          <span class="tabular-nums text-foreground/80">CPU {{ stats.cpuPercent.toFixed(1) }}%</span>
+          <span class="mx-1.5 text-muted-foreground/60">·</span>
+          <span class="tabular-nums text-foreground/80">{{ formatBytes(stats.memUsage) }}</span>
         </template>
       </ItemDescription>
     </ItemContent>
@@ -96,11 +108,12 @@ function formatBytes(bytes: number): string {
           <SharedButton
             variant="ghost"
             size="icon"
-            class="h-7 w-7 rounded-xl hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-            :class="favorite ? 'text-amber-400 !opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+            class="h-7 w-7 rounded-md hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+            :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
+            :aria-label="favorite ? t('docker.unpin') : t('docker.pin')"
             @click="emit('toggleFavorite')"
           >
-            <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
+            <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true" />
           </SharedButton>
         </TooltipTrigger>
         <TooltipContent>{{ favorite ? t('docker.unpin') : t('docker.pin') }}</TooltipContent>
@@ -112,10 +125,11 @@ function formatBytes(bytes: number): string {
           <SharedButton
             variant="ghost"
             size="icon"
-            class="h-7 w-7 text-zinc-500 hover:bg-white/5 hover:text-zinc-200 rounded-xl transition-all duration-150"
+            class="h-7 w-7 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-all duration-150"
+            :aria-label="t('docker.logs')"
             @click="emit('logs')"
           >
-            <FileText class="h-3.5 w-3.5" />
+            <FileText class="h-3.5 w-3.5" aria-hidden="true" />
           </SharedButton>
         </TooltipTrigger>
         <TooltipContent>{{ t('docker.logs') }}</TooltipContent>
@@ -130,8 +144,9 @@ function formatBytes(bytes: number): string {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-7 w-7 hover:bg-white/5 rounded-xl transition-all duration-150"
-            :class="isRunning ? 'text-red-400 hover:text-red-400' : 'text-emerald-500 hover:text-emerald-400'"
+            :aria-label="isRunning ? t('common.stop') : t('common.start')"
+            class="h-7 w-7 hover:bg-accent rounded-md transition-all duration-150"
+            :class="isRunning ? 'text-destructive hover:text-destructive' : 'text-success hover:text-success'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
@@ -146,7 +161,8 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 text-emerald-300 hover:text-emerald-300 hover:bg-white/5 rounded-xl transition-all duration-150"
+            :aria-label="t('common.restart')"
+            class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-150"
             @click="emit('restart')"
           />
         </TooltipTrigger>
@@ -161,7 +177,8 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending"
             :icon="Trash2"
-            class="h-7 w-7 text-red-400 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all duration-150"
+            :aria-label="t('common.remove')"
+            class="h-7 w-7 text-destructive rounded-md hover:bg-destructive/15 hover:text-destructive transition-all duration-150"
             @click="emit('remove')"
           />
         </TooltipTrigger>

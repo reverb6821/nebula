@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { useIntervalFn } from '@vueuse/core'
 import type { DockerImage, DockerContainer, ContainerStats, PullProgress } from '@/types/docker'
+import { useAsyncState } from '@/composables/useAsyncState'
+import { usePendingSet } from '@/composables/usePendingSet'
 import {
   pingDocker,
   fetchImages,
@@ -35,14 +37,17 @@ function saveFavorites(favs: Set<string>) {
 export const useDockerStore = defineStore('docker', () => {
   // ─── State ────────────────────────────────────────────────────────────────
   const connected = ref(false)
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+
+  // Prima: loading/error locali + un withPending scritto a mano quasi
+  // identico a quello di daemons/processes store. Ora dai due
+  // composable condivisi (vedi src/composables/).
+  const { loading, error, run } = useAsyncState('Fetch failed')
+  const { pending: pendingIds, withPending } = usePendingSet<string>()
 
   const images = ref<DockerImage[]>([])
   const containers = ref<DockerContainer[]>([])
   const stats = ref<Map<string, ContainerStats>>(new Map())
   const logs = ref<Map<string, string[]>>(new Map())
-  const pendingIds = ref<Set<string>>(new Set())
 
   const activeTab = ref<'containers' | 'images'>('containers')
   const search = ref('')
@@ -100,19 +105,23 @@ export const useDockerStore = defineStore('docker', () => {
     saveFavorites(next)
   }
 
-  function isFavorite(id: string): boolean {
-    return favoritesArray.value.includes(id)
+  // Prima remove() e deleteImage() facevano favorites.value.delete(id)
+  // direttamente sul Set esistente: nessuna reattività (Vue non
+  // traccia le mutazioni interne di un Set) e nessuna persistenza
+  // (saveFavorites non veniva mai chiamato) — un container/immagine
+  // preferito e poi rimosso restava per sempre come voce orfana in
+  // localStorage. Stessa logica di riassegnazione già usata in
+  // toggleFavorite, estratta qui per essere riusata da entrambi.
+  function removeFavorite(id: string) {
+    if (!favorites.value.has(id)) return
+    const next = new Set(favorites.value)
+    next.delete(id)
+    favorites.value = next
+    saveFavorites(next)
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  async function withPending<T>(id: string, fn: () => Promise<T>): Promise<T> {
-    pendingIds.value = new Set([...pendingIds.value, id])
-    try { return await fn() }
-    finally {
-      const next = new Set(pendingIds.value)
-      next.delete(id)
-      pendingIds.value = next
-    }
+  function isFavorite(id: string): boolean {
+    return favoritesArray.value.includes(id)
   }
 
   // ─── Connect & fetch ──────────────────────────────────────────────────────
@@ -128,16 +137,11 @@ export const useDockerStore = defineStore('docker', () => {
 
   async function refresh() {
     if (!connected.value) return
-    loading.value = true
-    try {
-      const [imgs, ctrs] = await Promise.all([fetchImages(), fetchContainers()])
-      images.value = imgs
-      containers.value = ctrs
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Fetch failed'
-    } finally {
-      loading.value = false
-    }
+    const result = await run(() => Promise.all([fetchImages(), fetchContainers()]))
+    if (!result) return
+    const [imgs, ctrs] = result
+    images.value = imgs
+    containers.value = ctrs
   }
 
   // ─── Stats polling ────────────────────────────────────────────────────────
@@ -177,7 +181,7 @@ export const useDockerStore = defineStore('docker', () => {
   async function remove(id: string) {
     await withPending(id, async () => {
       await removeContainer(id)
-      favorites.value.delete(id)
+      removeFavorite(id)
       if (selectedContainerId.value === id) selectedContainerId.value = null
       await refresh()
     })
@@ -187,7 +191,7 @@ export const useDockerStore = defineStore('docker', () => {
   async function deleteImage(id: string) {
     await withPending(id, async () => {
       await removeImage(id)
-      favorites.value.delete(id)
+      removeFavorite(id)
       await refresh()
     })
   }

@@ -185,56 +185,64 @@ export async function listDaemons(): Promise<Daemon[]> {
 
   return daemons
 }
+// ─── Privileged exec ──────────────────────────────────────────────────────────
+// pkexec/powershell possono fallire (prompt polkit annullato, permessi
+// negati, nessun polkit agent attivo...) senza che questo sia mai stato
+// controllato: runCmd tornava comunque una Promise risolta e lo store
+// segnava l'azione come riuscita anche a comando fallito. Risultato: "stop"
+// che in UI sembra funzionare ma il demone resta attivo.
+async function runPrivileged(cmd: string): Promise<void> {
+  const { exitCode, stderr } = await runCmd(cmd)
+  if (exitCode !== 0) {
+    throw new Error(stderr.trim() || `Comando fallito (exit code ${exitCode})`)
+  }
+}
+
 // ─── Start / Stop ─────────────────────────────────────────────────────────────
 
 export async function startDaemon(name: string): Promise<void> {
   if (isWindows()) {
-    await runCmd(
+    return runPrivileged(
       `powershell -NoProfile -Command "Start-Service -Name '${name}'"`,
     )
-    return
   }
-  await runCmd(`pkexec systemctl start ${name}.service`)
+  return runPrivileged(`pkexec systemctl start ${name}.service`)
 }
 
 export async function stopDaemon(name: string): Promise<void> {
   if (isWindows()) {
-    await runCmd(
+    return runPrivileged(
       `powershell -NoProfile -Command "Stop-Service -Name '${name}' -Force"`,
     )
-    return
   }
-  await runCmd(`pkexec systemctl stop ${name}.service`)
+  return runPrivileged(`pkexec systemctl stop ${name}.service`)
 }
 
 export async function restartDaemon(name: string): Promise<void> {
   if (isWindows()) {
-    await runCmd(
+    return runPrivileged(
       `powershell -NoProfile -Command "Restart-Service -Name '${name}' -Force"`,
     )
-    return
   }
-  await runCmd(`pkexec systemctl restart ${name}.service`)
+  return runPrivileged(`pkexec systemctl restart ${name}.service`)
 }
 
 // ─── Enable / Disable (boot autostart) ───────────────────────────────────────
 
 export async function enableDaemon(name: string): Promise<void> {
   if (isWindows()) {
-    await runCmd(
+    return runPrivileged(
       `powershell -NoProfile -Command "Set-Service -Name '${name}' -StartupType Automatic"`,
     )
-    return
   }
-  await runCmd(`pkexec systemctl enable ${name}.service`)
+  return runPrivileged(`pkexec systemctl enable ${name}.service`)
 }
 
 export async function disableDaemon(name: string): Promise<void> {
   if (isWindows()) {
-    await runCmd(
+    return runPrivileged(
       `powershell -NoProfile -Command "Set-Service -Name '${name}' -StartupType Disabled"`,
     )
-    return
   }
-  await runCmd(`pkexec systemctl disable ${name}.service`)
+  return runPrivileged(`pkexec systemctl disable ${name}.service`)
 }

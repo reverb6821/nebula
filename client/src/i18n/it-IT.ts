@@ -25,6 +25,14 @@ export const itIT = {
     noResults: 'Nessun risultato trovato.',
     comingSoon: 'Prossimamente.',
     boot: 'Avvio',
+    // Aggiunte: mancavano del tutto — DaemonsView/ProcessView le usano
+    // per il titolo di SharedAlert in caso di errore di fetch.
+    error: 'Errore',
+    // Usato da LogsViewer.vue per il pulsante di chiusura pannello log.
+    close: 'Chiudi',
+    // Usato da AppLayout.vue per il trigger della sidebar (prima era
+    // una stringa italiana hardcoded nel componente, non passava da qui).
+    toggleSidebar: 'Apri/chiudi barra laterale',
   },
   daemons: {
     title: 'Demoni',
@@ -63,12 +71,23 @@ export const itIT = {
     enabledEnabled: 'Abilitato',
     enabledDisabled: 'Disabilitato',
     enabledStatic: 'Statico',
+    // Aggiunta: il tipo DaemonEnabled include anche 'unknown', il
+    // Record in DaemonFilters.vue lo richiede per compilare.
+    enabledUnknown: 'Sconosciuto',
+    // Aggiunte: usate dal toggle vista lista/griglia in DaemonList.vue
+    // (e riusate anche da DockerList.vue per lo stesso controllo).
+    viewList: 'Vista elenco',
+    viewGrid: 'Vista griglia',
   },
   processes: {
     pid: 'PID',
     terminate: 'Termina (SIGTERM)',
     kill: 'Kill (SIGKILL)',
-    changePriority: 'Cambia priorità'
+    changePriority: 'Cambia priorità',
+    // Aggiunte: mancava l'intera coppia titolo/sottotitolo usata da
+    // ProcessView.vue nell'header di pagina.
+    title: 'Processi',
+    subtitle: '{running} in esecuzione · {shown}/{total} mostrati',
   },
   docker: {
     title: 'Docker',
@@ -111,6 +130,9 @@ export const itIT = {
     statusDead: 'morto',
     statusExited: 'terminato',
     statusCreated: 'creato',
+    // Aggiunta: usata da ContainerCard/ContainerItem come aria-label
+    // dell'intera card cliccabile ("Apri i log di {name}").
+    openLogsFor: 'Apri i log di {name}',
   },
 
   settings: {
@@ -138,11 +160,54 @@ export const itIT = {
     lineHeightNormal: 'Normale',
     lineHeightRelaxed: 'Rilassata',
     lineHeightLoose: 'Ampia',
+    // Aggiunta: testo di esempio nel riquadro di anteprima dello slider.
+    lineHeightPreviewText: 'La volpe marrone salta rapida sopra il cane pigro. Ecco come apparirà il tuo testo.',
 
     reducedMotion: 'Riduci animazioni',
     reducedMotionHint: 'Minimizza animazioni e transizioni.',
 
     highContrast: 'Alto contrasto',
     highContrastHint: 'Aumenta il contrasto di bordi e testo.',
+
+    // Aggiunte: bottone di reset e relativo dialog di conferma in
+    // SettingsView.vue (prima eseguiva il reset senza chiedere conferma).
+    resetToDefaults: 'Ripristina predefiniti',
+    resetConfirmTitle: 'Ripristinare tutte le impostazioni?',
+    resetConfirmDescription: 'Questo riporterà ogni preferenza di aspetto e lingua al valore predefinito. L\'azione non può essere annullata.',
+  },
+
+  // Aggiunta: DashboardView.vue aveva ogni etichetta scritta in
+  // italiano direttamente nel template, mai passata da t() — l'unica
+  // vista dell'app rimasta non localizzata.
+  dashboard: {
+    cpu: 'CPU',
+    gpu: 'GPU',
+    memory: 'Memoria',
+    memoryAndSwap: 'Memoria e swap',
+    swap: 'Swap',
+    cache: 'Cache',
+    diskRoot: 'Disco (/)',
+    disk: 'Disco',
+    network: 'Rete',
+    readWriteCombined: 'lettura + scrittura combinate',
+    usedOfTotal: '{used} ({percent}) di {total}',
+    received: 'Ricezione',
+    sent: 'Invio',
+    totalReceived: 'Totale ricevuti {value}',
+    totalSent: 'Totale inviati {value}',
+    read: 'Lettura',
+    write: 'Scrittura',
+    totalRead: 'Totale letti {value}',
+    totalWritten: 'Totale scritti {value}',
+    tempAndPower: 'Temperatura e consumi',
+    sensorsUnavailable: 'Nessun sensore rilevato — richiede {lmSensors} (temperature) e/o RAPL su CPU Intel / {nvidiaSmi} per GPU NVIDIA (consumi).',
+    avg60s: 'media 60s: {value}',
+    filesystem: 'File system',
+    fsDirectory: 'Directory',
+    fsType: 'Tipo',
+    fsTotal: 'Totale',
+    fsAvailable: 'Disponibile',
+    fsUsed: 'Usato',
+    fsEmpty: 'Nessun file system trovato.',
   },
 }

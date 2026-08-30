@@ -40,22 +40,22 @@ function formatDate(unix: number): string {
 <template>
   <Item
     variant="outline"
-    class="group rounded-xl border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04]"
+    class="group rounded-lg border-border bg-card transition-all duration-150 hover:bg-accent"
   >
     <ItemMedia>
-      <HardDrive class="h-3.5 w-3.5 text-zinc-600" />
+      <HardDrive class="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
     </ItemMedia>
 
     <ItemContent>
-      <ItemTitle class="flex flex-wrap gap-x-2 font-mono text-sm text-zinc-200">
+      <ItemTitle class="flex flex-wrap gap-x-2 font-mono text-sm text-foreground">
         <span v-for="tag in image.repoTags" :key="tag">{{ tag }}</span>
       </ItemTitle>
-      <ItemDescription class="mt-0.5 flex items-center gap-2 font-mono text-xs text-zinc-600">
+      <ItemDescription class="mt-0.5 flex items-center gap-2 font-mono text-xs text-muted-foreground">
         <span class="truncate">{{ image.id }}</span>
-        <span class="text-zinc-700">·</span>
-        <span class="shrink-0 tabular-nums text-zinc-400">{{ formatBytes(image.size) }}</span>
-        <span class="text-zinc-700">·</span>
-        <span class="shrink-0 text-zinc-500">{{ formatDate(image.created) }}</span>
+        <span class="text-muted-foreground/60">·</span>
+        <span class="shrink-0 tabular-nums text-foreground/80">{{ formatBytes(image.size) }}</span>
+        <span class="text-muted-foreground/60">·</span>
+        <span class="shrink-0 text-muted-foreground">{{ formatDate(image.created) }}</span>
       </ItemDescription>
     </ItemContent>
 
@@ -67,7 +67,8 @@ function formatDate(unix: number): string {
             size="icon"
             :disabled="pending"
             :icon="Trash2"
-            class="h-7 w-7 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-400 transition-all duration-150"
+            :aria-label="t('docker.removeImage')"
+            class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive transition-all duration-150"
             @click="emit('remove')"
           />
         </TooltipTrigger>

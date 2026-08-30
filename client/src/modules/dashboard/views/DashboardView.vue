@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import {
   ArrowDown, ArrowUp, Thermometer, Zap, HardDrive, Cpu, MemoryStick, Network,
 } from '@lucide/vue'
@@ -9,10 +10,12 @@ import SparklineChart from '../components/SparkLineChart.vue'
 import DashboardCard from '../components/DashboardCard.vue'
 import KpiCard from '../components/KpiCard.vue'
 import { cpuColor } from '../utils/cpuColors'
+import { severityFor, severityTextClass, severityBgClass } from '../utils/severity'
 import { formatBytesDecimal, formatRateBinary, formatPercent, formatTemp, formatWatts } from '../utils/format.ts'
 import { listFilesystems } from '../composables/useFileSystemApi.ts'
 import type { FsEntry } from '@/types/resources'
 
+const { t } = useI18n()
 const store = useResourcesStore()
 const {
   snapshot, sensors, sensorsUnavailable,
@@ -29,29 +32,29 @@ const cpuSeries = computed(() =>
   cpuCoreHistory.value.map((values, i) => ({ id: i, color: cpuColor(i), values })),
 )
 
+// var(--x) invece di hex letterali: vedi nota precedente, stessi ruoli
+// semantici usati ovunque nell'app.
 const memSeries = computed(() => [
-  { id: 'mem', color: '#ef4444', values: memHistory.value },
+  { id: 'mem', color: 'var(--destructive)', values: memHistory.value },
 ])
 
 const swapSeries = computed(() => [
-  { id: 'swap', color: '#22c55e', values: swapHistory.value },
+  { id: 'swap', color: 'var(--success)', values: swapHistory.value },
 ])
 
 const netSeries = computed(() => [
-  { id: 'rx', color: '#3b82f6', values: netRxHistory.value },
-  { id: 'tx', color: '#f97316', values: netTxHistory.value },
+  { id: 'rx', color: 'var(--primary)', values: netRxHistory.value },
+  { id: 'tx', color: 'var(--warning)', values: netTxHistory.value },
 ])
 
 const diskSeries = computed(() => [
-  { id: 'read', color: '#3b82f6', values: diskReadHistory.value },
-  { id: 'write', color: '#f97316', values: diskWriteHistory.value },
+  { id: 'read', color: 'var(--primary)', values: diskReadHistory.value },
+  { id: 'write', color: 'var(--warning)', values: diskWriteHistory.value },
 ])
 
 function tempColor(c: number | null): string {
-  if (c === null) return 'text-zinc-600'
-  if (c >= 85) return 'text-red-400'
-  if (c >= 65) return 'text-amber-300'
-  return 'text-emerald-400'
+  if (c === null) return 'text-muted-foreground'
+  return severityTextClass(c, { danger: 85, warning: 65 })
 }
 
 // ─── File system ────────────────────────────────────────────────────────────
@@ -90,8 +93,6 @@ function selectFsRow(mount: string) {
 }
 
 // ─── KPI overview (riga in cima) ─────────────────────────────────────────────
-// Un colpo d'occhio prima del dettaglio: CPU/RAM correnti, disco radice,
-// throughput di rete combinato (rx+tx).
 
 const rootFs = computed(
   () => fsSorted.value.find((e) => e.mount === '/') ?? fsSorted.value[0] ?? null,
@@ -100,51 +101,45 @@ const rootFs = computed(
 const netTotalRate = computed(
   () => (snapshot.value?.netRxRate ?? 0) + (snapshot.value?.netTxRate ?? 0),
 )
-
-function kpiColorFor(percent: number): string {
-  if (percent >= 85) return 'text-red-400'
-  if (percent >= 60) return 'text-amber-300'
-  return 'text-emerald-400'
-}
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 overflow-auto p-4 text-zinc-300">
+  <div class="flex flex-col gap-4 overflow-auto p-4 text-foreground">
 
     <!-- Overview -->
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <KpiCard
         :icon="Cpu"
-        label="CPU"
+        :label="t('dashboard.cpu')"
         :value="formatPercent(snapshot?.cpuOverallPercent ?? 0)"
-        :accent="kpiColorFor(snapshot?.cpuOverallPercent ?? 0)"
+        :severity="severityFor(snapshot?.cpuOverallPercent ?? 0, { danger: 85, warning: 60 })"
       />
       <KpiCard
         :icon="MemoryStick"
-        label="Memoria"
+        :label="t('dashboard.memory')"
         :value="formatPercent(snapshot?.memUsedPercent ?? 0)"
         :sub="formatBytesDecimal(snapshot?.memUsedBytes ?? 0) + ' / ' + formatBytesDecimal(snapshot?.memTotalBytes ?? 0)"
-        :accent="kpiColorFor(snapshot?.memUsedPercent ?? 0)"
+        :severity="severityFor(snapshot?.memUsedPercent ?? 0, { danger: 85, warning: 60 })"
       />
       <KpiCard
         :icon="HardDrive"
-        label="Disco (/)"
+        :label="t('dashboard.diskRoot')"
         :value="rootFs ? formatPercent(rootFs.usedPercent, 0) : '–'"
         :sub="rootFs ? formatBytesDecimal(rootFs.usedBytes) + ' / ' + formatBytesDecimal(rootFs.totalBytes) : undefined"
-        :accent="rootFs ? kpiColorFor(rootFs.usedPercent) : 'text-zinc-600'"
+        :severity="rootFs ? severityFor(rootFs.usedPercent, { danger: 85, warning: 60 }) : undefined"
       />
       <KpiCard
         :icon="Network"
-        label="Rete"
+        :label="t('dashboard.network')"
         :value="formatRateBinary(netTotalRate)"
-        sub="lettura + scrittura combinate"
+        :sub="t('dashboard.readWriteCombined')"
       />
     </div>
 
     <!-- Griglia principale: CPU / Memoria / Rete / Disco -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
-      <DashboardCard title="CPU">
+      <DashboardCard :title="t('dashboard.cpu')">
         <SparklineChart :series="cpuSeries" :max="100" :format-y="(v) => `${v} %`" />
 
         <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">
@@ -153,84 +148,95 @@ function kpiColorFor(percent: number): string {
             :key="core.id"
             class="flex items-center gap-2 text-xs"
           >
-            <span class="h-2.5 w-2.5 shrink-0 rounded-sm" :style="{ backgroundColor: cpuColor(i) }" />
-            <span class="text-zinc-400">CPU{{ core.id + 1 }}</span>
-            <span class="ml-auto font-mono tabular-nums text-zinc-200">{{ formatPercent(core.percent) }}</span>
+            <!-- "CPU{n}" resta invariato: è un indice tecnico (CPU1,
+                 CPU2…), non una frase da tradurre. -->
+            <span class="h-2.5 w-2.5 shrink-0 rounded-sm" :style="{ backgroundColor: cpuColor(i) }" aria-hidden="true" />
+            <span class="text-muted-foreground">{{ t('dashboard.cpu') }}{{ core.id + 1 }}</span>
+            <span class="ml-auto font-mono tabular-nums text-foreground">{{ formatPercent(core.percent) }}</span>
           </div>
         </div>
       </DashboardCard>
 
-      <DashboardCard title="Memoria e swap">
+      <DashboardCard :title="t('dashboard.memoryAndSwap')">
         <SparklineChart :series="[...memSeries, ...swapSeries]" :max="100" :format-y="(v) => `${v} %`" />
 
         <div class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
           <div class="flex items-start gap-2">
-            <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-red-500" />
+            <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-destructive" aria-hidden="true" />
             <div>
-              <div class="text-zinc-400">Memoria</div>
-              <div class="font-mono text-zinc-200">
-                {{ formatBytesDecimal(snapshot?.memUsedBytes ?? 0) }}
-                ({{ formatPercent(snapshot?.memUsedPercent ?? 0) }})
-                di {{ formatBytesDecimal(snapshot?.memTotalBytes ?? 0) }}
+              <div class="text-muted-foreground">{{ t('dashboard.memory') }}</div>
+              <!--
+                usedOfTotal traduce la frase intera, non concatena
+                "di"/"of" a mano tra i pezzi: l'ordine delle parole può
+                cambiare liberamente da una lingua all'altra.
+              -->
+              <div class="font-mono text-foreground">
+                {{ t('dashboard.usedOfTotal', {
+                  used: formatBytesDecimal(snapshot?.memUsedBytes ?? 0),
+                  percent: formatPercent(snapshot?.memUsedPercent ?? 0),
+                  total: formatBytesDecimal(snapshot?.memTotalBytes ?? 0),
+                }) }}
               </div>
-              <div class="text-zinc-600">Cache {{ formatBytesDecimal(snapshot?.memCacheBytes ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.cache') }} {{ formatBytesDecimal(snapshot?.memCacheBytes ?? 0) }}</div>
             </div>
           </div>
           <div class="flex items-start gap-2">
-            <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-emerald-500" />
+            <span class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-success" aria-hidden="true" />
             <div>
-              <div class="text-zinc-400">Swap</div>
-              <div class="font-mono text-zinc-200">
-                {{ formatBytesDecimal(snapshot?.swapUsedBytes ?? 0) }}
-                ({{ formatPercent(snapshot?.swapUsedPercent ?? 0) }})
-                di {{ formatBytesDecimal(snapshot?.swapTotalBytes ?? 0) }}
+              <div class="text-muted-foreground">{{ t('dashboard.swap') }}</div>
+              <div class="font-mono text-foreground">
+                {{ t('dashboard.usedOfTotal', {
+                  used: formatBytesDecimal(snapshot?.swapUsedBytes ?? 0),
+                  percent: formatPercent(snapshot?.swapUsedPercent ?? 0),
+                  total: formatBytesDecimal(snapshot?.swapTotalBytes ?? 0),
+                }) }}
               </div>
             </div>
           </div>
         </div>
       </DashboardCard>
 
-      <DashboardCard title="Rete">
+      <DashboardCard :title="t('dashboard.network')">
         <SparklineChart :series="netSeries" :max="netMaxRate" :format-y="formatRateBinary" />
 
         <div class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
           <div class="flex items-start gap-2">
-            <ArrowDown class="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
+            <ArrowDown class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
             <div>
-              <div class="text-zinc-400">Ricezione</div>
-              <div class="font-mono text-zinc-200">{{ formatRateBinary(snapshot?.netRxRate ?? 0) }}</div>
-              <div class="text-zinc-600">Totale ricevuti {{ formatBytesDecimal(snapshot?.netRxTotal ?? 0) }}</div>
+              <div class="text-muted-foreground">{{ t('dashboard.received') }}</div>
+              <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.netRxRate ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalReceived', { value: formatBytesDecimal(snapshot?.netRxTotal ?? 0) }) }}</div>
             </div>
           </div>
           <div class="flex items-start gap-2">
-            <ArrowUp class="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-500" />
+            <ArrowUp class="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" aria-hidden="true" />
             <div>
-              <div class="text-zinc-400">Invio</div>
-              <div class="font-mono text-zinc-200">{{ formatRateBinary(snapshot?.netTxRate ?? 0) }}</div>
-              <div class="text-zinc-600">Totale inviati {{ formatBytesDecimal(snapshot?.netTxTotal ?? 0) }}</div>
+              <div class="text-muted-foreground">{{ t('dashboard.sent') }}</div>
+              <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.netTxRate ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalSent', { value: formatBytesDecimal(snapshot?.netTxTotal ?? 0) }) }}</div>
             </div>
           </div>
         </div>
       </DashboardCard>
 
-      <DashboardCard title="Disco">
+      <DashboardCard :title="t('dashboard.disk')">
         <SparklineChart :series="diskSeries" :max="diskMaxRate" :format-y="formatRateBinary" />
 
         <div class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-xs">
           <div class="flex items-start gap-2">
-            <ArrowUp class="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
+            <ArrowUp class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
             <div>
-              <div class="text-zinc-400">Lettura</div>
-              <div class="font-mono text-zinc-200">{{ formatRateBinary(snapshot?.diskReadRate ?? 0) }}</div>
-              <div class="text-zinc-600">Totale letti {{ formatBytesDecimal(snapshot?.diskReadTotal ?? 0) }}</div>
+              <div class="text-muted-foreground">{{ t('dashboard.read') }}</div>
+              <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.diskReadRate ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalRead', { value: formatBytesDecimal(snapshot?.diskReadTotal ?? 0) }) }}</div>
             </div>
           </div>
           <div class="flex items-start gap-2">
-            <ArrowDown class="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange-500" />
+            <ArrowDown class="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" aria-hidden="true" />
             <div>
-              <div class="text-zinc-400">Scrittura</div>
-              <div class="font-mono text-zinc-200">{{ formatRateBinary(snapshot?.diskWriteRate ?? 0) }}</div>
-              <div class="text-zinc-600">Totale scritti {{ formatBytesDecimal(snapshot?.diskWriteTotal ?? 0) }}</div>
+              <div class="text-muted-foreground">{{ t('dashboard.write') }}</div>
+              <div class="font-mono text-foreground">{{ formatRateBinary(snapshot?.diskWriteRate ?? 0) }}</div>
+              <div class="text-muted-foreground/70">{{ t('dashboard.totalWritten', { value: formatBytesDecimal(snapshot?.diskWriteTotal ?? 0) }) }}</div>
             </div>
           </div>
         </div>
@@ -239,97 +245,117 @@ function kpiColorFor(percent: number): string {
     </div>
 
     <!-- Temperatura e consumi -->
-    <DashboardCard title="Temperatura e consumi">
-      <div
+    <DashboardCard :title="t('dashboard.tempAndPower')">
+      <!--
+        Il messaggio ha due <code> incorporati nel mezzo della frase:
+        concatenare pezzi tradotti a mano avrebbe rotto l'ordine delle
+        parole in inglese. <i18n-t> risolve la keypath e lascia che gli
+        slot con nome inseriscano il markup nel punto giusto, qualunque
+        sia l'ordine deciso dalla traduzione.
+      -->
+      <i18n-t
         v-if="sensorsUnavailable"
-        class="rounded border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-500"
+        keypath="dashboard.sensorsUnavailable"
+        tag="div"
+        class="rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground"
       >
-        Nessun sensore rilevato — richiede <code class="text-zinc-400">lm-sensors</code>
-        (temperature) e/o RAPL su CPU Intel / <code class="text-zinc-400">nvidia-smi</code>
-        per GPU NVIDIA (consumi).
-      </div>
+        <template #lmSensors><code class="text-foreground">lm-sensors</code></template>
+        <template #nvidiaSmi><code class="text-foreground">nvidia-smi</code></template>
+      </i18n-t>
 
       <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div class="rounded border border-zinc-800 bg-zinc-900/40 p-3">
-          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-zinc-500">
-            <Thermometer class="h-3 w-3" /> CPU
+        <div class="rounded-md border border-border bg-card p-3">
+          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <Thermometer class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.cpu') }}
           </div>
           <div class="mt-1 font-mono text-lg" :class="tempColor(sensors.cpuTempC)">
             {{ formatTemp(sensors.cpuTempC) }}
           </div>
-          <div class="text-[10px] text-zinc-600">media 60s: {{ formatTemp(cpuTempAvg) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatTemp(cpuTempAvg) }) }}</div>
         </div>
 
-        <div class="rounded border border-zinc-800 bg-zinc-900/40 p-3">
-          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-zinc-500">
-            <Thermometer class="h-3 w-3" /> GPU
+        <div class="rounded-md border border-border bg-card p-3">
+          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <Thermometer class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.gpu') }}
           </div>
           <div class="mt-1 font-mono text-lg" :class="tempColor(sensors.gpuTempC)">
             {{ formatTemp(sensors.gpuTempC) }}
           </div>
-          <div class="text-[10px] text-zinc-600">media 60s: {{ formatTemp(gpuTempAvg) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatTemp(gpuTempAvg) }) }}</div>
         </div>
 
-        <div class="rounded border border-zinc-800 bg-zinc-900/40 p-3">
-          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-zinc-500">
-            <Zap class="h-3 w-3" /> CPU
+        <div class="rounded-md border border-border bg-card p-3">
+          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <Zap class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.cpu') }}
           </div>
-          <div class="mt-1 font-mono text-lg text-zinc-200">{{ formatWatts(sensors.cpuPowerW) }}</div>
-          <div class="text-[10px] text-zinc-600">media 60s: {{ formatWatts(cpuPowerAvg) }}</div>
+          <div class="mt-1 font-mono text-lg text-foreground">{{ formatWatts(sensors.cpuPowerW) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatWatts(cpuPowerAvg) }) }}</div>
         </div>
 
-        <div class="rounded border border-zinc-800 bg-zinc-900/40 p-3">
-          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-zinc-500">
-            <Zap class="h-3 w-3" /> GPU
+        <div class="rounded-md border border-border bg-card p-3">
+          <div class="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <Zap class="h-3 w-3" aria-hidden="true" /> {{ t('dashboard.gpu') }}
           </div>
-          <div class="mt-1 font-mono text-lg text-zinc-200">{{ formatWatts(sensors.gpuPowerW) }}</div>
-          <div class="text-[10px] text-zinc-600">media 60s: {{ formatWatts(gpuPowerAvg) }}</div>
+          <div class="mt-1 font-mono text-lg text-foreground">{{ formatWatts(sensors.gpuPowerW) }}</div>
+          <div class="text-[10px] text-muted-foreground/70">{{ t('dashboard.avg60s', { value: formatWatts(gpuPowerAvg) }) }}</div>
         </div>
       </div>
     </DashboardCard>
 
     <!-- File system -->
-    <DashboardCard title="File system">
+    <DashboardCard :title="t('dashboard.filesystem')">
       <table class="w-full border-collapse text-left text-xs">
         <thead>
-          <tr class="border-b border-zinc-800 text-zinc-500">
+          <tr class="border-b border-border text-muted-foreground">
             <th class="w-10 py-2"></th>
-            <th class="cursor-pointer select-none py-2 pr-4 font-medium" @click="toggleFsSort">
-              Directory
-              <span class="text-zinc-600">{{ fsSortDir === 'asc' ? '▲' : '▼' }}</span>
+            <th class="py-2 pr-4 font-medium" :aria-sort="fsSortDir === 'asc' ? 'ascending' : 'descending'">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 text-left transition-colors hover:text-foreground"
+                @click="toggleFsSort"
+              >
+                {{ t('dashboard.fsDirectory') }}
+                <span class="text-muted-foreground/70" aria-hidden="true">{{ fsSortDir === 'asc' ? '▲' : '▼' }}</span>
+              </button>
             </th>
-            <th class="py-2 pr-4 font-medium">Tipo</th>
-            <th class="py-2 pr-4 font-medium">Totale</th>
-            <th class="py-2 pr-4 font-medium">Disponibile</th>
-            <th class="py-2 pr-4 font-medium">Usato</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsType') }}</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsTotal') }}</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsAvailable') }}</th>
+            <th class="py-2 pr-4 font-medium">{{ t('dashboard.fsUsed') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr
             v-for="entry in fsSorted"
             :key="`${entry.device}-${entry.mount}`"
-            class="cursor-pointer border-b border-zinc-900"
-            :class="fsSelectedMount === entry.mount ? 'bg-red-950/40' : 'hover:bg-white/[0.03]'"
+            tabindex="0"
+            role="row"
+            :aria-selected="fsSelectedMount === entry.mount"
+            class="cursor-pointer border-b border-border/60 outline-none transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-inset"
+            :class="fsSelectedMount === entry.mount ? 'bg-primary/15 hover:bg-primary/15' : 'hover:bg-accent'"
             @click="selectFsRow(entry.mount)"
+            @keydown.enter="selectFsRow(entry.mount)"
+            @keydown.space.prevent="selectFsRow(entry.mount)"
           >
             <td class="py-2.5">
-              <HardDrive class="h-4 w-4 text-zinc-600" />
+              <HardDrive class="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </td>
             <td class="py-2.5 pr-4">
-              <div class="font-mono text-zinc-200">{{ entry.mount }}</div>
-              <div class="text-[10px] text-zinc-600">{{ entry.device }}</div>
+              <div class="font-mono text-foreground">{{ entry.mount }}</div>
+              <div class="text-[10px] text-muted-foreground/70">{{ entry.device }}</div>
             </td>
-            <td class="py-2.5 pr-4 text-zinc-400">{{ entry.fsType }}</td>
-            <td class="py-2.5 pr-4 font-mono text-zinc-300">{{ formatBytesDecimal(entry.totalBytes) }}</td>
-            <td class="py-2.5 pr-4 font-mono text-zinc-300">{{ formatBytesDecimal(entry.availBytes) }}</td>
+            <td class="py-2.5 pr-4 text-muted-foreground">{{ entry.fsType }}</td>
+            <td class="py-2.5 pr-4 font-mono text-foreground/90">{{ formatBytesDecimal(entry.totalBytes) }}</td>
+            <td class="py-2.5 pr-4 font-mono text-foreground/90">{{ formatBytesDecimal(entry.availBytes) }}</td>
             <td class="py-2.5 pr-4">
               <div class="flex items-center gap-2">
-                <span class="font-mono text-zinc-300">{{ formatBytesDecimal(entry.usedBytes) }}</span>
-                <span class="text-zinc-500">{{ formatPercent(entry.usedPercent, 0) }}</span>
+                <span class="font-mono text-foreground/90">{{ formatBytesDecimal(entry.usedBytes) }}</span>
+                <span class="text-muted-foreground">{{ formatPercent(entry.usedPercent, 0) }}</span>
               </div>
-              <div class="mt-1 h-1 w-32 overflow-hidden rounded-full bg-zinc-800">
+              <div class="mt-1 h-1 w-32 overflow-hidden rounded-full bg-muted">
                 <div
-                  class="h-full rounded-full bg-red-500"
+                  class="h-full rounded-full transition-all"
+                  :class="severityBgClass(entry.usedPercent, { danger: 85, warning: 60 })"
                   :style="{ width: `${Math.min(100, entry.usedPercent)}%` }"
                 />
               </div>
@@ -338,8 +364,8 @@ function kpiColorFor(percent: number): string {
         </tbody>
       </table>
 
-      <div v-if="!fsLoading && fsSorted.length === 0" class="py-10 text-center text-sm text-zinc-600">
-        Nessun file system trovato.
+      <div v-if="!fsLoading && fsSorted.length === 0" class="py-10 text-center text-sm text-muted-foreground/70">
+        {{ t('dashboard.fsEmpty') }}
       </div>
     </DashboardCard>
 
