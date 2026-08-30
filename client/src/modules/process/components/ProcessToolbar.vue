@@ -5,31 +5,14 @@ import { useProcessesStore } from '../store'
 import SharedFilter, { type FilterGroup, type ActiveChip } from '@/components/shared/SharedFilter.vue'
 import { SharedSwitch } from '@/components/shared'
 import type { ProcessStatus } from '@/types/process'
+import { PROCESS_STATUS_LABELS, PROCESS_STATUS_DOT } from '../utils/processStatus'
 
 const store = useProcessesStore()
 const { search, statusFilter, hasActiveFilters, autoRefresh } = storeToRefs(store)
 
 // ─── Status filter group ──────────────────────────────────────────────────────
-
-const statusLabels: Record<ProcessStatus, string> = {
-  R: 'Running',
-  S: 'Sleeping',
-  D: 'Disk wait',
-  Z: 'Zombie',
-  T: 'Stopped',
-  I: 'Idle',
-  '?': 'Unknown',
-}
-
-const statusDots: Record<ProcessStatus, string> = {
-  R: 'bg-emerald-400',
-  S: 'bg-zinc-500',
-  D: 'bg-yellow-400',
-  Z: 'bg-red-500',
-  T: 'bg-orange-400',
-  I: 'bg-zinc-600',
-  '?': 'bg-zinc-700',
-}
+// Label e colori ora arrivano da utils/processStatus.ts (prima erano
+// duplicati identici qui e in ProcessStatusBadge.vue).
 
 const statusOrder: ProcessStatus[] = ['R', 'S', 'D', 'Z', 'T', 'I']
 
@@ -38,8 +21,8 @@ const filterGroups = computed<FilterGroup<ProcessStatus>[]>(() => [
     label: 'Status',
     options: statusOrder.map((value) => ({
       value,
-      label: statusLabels[value],
-      dotClass: statusDots[value],
+      label: PROCESS_STATUS_LABELS[value],
+      dotClass: PROCESS_STATUS_DOT[value],
     })),
     active: statusFilter.value,
     onToggle: (value) => store.toggleStatusFilter(value),
@@ -48,7 +31,7 @@ const filterGroups = computed<FilterGroup<ProcessStatus>[]>(() => [
 
 const activeChips = computed<ActiveChip[]>(() =>
   statusFilter.value.map((s) => ({
-    label: statusLabels[s],
+    label: PROCESS_STATUS_LABELS[s],
     onRemove: () => store.toggleStatusFilter(s),
   })),
 )
@@ -58,9 +41,10 @@ const activeChips = computed<ActiveChip[]>(() =>
   <div class="flex items-center gap-3">
     <!-- Auto-refresh -->
     <div class="flex items-center gap-2">
-      <span class="text-[10px] uppercase tracking-widest text-zinc-600">Auto</span>
+      <span class="text-[10px] uppercase tracking-widest text-muted-foreground">Auto</span>
       <SharedSwitch
         :model-value="autoRefresh"
+        aria-label="Aggiornamento automatico"
         @update:model-value="autoRefresh = $event"
       />
     </div>

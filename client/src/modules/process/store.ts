@@ -3,6 +3,8 @@ import { ref, computed, watch, onScopeDispose } from 'vue'
 import { refDebounced } from '@vueuse/core'
 import type { Process, ProcessStatus, SortKey, SortDir } from '@/types/process'
 import type { CmdStream } from '@/composables/useNeutralinoCmd'
+import { useAsyncState } from '@/composables/useAsyncState'
+import { usePendingSet } from '@/composables/usePendingSet'
 import {
   listProcesses,
   startProcessStream,
@@ -11,20 +13,27 @@ import {
   reniceProcess,
 } from './composables/useProcessApi'
 
-const MIN_SEARCH = 2
+const MIN_SEARCH = 3
 const PAGE_SIZE_DEFAULT = 50
 
 export const useProcessesStore = defineStore('processes', () => {
   const processes    = ref<Process[]>([])
-  const loading      = ref(false)
-  const error        = ref<string | null>(null)
   const search       = ref('')
   const statusFilter = ref<ProcessStatus[]>([])
   const sortKey      = ref<SortKey>('cpuPercent')
   const sortDir      = ref<SortDir>('desc')
-  const pendingPids  = ref<Set<number>>(new Set())
   const autoRefresh  = ref(true)
   const selectedPid  = ref<number | null>(null)
+
+  // Prima: loading/error/withPending scritti a mano, identici a
+  // daemons/docker store. pendingPids è un fit 1:1 con usePendingSet.
+  // loading/error restano ref semplici anche passando da
+  // useAsyncState: lo stream di startAutoRefresh più sotto continua a
+  // scriverci sopra direttamente nei suoi callback esattamente come
+  // prima — run() li usa solo per il fetch() one-shot, non "possiede"
+  // in modo esclusivo quello stato.
+  const { loading, error, run } = useAsyncState('Failed to load processes')
+  const { pending: pendingPids, withPending } = usePendingSet<number>()
 
   const searchDebounced = refDebounced(search, 250)
 
@@ -130,18 +139,16 @@ export const useProcessesStore = defineStore('processes', () => {
   // ─── Fetch (caricamento iniziale / refresh manuale) ────────────────────────
 
   async function fetch() {
-    loading.value = true
-    error.value = null
-    try {
-      processes.value = await listProcesses()
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to load processes'
-    } finally {
-      loading.value = false
-    }
+    const result = await run(() => listProcesses())
+    if (result === undefined) return
+    processes.value = result
   }
 
   // ─── Auto-refresh (stream) ──────────────────────────────────────────────────
+  //
+  // Non è un fetch one-shot: è una subscription push-based (callback
+  // chiamato continuamente dal backend), un paradigma diverso da
+  // quello che useAsyncState astrae. Resta gestito a mano, come prima.
 
   let stream: CmdStream | null = null
 
@@ -180,16 +187,6 @@ export const useProcessesStore = defineStore('processes', () => {
   onScopeDispose(stopAutoRefresh)
 
   // ─── Actions ────────────────────────────────────────────────────────────────
-
-  async function withPending<T>(pid: number, fn: () => Promise<T>): Promise<T> {
-    pendingPids.value = new Set([...pendingPids.value, pid])
-    try { return await fn() }
-    finally {
-      const next = new Set(pendingPids.value)
-      next.delete(pid)
-      pendingPids.value = next
-    }
-  }
 
   async function kill(pid: number) {
     await withPending(pid, async () => {

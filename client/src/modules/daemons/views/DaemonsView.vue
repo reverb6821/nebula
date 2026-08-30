@@ -45,11 +45,20 @@ onUnmounted(clearHeader)
 <template>
   <div class="flex flex-col gap-5 px-2 py-3">
 
-    <SharedAlert v-if="error" variant="destructive" title="Error" :description="error" />
+    <!-- Titolo prima era "Error" hardcoded in inglese, incoerente con
+         il resto dell'app localizzato. Se la chiave common.error non
+         esiste ancora nei file di traduzione, va aggiunta. -->
+    <SharedAlert v-if="error" variant="destructive" :title="t('common.error')" :description="error" />
 
     <ScrollArea class="min-h-0 flex-1">
-      <div v-if="loading && daemons.length === 0" class="space-y-1 pr-3">
-        <div v-for="i in 10" :key="i" class="h-14 animate-pulse rounded-xl bg-white/[0.03]" />
+      <!--
+        Placeholder di caricamento: rounded-xl → rounded-lg (16px,
+        "contenitore", coerente con le card che sostituisce) e
+        bg-white/[0.03] → bg-muted, per restare sui token del tema
+        invece di un overlay bianco traslucido hardcoded.
+      -->
+      <div v-if="loading && daemons.length === 0" class="space-y-1 pr-3" aria-hidden="true">
+        <div v-for="i in 10" :key="i" class="h-14 animate-pulse rounded-lg bg-muted" />
       </div>
       <div v-else class="pr-3">
         <DaemonList />

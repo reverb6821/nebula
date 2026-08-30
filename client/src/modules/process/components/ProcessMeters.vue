@@ -34,79 +34,81 @@ function formatUptime(seconds: number): string {
   return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':')
 }
 
+// Colori legati ai token semantici (success/warning/destructive) invece
+// di emerald/amber/red hardcoded — coerenti col resto dell'app.
 function barColor(percent: number): string {
-  if (percent >= 80) return 'bg-red-500'
-  if (percent >= 50) return 'bg-amber-400'
-  return 'bg-emerald-500'
+  if (percent >= 80) return 'bg-destructive'
+  if (percent >= 50) return 'bg-warning'
+  return 'bg-success'
 }
 </script>
 
 <template>
-  <div class="border-b border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-[11px] text-zinc-300">
+  <div class="border-b border-border bg-background px-3 py-2 font-mono text-[11px] text-foreground">
     <!-- CPU per-core, ordine column-major come htop (3 righe) -->
     <div
       class="grid gap-x-6 gap-y-0.5"
       style="grid-template-rows: repeat(3, auto); grid-auto-flow: column;"
     >
       <div v-for="core in meters?.cores ?? []" :key="core.id" class="flex items-center gap-1">
-        <span class="w-4 text-right text-zinc-500">{{ core.id }}</span>
-        <span class="text-zinc-600">[</span>
-        <span class="relative h-3 w-24 overflow-hidden bg-zinc-900">
+        <span class="w-4 text-right text-muted-foreground">{{ core.id }}</span>
+        <span class="text-muted-foreground/60">[</span>
+        <span class="relative h-3 w-24 overflow-hidden bg-muted">
           <span
             class="absolute inset-y-0 left-0 transition-[width] duration-500"
             :class="barColor(core.percent)"
             :style="{ width: `${core.percent}%` }"
           />
         </span>
-        <span class="text-zinc-600">]</span>
-        <span class="w-12 text-right tabular-nums text-zinc-400">{{ core.percent.toFixed(1) }}%</span>
+        <span class="text-muted-foreground/60">]</span>
+        <span class="w-12 text-right tabular-nums text-muted-foreground">{{ core.percent.toFixed(1) }}%</span>
       </div>
     </div>
 
     <!-- Mem -->
     <div class="mt-1.5 flex items-center gap-1">
-      <span class="w-8 text-zinc-500">Mem</span>
-      <span class="text-zinc-600">[</span>
-      <span class="relative h-3 w-64 overflow-hidden bg-zinc-900">
+      <span class="w-8 text-muted-foreground">Mem</span>
+      <span class="text-muted-foreground/60">[</span>
+      <span class="relative h-3 w-64 overflow-hidden bg-muted">
         <span
-          class="absolute inset-y-0 left-0 bg-emerald-600 transition-[width] duration-500"
+          class="absolute inset-y-0 left-0 bg-success transition-[width] duration-500"
           :style="{ width: `${meters && meters.memTotalBytes > 0 ? (meters.memUsedBytes / meters.memTotalBytes) * 100 : 0}%` }"
         />
       </span>
-      <span class="text-zinc-600">]</span>
-      <span class="ml-1 tabular-nums text-zinc-400">
+      <span class="text-muted-foreground/60">]</span>
+      <span class="ml-1 tabular-nums text-muted-foreground">
         {{ formatCompact(meters?.memUsedBytes ?? 0) }}/{{ formatCompact(meters?.memTotalBytes ?? 0) }}
       </span>
     </div>
 
     <!-- Swap -->
     <div class="mt-0.5 flex items-center gap-1">
-      <span class="w-8 text-zinc-500">Swp</span>
-      <span class="text-zinc-600">[</span>
-      <span class="relative h-3 w-64 overflow-hidden bg-zinc-900">
+      <span class="w-8 text-muted-foreground">Swp</span>
+      <span class="text-muted-foreground/60">[</span>
+      <span class="relative h-3 w-64 overflow-hidden bg-muted">
         <span
-          class="absolute inset-y-0 left-0 bg-red-600 transition-[width] duration-500"
+          class="absolute inset-y-0 left-0 bg-destructive transition-[width] duration-500"
           :style="{ width: `${meters && meters.swapTotalBytes > 0 ? (meters.swapUsedBytes / meters.swapTotalBytes) * 100 : 0}%` }"
         />
       </span>
-      <span class="text-zinc-600">]</span>
-      <span class="ml-1 tabular-nums text-zinc-400">
+      <span class="text-muted-foreground/60">]</span>
+      <span class="ml-1 tabular-nums text-muted-foreground">
         {{ formatCompact(meters?.swapUsedBytes ?? 0) }}/{{ formatCompact(meters?.swapTotalBytes ?? 0) }}
       </span>
     </div>
 
     <!-- Tasks / Load / Uptime (semplificato: niente breakdown thread, vedi nota in chat) -->
-    <div class="mt-1.5 flex items-center gap-4 text-zinc-500">
+    <div class="mt-1.5 flex items-center gap-4 text-muted-foreground">
       <span>
-        Tasks: <span class="text-zinc-300">{{ tasksTotal }}</span>,
-        <span class="text-emerald-400">{{ tasksRunning }} running</span>
+        Tasks: <span class="text-foreground">{{ tasksTotal }}</span>,
+        <span class="text-success">{{ tasksRunning }} running</span>
       </span>
       <span>
         Load average:
-        <span class="text-zinc-300">{{ meters?.loadAvg.map((n) => n.toFixed(2)).join(' ') ?? '- - -' }}</span>
+        <span class="text-foreground">{{ meters?.loadAvg.map((n) => n.toFixed(2)).join(' ') ?? '- - -' }}</span>
       </span>
       <span>
-        Uptime: <span class="text-zinc-300">{{ formatUptime(meters?.uptimeSeconds ?? 0) }}</span>
+        Uptime: <span class="text-foreground">{{ formatUptime(meters?.uptimeSeconds ?? 0) }}</span>
       </span>
     </div>
   </div>

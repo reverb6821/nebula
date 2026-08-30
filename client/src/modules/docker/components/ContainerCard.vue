@@ -46,18 +46,33 @@ function formatBytes(bytes: number): string {
 </script>
 
 <template>
+  <!--
+    rounded-xl → resta rounded-lg altrove nel progetto per le card
+    (contenitore, 16px): qui era già rounded-xl ma con lo stesso intento
+    "contenitore", quindi normalizzato per coerenza col resto.
+    shadow con theme(colors.indigo...) usava sintassi Tailwind v3 non
+    più valida in v4: color-mix() con var(--ring) è CSS nativo.
+    Tutta la card è cliccabile (apre i log): prima nessun tabindex/
+    tastiera, ora navigabile e attivabile con Enter/Space.
+  -->
   <Card
-    class="py-2 group cursor-pointer border-white/[0.06] bg-white/[0.02] transition-all duration-150 hover:border-white/[0.1] hover:bg-white/[0.04] rounded-xl"
+    tabindex="0"
+    role="button"
+    :aria-pressed="selected"
+    :aria-label="t('docker.openLogsFor', { name: container.name })"
+    class="py-2 group cursor-pointer border-border bg-card transition-all duration-150 hover:bg-accent rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     :class="{
-      'border-indigo-500/40 bg-indigo-500/5 shadow-[inset_0_0_0_1px_theme(colors.indigo.500/0.2)]': selected,
-      'border-amber-500/20 bg-amber-500/[0.03]': favorite && !selected,
+      'border-primary/40 bg-primary/5 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ring)_20%,transparent)]': selected,
+      'border-warning/20 bg-warning/[0.03]': favorite && !selected,
     }"
     @click="emit('logs')"
+    @keydown.enter="emit('logs')"
+    @keydown.space.prevent="emit('logs')"
   >
     <CardHeader class="space-y-1.5">
       <!-- Name row -->
       <div class="flex items-start justify-between gap-2">
-        <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-zinc-100">
+        <CardTitle class="truncate font-mono text-sm font-semibold leading-tight text-foreground">
           {{ container.name }}
         </CardTitle>
         <!-- Favorite pin -->
@@ -66,11 +81,12 @@ function formatBytes(bytes: number): string {
             <SharedButton
               variant="ghost"
               size="icon"
-              class="h-6 w-6 shrink-0 rounded-xl hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-              :class="favorite ? 'text-amber-400 !opacity-100' : 'text-zinc-600 hover:text-amber-400'"
+              class="h-6 w-6 shrink-0 rounded-md hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+              :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
+              :aria-label="favorite ? t('docker.unpin') : t('docker.pin')"
               @click.stop="emit('toggleFavorite')"
             >
-              <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" />
+              <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true" />
             </SharedButton>
           </TooltipTrigger>
           <TooltipContent>{{ favorite ? t('docker.unpin') : t('docker.pin') }}</TooltipContent>
@@ -80,33 +96,33 @@ function formatBytes(bytes: number): string {
       <!-- Status + image -->
       <div class="flex items-center gap-2">
         <ContainerStatusBadge :status="container.status" />
-        <span class="truncate font-mono text-xs text-zinc-500">{{ container.image }}</span>
+        <span class="truncate font-mono text-xs text-muted-foreground">{{ container.image }}</span>
       </div>
     </CardHeader>
 
     <CardContent class="space-y-3">
       <!-- Ports -->
-      <div v-if="container.ports.length" class="flex flex-wrap gap-1 rounded-xl">
+      <div v-if="container.ports.length" class="flex flex-wrap gap-1">
         <span
           v-for="port in container.ports"
           :key="port"
-          class="rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-zinc-400 ring-1 ring-white/[0.06]"
+          class="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground ring-1 ring-border"
         >
           {{ port }}
         </span>
       </div>
 
       <!-- Stats bar -->
-      <div v-if="isRunning && stats" class="grid grid-cols-2 gap-2 rounded-xl">
-        <div class="rounded-md bg-white/[0.03] px-2.5 py-1.5 ring-1 ring-white/[0.05]">
-          <p class="text-[10px] uppercase tracking-widest text-zinc-600">CPU</p>
-          <p class="mt-0.5 font-mono text-xs font-medium tabular-nums text-zinc-300">
+      <div v-if="isRunning && stats" class="grid grid-cols-2 gap-2">
+        <div class="rounded-md bg-muted px-2.5 py-1.5 ring-1 ring-border">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground/70">CPU</p>
+          <p class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground">
             {{ stats.cpuPercent.toFixed(1) }}%
           </p>
         </div>
-        <div class="rounded-md bg-white/[0.03] px-2.5 py-1.5 ring-1 ring-white/[0.05]">
-          <p class="text-[10px] uppercase tracking-widest text-zinc-600">MEM</p>
-          <p class="mt-0.5 font-mono text-xs font-medium tabular-nums text-zinc-300">
+        <div class="rounded-md bg-muted px-2.5 py-1.5 ring-1 ring-border">
+          <p class="text-[10px] uppercase tracking-widest text-muted-foreground/70">MEM</p>
+          <p class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground">
             {{ formatBytes(stats.memUsage) }}
           </p>
         </div>
@@ -115,7 +131,7 @@ function formatBytes(bytes: number): string {
 
     <!-- Footer actions -->
     <div
-      class="flex items-center justify-end gap-0.5 border-t border-white/[0.05] px-3 py-1"
+      class="flex items-center justify-end gap-0.5 border-t border-border px-3 py-1"
       @click.stop
     >
       <Tooltip>
@@ -123,10 +139,11 @@ function formatBytes(bytes: number): string {
           <SharedButton
             variant="ghost"
             size="icon"
-            class="h-7 w-7 rounded-xl text-zinc-500 hover:bg-white/5 hover:text-zinc-200 transition-all duration-150"
+            class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150"
+            :aria-label="t('docker.logs')"
             @click="emit('logs')"
           >
-            <FileText class="h-3.5 w-3.5" />
+            <FileText class="h-3.5 w-3.5" aria-hidden="true" />
           </SharedButton>
         </TooltipTrigger>
         <TooltipContent>{{ t('docker.logs') }}</TooltipContent>
@@ -140,8 +157,9 @@ function formatBytes(bytes: number): string {
             :loading="pending"
             :disabled="pending"
             :icon="isRunning ? Square : Play"
-            class="h-7 w-7 rounded-xl hover:bg-white/5 transition-all duration-150"
-            :class="isRunning ? 'text-red-400 hover:text-red-400' : 'text-emerald-500 hover:text-emerald-400'"
+            :aria-label="isRunning ? t('common.stop') : t('common.start')"
+            class="h-7 w-7 rounded-md hover:bg-accent transition-all duration-150"
+            :class="isRunning ? 'text-destructive hover:text-destructive' : 'text-success hover:text-success'"
             @click="isRunning ? emit('stop') : emit('start')"
           />
         </TooltipTrigger>
@@ -155,7 +173,8 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending || !isRunning"
             :icon="RotateCcw"
-            class="h-7 w-7 rounded-xl text-zinc-500 hover:bg-white/5 text-emerald-300 hover:text-emerald-300 transition-all duration-150"
+            :aria-label="t('common.restart')"
+            class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150"
             @click="emit('restart')"
           />
         </TooltipTrigger>
@@ -169,7 +188,8 @@ function formatBytes(bytes: number): string {
             size="icon"
             :disabled="pending"
             :icon="Trash2"
-            class="h-7 w-7 rounded-xl text-red-400  hover:bg-red-500/20 hover:text-red-400 transition-all duration-150"
+            :aria-label="t('common.remove')"
+            class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/15 hover:text-destructive transition-all duration-150"
             @click="emit('remove')"
           />
         </TooltipTrigger>
