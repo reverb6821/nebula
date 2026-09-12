@@ -27,41 +27,28 @@ function onSort() {
 }
 </script>
 
-<template>
-  <th
-    class="select-none py-2 text-[10px] font-semibold uppercase tracking-widest"
-    :class="align === 'right' ? 'text-right' : 'text-left'"
-    :aria-sort="ariaSort"
-  >
-    <!--
-      Prima il click era sul <th> stesso: nessun tabindex, nessuna
-      gestione tastiera, quindi non ordinabile senza mouse. Un <button>
-      dentro il <th> è il pattern corretto — il <th> resta un
-      contenitore semantico, il button porta focus/Enter/Space gratis.
-    -->
-    <button
-      v-if="sortKey"
-      type="button"
-      class="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
-      :class="[align === 'right' && 'flex-row-reverse']"
-      @click="onSort"
-    >
-      {{ label }}
-      <ChevronUp
-        v-if="isActive && sortDir === 'asc'"
-        class="h-3 w-3 text-primary"
-        aria-hidden="true"
-      />
-      <ChevronDown
-        v-else-if="isActive && sortDir === 'desc'"
-        class="h-3 w-3 text-primary"
-        aria-hidden="true"
-      />
-      <ChevronsUpDown v-else class="h-3 w-3 opacity-30" aria-hidden="true" />
-    </button>
+<template lang="pug">
+th(
+  class="select-none py-2 text-[10px] font-semibold uppercase tracking-widest"
+  :class="align === 'right' ? 'text-right' : 'text-left'"
+  :aria-sort="ariaSort"
+)
+  //-
+    Prima il click era sul <th> stesso: nessun tabindex, nessuna
+    gestione tastiera, quindi non ordinabile senza mouse. Un <button>
+    dentro il <th> è il pattern corretto — il <th> resta un
+    contenitore semantico, il button porta focus/Enter/Space gratis.
+  button(
+    v-if="sortKey"
+    type="button"
+    class="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+    :class="[align === 'right' && 'flex-row-reverse']"
+    @click="onSort"
+  )
+    | {{ label }}
+    ChevronUp(v-if="isActive && sortDir === 'asc'" class="h-3 w-3 text-primary" aria-hidden="true")
+    ChevronDown(v-else-if="isActive && sortDir === 'desc'" class="h-3 w-3 text-primary" aria-hidden="true")
+    ChevronsUpDown(v-else class="h-3 w-3 opacity-30" aria-hidden="true")
 
-    <div v-else class="inline-flex items-center gap-1 text-muted-foreground/70" :class="align === 'right' && 'flex-row-reverse'">
-      {{ label }}
-    </div>
-  </th>
+  div(v-else class="inline-flex items-center gap-1 text-muted-foreground/70" :class="align === 'right' && 'flex-row-reverse'") {{ label }}
 </template>

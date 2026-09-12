@@ -24,7 +24,11 @@ const tabs = computed<TabOption<'containers' | 'images'>[]>(() => [
 ])
 </script>
 
-<template>
-  <SharedFilter v-model:search="search" v-model:active-tab="store.activeTab"
-    :placeholder="t('docker.filterPlaceholder')" :tabs="tabs" />
+<template lang="pug">
+  SharedFilter(
+    v-model:search="search"
+    v-model:active-tab="store.activeTab"
+    :placeholder="t('docker.filterPlaceholder')"
+    :tabs="tabs"
+  )
 </template>

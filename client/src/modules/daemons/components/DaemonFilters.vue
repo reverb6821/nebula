@@ -74,13 +74,13 @@ const activeChips = computed<ActiveChip[]>(() => [
 ])
 </script>
 
-<template>
-  <SharedFilter
-    v-model:search="search"
-    :placeholder="t('daemons.searchPlaceholder')"
-    :filter-groups="filterGroups"
-    :active-chips="activeChips"
-    :has-active-filters="hasActiveFilters"
-    @reset="store.resetFilters()"
-  />
+<template lang="pug">
+SharedFilter(
+  v-model:search="search"
+  :placeholder="t('daemons.searchPlaceholder')"
+  :filter-groups="filterGroups"
+  :active-chips="activeChips"
+  :has-active-filters="hasActiveFilters"
+  @reset="store.resetFilters()"
+)
 </template>

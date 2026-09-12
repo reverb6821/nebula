@@ -37,26 +37,24 @@ const activeChips = computed<ActiveChip[]>(() =>
 )
 </script>
 
-<template>
-  <div class="flex items-center gap-3">
-    <!-- Auto-refresh -->
-    <div class="flex items-center gap-2">
-      <span class="text-[10px] uppercase tracking-widest text-muted-foreground">Auto</span>
-      <SharedSwitch
-        :model-value="autoRefresh"
-        aria-label="Aggiornamento automatico"
-        @update:model-value="autoRefresh = $event"
-      />
-    </div>
+<template lang="pug">
+div(class="flex items-center gap-3")
+  //- Auto-refresh
+  div(class="flex items-center gap-2")
+    span(class="text-[10px] uppercase tracking-widest text-muted-foreground") Auto
+    SharedSwitch(
+      :model-value="autoRefresh"
+      aria-label="Aggiornamento automatico"
+      @update:model-value="autoRefresh = $event"
+    )
 
-    <SharedFilter
-      v-model:search="search"
-      placeholder="Search name, PID, user, command…"
-      :filter-groups="filterGroups"
-      :active-chips="activeChips"
-      :has-active-filters="hasActiveFilters"
-      class="w-80"
-      @reset="store.resetFilters()"
-    />
-  </div>
+  SharedFilter(
+    v-model:search="search"
+    placeholder="Search name, PID, user, command…"
+    :filter-groups="filterGroups"
+    :active-chips="activeChips"
+    :has-active-filters="hasActiveFilters"
+    class="w-80"
+    @reset="store.resetFilters()"
+  )
 </template>

@@ -58,76 +58,82 @@ const bootTooltip = computed(() => {
 })
 </script>
 
-<template>
-  <!-- rounded-xl → rounded-lg: vedi nota in DaemonCard.vue -->
-  <Item variant="outline"
-    class="group border-border rounded-lg bg-card transition-all duration-150 hover:bg-accent"
-    :class="{ 'border-warning/20 bg-warning/[0.03]': favorite }">
-    <!-- Status dot -->
-    <ItemMedia>
-      <span class="h-1.5 w-1.5 rounded-full transition-colors" :class="dotClass" aria-hidden="true" />
-    </ItemMedia>
+<template lang="pug">
+//- rounded-xl → rounded-lg: vedi nota in DaemonCard.vue
+Item(
+  variant="outline"
+  class="group border-border rounded-lg bg-card transition-all duration-150 hover:bg-accent"
+  :class="{ 'border-warning/20 bg-warning/[0.03]': favorite }"
+)
+  //- Status dot
+  ItemMedia
+    span(class="h-1.5 w-1.5 rounded-full transition-colors" :class="dotClass" aria-hidden="true")
 
-    <!-- Name + description -->
-    <ItemContent>
-      <ItemTitle class="font-mono text-sm font-medium text-foreground">
-        {{ daemon.name }}
-      </ItemTitle>
-      <ItemDescription v-if="daemon.description && daemon.description !== daemon.name"
-        class="mt-0.5 truncate text-xs text-muted-foreground">
-        {{ daemon.description }}
-      </ItemDescription>
-    </ItemContent>
+  //- Name + description
+  ItemContent
+    ItemTitle(class="font-mono text-sm font-medium text-foreground") {{ daemon.name }}
+    ItemDescription(
+      v-if="daemon.description && daemon.description !== daemon.name"
+      class="mt-0.5 truncate text-xs text-muted-foreground"
+    ) {{ daemon.description }}
 
-    <!-- Actions -->
-    <ItemActions class="gap-0.5">
+  //- Actions
+  ItemActions(class="gap-0.5")
 
-      <!-- Boot toggle -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <div class="mr-1 flex items-center gap-1.5">
-            <span class="text-[10px] uppercase tracking-widest text-muted-foreground">{{ t('daemons.bootLabel') }}</span>
-            <SharedSwitch :model-value="isEnabled" :disabled="pending || isStatic" :aria-label="bootTooltip" class="scale-75"
-              @update:model-value="emit('toggleEnabled')" />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="left">{{ bootTooltip }}</TooltipContent>
-      </Tooltip>
+    //- Boot toggle
+    Tooltip
+      TooltipTrigger(as-child)
+        div(class="mr-1 flex items-center gap-1.5")
+          span(class="text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('daemons.bootLabel') }}
+          SharedSwitch(
+            :model-value="isEnabled"
+            :disabled="pending || isStatic"
+            :aria-label="bootTooltip"
+            class="scale-75"
+            @update:model-value="emit('toggleEnabled')"
+          )
+      TooltipContent(side="left") {{ bootTooltip }}
 
-      <!-- Favorite -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton variant="ghost" size="icon" class="h-7 w-7 rounded-md text-warning hover:bg-accent hover:text-warning"
-            :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
-            @click="emit('toggleFavorite')">
-            <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true" />
-          </SharedButton>
-        </TooltipTrigger>
-        <TooltipContent>{{ favorite ? t('daemons.unpin') : t('daemons.pin') }}</TooltipContent>
-      </Tooltip>
+    //- Favorite
+    Tooltip
+      TooltipTrigger(as-child)
+        SharedButton(
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7 rounded-md text-warning hover:bg-accent hover:text-warning"
+          :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
+          @click="emit('toggleFavorite')"
+        )
+          Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
+      TooltipContent {{ favorite ? t('daemons.unpin') : t('daemons.pin') }}
 
-      <!-- Start / Stop -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton variant="ghost" size="icon" :loading="pending" :disabled="pending"
-            :icon="isRunning ? Square : Play" :aria-label="isRunning ? t('common.stop') : t('common.start')"
-            class="h-7 w-7 rounded-md hover:bg-accent" :class="isRunning
-              ? 'text-destructive hover:text-destructive'
-              : 'text-success hover:text-success'" @click="isRunning ? emit('stop') : emit('start')" />
-        </TooltipTrigger>
-        <TooltipContent>{{ isRunning ? t('common.stop') : t('common.start') }}</TooltipContent>
-      </Tooltip>
+    //- Start / Stop
+    Tooltip
+      TooltipTrigger(as-child)
+        SharedButton(
+          variant="ghost"
+          size="icon"
+          :loading="pending"
+          :disabled="pending"
+          :icon="isRunning ? Square : Play"
+          :aria-label="isRunning ? t('common.stop') : t('common.start')"
+          class="h-7 w-7 rounded-md hover:bg-accent"
+          :class="isRunning ? 'text-destructive hover:text-destructive' : 'text-success hover:text-success'"
+          @click="isRunning ? emit('stop') : emit('start')"
+        )
+      TooltipContent {{ isRunning ? t('common.stop') : t('common.start') }}
 
-      <!-- Restart -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton variant="ghost" size="icon" :disabled="pending || !isRunning" :icon="RotateCcw"
-            :aria-label="t('common.restart')"
-            class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150" @click="emit('restart')" />
-        </TooltipTrigger>
-        <TooltipContent>{{ t('common.restart') }}</TooltipContent>
-      </Tooltip>
-
-    </ItemActions>
-  </Item>
+    //- Restart
+    Tooltip
+      TooltipTrigger(as-child)
+        SharedButton(
+          variant="ghost"
+          size="icon"
+          :disabled="pending || !isRunning"
+          :icon="RotateCcw"
+          :aria-label="t('common.restart')"
+          class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150"
+          @click="emit('restart')"
+        )
+      TooltipContent {{ t('common.restart') }}
 </template>

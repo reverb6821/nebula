@@ -52,27 +52,20 @@ const variantClass = computed(() => {
 })
 </script>
 
-<template>
-  <Alert
-    :variant="variant === 'destructive' ? 'destructive' : 'default'"
-    :class="[
-      variantClass,
-      // Contenitore → rounded-lg = 16px (DESIGN.md rounded.lg)
-      'rounded-lg bg-card',
-    ]"
-  >
-    <!-- Icona di stato: ridondante col colore/testo, quindi decorativa -->
-    <component :is="icon" class="h-4 w-4" aria-hidden="true" />
+<template lang="pug">
+Alert(
+  :variant="variant === 'destructive' ? 'destructive' : 'default'"
+  :class="[variantClass, 'rounded-lg bg-card']"
+)
+  //- Icona di stato: ridondante col colore/testo, quindi decorativa
+  component(:is="icon" class="h-4 w-4" aria-hidden="true")
 
-    <AlertTitle v-if="title || $slots.title" class="text-foreground">
-      <slot name="title">{{ title }}</slot>
-    </AlertTitle>
+  AlertTitle(v-if="title || $slots.title" class="text-foreground")
+    slot(name="title") {{ title }}
 
-    <AlertDescription
-      v-if="description || $slots.default"
-      class="text-muted-foreground"
-    >
-      <slot>{{ description }}</slot>
-    </AlertDescription>
-  </Alert>
+  AlertDescription(
+    v-if="description || $slots.default"
+    class="text-muted-foreground"
+  )
+    slot {{ description }}
 </template>

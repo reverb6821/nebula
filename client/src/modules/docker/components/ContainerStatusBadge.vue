@@ -28,17 +28,16 @@ const config: Record<string, StatusConfig> = {
 const fallback: StatusConfig = { class: 'bg-muted text-muted-foreground hover:bg-accent border-border', icon: HelpCircle, labelKey: '' }
 </script>
 
-<template>
-  <Badge
+<template lang="pug">
+  Badge(
     variant="outline"
     :class="cn('gap-1 px-2 py-0.5 rounded-full border font-mono text-[10px] font-medium', (config[status] ?? fallback).class)"
-  >
-    <component
+  )
+    component(
       :is="(config[status] ?? fallback).icon"
       class="h-3 w-3"
       :class="{ 'animate-pulse': status === 'running', 'animate-spin': status === 'restarting' }"
       aria-hidden="true"
-    />
-    {{ (config[status] ?? fallback).labelKey ? t((config[status] ?? fallback).labelKey) : status }}
-  </Badge>
+    )
+    | {{ (config[status] ?? fallback).labelKey ? t((config[status] ?? fallback).labelKey) : status }}
 </template>

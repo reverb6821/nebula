@@ -38,104 +38,81 @@ async function handlePull() {
 }
 </script>
 
-<template>
-  <!--
+<template lang="pug">
+  //-
     class="rounded-xl" su <Dialog> era codice morto: DialogRoot (reka-ui)
     non renderizza alcun elemento DOM proprio, è solo un contenitore
     logico/di contesto, quindi non ha nulla su cui applicare quella
     classe. Il raggio va su DialogContent, che lo eredita già dallo
     stile di base del componente shadcn.
-  -->
-  <Dialog v-model:open="open">
-    <DialogTrigger as-child>
-      <!--
+  Dialog(v-model:open="open")
+    DialogTrigger(as-child)
+      //-
         Prima: class="rougap-1.5 ..." — typo, non è una classe
         Tailwind valida (doveva essere "rounded-lg gap-1.5" o simile),
         quindi non applicava nulla.
-      -->
-      <SharedButton
+      SharedButton(
         variant="outline"
         size="sm"
         class="gap-1.5 border-border bg-card text-muted-foreground hover:border-ring/40 hover:bg-accent hover:text-foreground"
-      >
-        <Download class="h-3.5 w-3.5" aria-hidden="true" />
-        {{ t('docker.pullImage') }}
-      </SharedButton>
-    </DialogTrigger>
+      )
+        Download(class="h-3.5 w-3.5" aria-hidden="true")
+        | {{ t('docker.pullImage') }}
 
-    <DialogContent class="border-border bg-popover sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle class="text-base font-semibold text-foreground">{{ t('docker.pullImageTitle') }}</DialogTitle>
-      </DialogHeader>
+    DialogContent(class="border-border bg-popover sm:max-w-md")
+      DialogHeader
+        DialogTitle(class="text-base font-semibold text-foreground") {{ t('docker.pullImageTitle') }}
 
-      <div class="flex flex-col gap-4 pt-1">
-        <Input
+      div(class="flex flex-col gap-4 pt-1")
+        Input(
           v-model="imageName"
           placeholder="nginx:latest, ubuntu:22.04…"
           class="rounded-md border-border bg-muted font-mono text-foreground placeholder:text-muted-foreground/70 focus:border-ring/50 focus:ring-ring/20"
           :disabled="pulling"
           @keydown.enter="handlePull"
-        />
+        )
 
-        <!-- Progress block -->
-        <Transition
+        //- Progress block
+        Transition(
           enter-active-class="transition-all duration-200 ease-out"
           enter-from-class="opacity-0 -translate-y-1"
           enter-to-class="opacity-100 translate-y-0"
-        >
-          <div
-            v-if="pulling || pullProgress"
-            class="rounded-md border border-border bg-card p-3"
-          >
-            <div v-if="pulling && !pullProgress" class="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-              <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
-              {{ t('docker.pullConnecting') }}
-            </div>
-            <template v-else-if="pullProgress">
-              <div class="flex items-center justify-between gap-2">
-                <p class="font-mono text-xs text-foreground">{{ pullProgress.status }}</p>
-                <span v-if="progressPercent !== null" class="font-mono text-xs tabular-nums text-muted-foreground">
-                  {{ progressPercent }}%
-                </span>
-              </div>
-              <p v-if="pullProgress.id" class="mt-0.5 font-mono text-[10px] text-muted-foreground/70">{{ pullProgress.id }}</p>
+        )
+          div(v-if="pulling || pullProgress" class="rounded-md border border-border bg-card p-3")
+            div(v-if="pulling && !pullProgress" class="flex items-center gap-2 font-mono text-xs text-muted-foreground")
+              span(class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true")
+              | {{ t('docker.pullConnecting') }}
+            template(v-else-if="pullProgress")
+              div(class="flex items-center justify-between gap-2")
+                p(class="font-mono text-xs text-foreground") {{ pullProgress.status }}
+                span(v-if="progressPercent !== null" class="font-mono text-xs tabular-nums text-muted-foreground") {{ progressPercent }}%
+              p(v-if="pullProgress.id" class="mt-0.5 font-mono text-[10px] text-muted-foreground/70") {{ pullProgress.id }}
 
-              <!-- Progress bar -->
-              <div v-if="progressPercent !== null" class="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
+              //- Progress bar
+              div(v-if="progressPercent !== null" class="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-muted")
+                div(
                   class="h-full rounded-full bg-primary transition-all duration-300"
                   :style="{ width: `${progressPercent}%` }"
-                />
-              </div>
+                )
 
-              <p v-if="pullProgress.error" class="mt-2 font-mono text-xs text-destructive">{{ pullProgress.error }}</p>
-            </template>
-          </div>
-        </Transition>
+              p(v-if="pullProgress.error" class="mt-2 font-mono text-xs text-destructive") {{ pullProgress.error }}
 
-        <!--
+        //-
           Prima queste classi sovrascrivevano variant="default" con
           bg-white/[0.08] text-zinc-100: il CTA principale del dialog
           appariva come un bottone quasi trasparente invece di usare
           l'accento primario dell'app. Rimosse: ora eredita lo stile
           reale di variant="default" (bg-primary/text-primary-foreground).
-        -->
-        <SharedButton
+        SharedButton(
           variant="default"
           :disabled="pulling || !imageName.trim()"
           class="gap-2 font-medium disabled:opacity-40 shadow-sm"
           @click="handlePull"
-        >
-          <template v-if="pulling">
-            <span class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" aria-hidden="true" />
-            {{ t('docker.pullPulling') }}
-          </template>
-          <template v-else>
-            {{ t('docker.pullButton') }}
-            <ArrowRight class="h-3.5 w-3.5" aria-hidden="true" />
-          </template>
-        </SharedButton>
-      </div>
-    </DialogContent>
-  </Dialog>
+        )
+          template(v-if="pulling")
+            span(class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" aria-hidden="true")
+            | {{ t('docker.pullPulling') }}
+          template(v-else)
+            | {{ t('docker.pullButton') }}
+            ArrowRight(class="h-3.5 w-3.5" aria-hidden="true")
 </template>

@@ -20,4 +20,12 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    outDir: "dist",
+    emptyOutDir: false, // non cancellare neutralino.js copiato da `neu update`
+  },
+    server: {
+    port: 5173,
+    strictPort: true,
+  },
 })

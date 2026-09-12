@@ -34,15 +34,14 @@ const statusLabel = computed(() => {
 })
 </script>
 
-<template>
-  <Badge
-    variant="outline"
-    :class="cn('gap-1 px-2 py-0.5 rounded-full border font-mono text-[10px]', classes[status])"
-  >
-    <CheckCircle2 v-if="status === 'active'"   class="h-3 w-3 animate-pulse" aria-hidden="true" />
-    <XCircle      v-else-if="status === 'inactive'" class="h-3 w-3" aria-hidden="true" />
-    <AlertCircle  v-else-if="status === 'failed'"   class="h-3 w-3" aria-hidden="true" />
-    <HelpCircle   v-else                             class="h-3 w-3" aria-hidden="true" />
-    {{ statusLabel }}
-  </Badge>
+<template lang="pug">
+Badge(
+  variant="outline"
+  :class="cn('gap-1 px-2 py-0.5 rounded-full border font-mono text-[10px]', classes[status])"
+)
+  CheckCircle2(v-if="status === 'active'" class="h-3 w-3 animate-pulse" aria-hidden="true")
+  XCircle(v-else-if="status === 'inactive'" class="h-3 w-3" aria-hidden="true")
+  AlertCircle(v-else-if="status === 'failed'" class="h-3 w-3" aria-hidden="true")
+  HelpCircle(v-else class="h-3 w-3" aria-hidden="true")
+  | {{ statusLabel }}
 </template>
