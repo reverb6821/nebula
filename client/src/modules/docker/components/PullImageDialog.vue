@@ -39,18 +39,8 @@ async function handlePull() {
 </script>
 
 <template lang="pug">
-  //-
-    class="rounded-xl" su <Dialog> era codice morto: DialogRoot (reka-ui)
-    non renderizza alcun elemento DOM proprio, è solo un contenitore
-    logico/di contesto, quindi non ha nulla su cui applicare quella
-    classe. Il raggio va su DialogContent, che lo eredita già dallo
-    stile di base del componente shadcn.
   Dialog(v-model:open="open")
     DialogTrigger(as-child)
-      //-
-        Prima: class="rougap-1.5 ..." — typo, non è una classe
-        Tailwind valida (doveva essere "rounded-lg gap-1.5" o simile),
-        quindi non applicava nulla.
       SharedButton(
         variant="outline"
         size="sm"
@@ -72,7 +62,6 @@ async function handlePull() {
           @keydown.enter="handlePull"
         )
 
-        //- Progress block
         Transition(
           enter-active-class="transition-all duration-200 ease-out"
           enter-from-class="opacity-0 -translate-y-1"
@@ -97,12 +86,6 @@ async function handlePull() {
 
               p(v-if="pullProgress.error" class="mt-2 font-mono text-xs text-destructive") {{ pullProgress.error }}
 
-        //-
-          Prima queste classi sovrascrivevano variant="default" con
-          bg-white/[0.08] text-zinc-100: il CTA principale del dialog
-          appariva come un bottone quasi trasparente invece di usare
-          l'accento primario dell'app. Rimosse: ora eredita lo stile
-          reale di variant="default" (bg-primary/text-primary-foreground).
         SharedButton(
           variant="default"
           :disabled="pulling || !imageName.trim()"

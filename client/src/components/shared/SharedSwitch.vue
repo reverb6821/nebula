@@ -38,11 +38,6 @@ div(class="flex items-center space-x-2")
     :class="modelValue ? 'bg-primary' : 'bg-secondary'"
     @click="toggle"
   )
-    //-
-      before:-inset-[13px] porta l'area cliccabile reale a ~44x44px
-      (18.4px di traccia + 13px per lato) senza alterare l'aspetto
-      visivo del pulsante — vedi ui-ux-pro-max, priorità 2: touch
-      target minimo 44x44px.
     span(
       class="pointer-events-none block size-4 rounded-full bg-primary-foreground shadow ring-0 transition-transform duration-200 ease-in-out"
       :class="modelValue ? 'translate-x-[calc(100%-2px)]' : 'translate-x-0'"

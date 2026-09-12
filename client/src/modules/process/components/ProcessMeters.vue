@@ -34,8 +34,6 @@ function formatUptime(seconds: number): string {
   return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':')
 }
 
-// Colori legati ai token semantici (success/warning/destructive) invece
-// di emerald/amber/red hardcoded — coerenti col resto dell'app.
 function barColor(percent: number): string {
   if (percent >= 80) return 'bg-destructive'
   if (percent >= 50) return 'bg-warning'

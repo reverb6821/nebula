@@ -7,9 +7,6 @@ import {
 import type { Process } from '@/types/process'
 import { processTableFeatures } from '../utils/processColumns'
 
-// Stesso riferimento usato in processColumns.ts per tipare le ColumnDef:
-// deve essere lo stesso oggetto, non un secondo tableFeatures({}) locale,
-// altrimenti i generici Features non combaciano e torna l'errore di prima.
 type Features = typeof processTableFeatures
 
 const props = defineProps<{
@@ -21,11 +18,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ select: [pid: number] }>()
 
-// Generici espliciti: senza <Features, Process>, v9 a volte non riesce a
-// inferire TFeatures dall'oggetto opzioni e ripiega su tipi deboli (è
-// documentato anche nel loro blog sulle performance del type-checking) —
-// sintomo tipico: Row_Core<{}, Process> invece di Row<Features, Process>,
-// con getVisibleCells() che sparisce e i parametri diventano impliciti any.
 const table = useTable<Features, Process>({
   features: processTableFeatures,
   get data() { return props.data },
@@ -37,10 +29,6 @@ const table = useTable<Features, Process>({
 <template lang="pug">
 Table(class="font-mono text-[11px]")
   TableHeader
-    //-
-      bg-lime-700 / text-zinc-950 → bg-muted / text-foreground: erano
-      completamente fuori palette (probabilmente un residuo di
-      template/demo), non un accento del tema Nebula.
     TableRow(
       v-for="headerGroup in table.getHeaderGroups()"
       :key="headerGroup.id"
@@ -54,12 +42,6 @@ Table(class="font-mono text-[11px]")
         FlexRender(v-if="!header.isPlaceholder" :header="header")
 
   TableBody
-    //-
-      bg-cyan-800/70 → bg-primary/15: stessa convenzione di
-      "selezionato" usata altrove nell'app (tab attivi, voci filtro
-      attive). Aggiunto tabindex/keydown perché prima la riga era
-      selezionabile solo col mouse (@click su <tr> senza alcun
-      supporto tastiera).
     TableRow(
       v-for="row in table.getRowModel().rows"
       :key="row.id"

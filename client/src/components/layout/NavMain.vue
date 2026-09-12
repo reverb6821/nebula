@@ -68,7 +68,6 @@ SidebarGroup
               aria-hidden="true"
             )
 
-        //- Senza sotto-voci: link diretto, comportamento invariato
         SidebarMenuButton(v-else as-child :tooltip="item.title" :is-active="isGroupActive(item)" class="rounded-md")
           RouterLink(:to="item.url")
             component(:is="item.icon" aria-hidden="true")

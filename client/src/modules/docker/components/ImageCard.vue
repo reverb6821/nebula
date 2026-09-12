@@ -62,11 +62,6 @@ function formatDate(unix: number): string {
           p(class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground") {{ formatBytes(image.size) }}
         div(class="rounded-md bg-muted px-2.5 py-1.5 ring-1 ring-border")
           p(class="text-[9px] uppercase tracking-widest text-muted-foreground/70") {{ t('docker.imageCreatedLabel') }}
-          //-
-            Prima: {{ Number(image.created) }} — mostrava il timestamp
-            Unix grezzo (es. "1700000000") invece della data leggibile.
-            ImageItem.vue usa già correttamente formatDate(): stessa
-            funzione, definita ma mai chiamata qui.
           p(class="mt-0.5 font-mono text-xs font-medium text-foreground") {{ formatDate(image.created) }}
 
     //- Footer actions matching ContainerCard spacing

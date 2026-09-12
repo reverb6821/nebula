@@ -26,7 +26,6 @@ defineEmits<{
 <template lang="pug">
 Empty
   EmptyHeader
-    //- Icona dinamica: puramente decorativa, il titolo porta il senso
     EmptyMedia(
       v-if="icon"
       variant="icon"

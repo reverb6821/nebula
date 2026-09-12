@@ -27,7 +27,6 @@ SidebarProvider(class="h-screen overflow-hidden")
   SidebarInset(class="flex h-screen flex-col overflow-hidden")
     header(class="flex h-16 shrink-0 items-center gap-2 border-b border-border")
 
-      //- Sinistra: trigger + titolo + sottotitolo
       div(class="flex items-center gap-2 px-4")
         SidebarTrigger(class="-ml-1" aria-label="Apri/chiudi barra laterale")
         Separator(orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" aria-hidden="true")
@@ -35,7 +34,6 @@ SidebarProvider(class="h-screen overflow-hidden")
           span(class="text-sm font-semibold tracking-tight text-foreground") {{ title }}
           span(v-if="subtitle" class="text-xs text-muted-foreground") {{ subtitle }}
 
-      //- Destra: filtri + refresh
       div(class="flex flex-1 items-center justify-end gap-2 px-4")
         component(:is="toolsComponent" v-if="toolsComponent" v-bind="toolsProps")
         SharedButton(

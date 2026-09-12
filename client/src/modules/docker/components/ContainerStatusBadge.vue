@@ -11,11 +11,6 @@ const { t } = useI18n()
 
 type StatusConfig = { class: string; icon: unknown; labelKey: string }
 
-// Colori legati ai token del tema invece di emerald/amber/blue/red/zinc
-// hardcoded. "restarting" usa --primary (blu acciaio): è uno stato
-// transitorio "in corso", non un vero successo/errore/attenzione, e
-// l'accento primario è già il colore che l'app usa per "operazione
-// attiva" altrove (tab/righe selezionate).
 const config: Record<string, StatusConfig> = {
   running:    { class: 'bg-success/15 text-success hover:bg-success/20 border-success/30', icon: Play,        labelKey: 'docker.statusRunning' },
   paused:     { class: 'bg-warning/15 text-warning hover:bg-warning/20 border-warning/30',  icon: Square,      labelKey: 'docker.statusPaused' },

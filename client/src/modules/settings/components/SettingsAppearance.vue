@@ -11,10 +11,6 @@ const { t } = useI18n()
 const settings = useSettingsStore()
 const s = computed(() => settings.state)
 
-// Prima queste tre erano const calcolate una sola volta al setup con
-// t() già "congelato": cambiando lingua a runtime le etichette restavano
-// quelle del primo render (stesso bug corretto in DockerToolbar.vue).
-// Un computed() richiama t() ogni volta che locale cambia.
 const fontSizeOptions = computed<{ value: FontSize; label: string }[]>(() => [
   { value: 'sm',   label: t('settings.fontSizeSmall')   },
   { value: 'base', label: t('settings.fontSizeDefault') },

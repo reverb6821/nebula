@@ -32,8 +32,6 @@ const cpuSeries = computed(() =>
   cpuCoreHistory.value.map((values, i) => ({ id: i, color: cpuColor(i), values })),
 )
 
-// var(--x) invece di hex letterali: vedi nota precedente, stessi ruoli
-// semantici usati ovunque nell'app.
 const memSeries = computed(() => [
   { id: 'mem', color: 'var(--destructive)', values: memHistory.value },
 ])
@@ -160,10 +158,6 @@ div(class="flex flex-col gap-4 overflow-auto p-4 text-foreground")
           span(class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-sm bg-destructive" aria-hidden="true")
           div
             div(class="text-muted-foreground") {{ t('dashboard.memory') }}
-            //-
-              usedOfTotal traduce la frase intera, non concatena
-              "di"/"of" a mano tra i pezzi: l'ordine delle parole può
-              cambiare liberamente da una lingua all'altra.
             div(class="font-mono text-foreground") {{ t('dashboard.usedOfTotal', { used: formatBytesDecimal(snapshot?.memUsedBytes ?? 0), percent: formatPercent(snapshot?.memUsedPercent ?? 0), total: formatBytesDecimal(snapshot?.memTotalBytes ?? 0) }) }}
             div(class="text-muted-foreground/70") {{ t('dashboard.cache') }} {{ formatBytesDecimal(snapshot?.memCacheBytes ?? 0) }}
         div(class="flex items-start gap-2")
@@ -208,12 +202,6 @@ div(class="flex flex-col gap-4 overflow-auto p-4 text-foreground")
 
   //- Temperatura e consumi
   DashboardCard(:title="t('dashboard.tempAndPower')")
-    //-
-      Il messaggio ha due <code> incorporati nel mezzo della frase:
-      concatenare pezzi tradotti a mano avrebbe rotto l'ordine delle
-      parole in inglese. <i18n-t> risolve la keypath e lascia che gli
-      slot con nome inseriscano il markup nel punto giusto, qualunque
-      sia l'ordine deciso dalla traduzione.
     i18n-t(
       v-if="sensorsUnavailable"
       keypath="dashboard.sensorsUnavailable"

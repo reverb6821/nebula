@@ -48,10 +48,6 @@ function formatBytes(bytes: number): string {
 </script>
 
 <template lang="pug">
-  //-
-    L'intera riga è cliccabile (apre i log): prima nessun tabindex/
-    tastiera. shadow con theme(colors...) → color-mix() nativo, stessa
-    correzione fatta in DaemonItem.vue.
   Item(
     variant="outline"
     tabindex="0"

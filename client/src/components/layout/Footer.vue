@@ -7,11 +7,6 @@ footer(class="shrink-0")
   div(class="w-full flex flex-start max-w-screen-xl px-4 pt-4 py-2 md:flex md:items-center md:justify-between")
 
     div(class="flex items-center gap-4 text-sm text-muted-foreground")
-      //-
-        Prima c'era `rounded-md ... rounded-xl` insieme: la seconda
-        vinceva sempre e rendeva morta la prima. Un badge di
-        versione è un chip, quindi rounded-full è la scelta
-        corretta (non un valore a caso preso dalla scala 8/12/16).
       Badge(
         variant="outline"
         class="inline-flex items-center rounded-full border-border bg-accent px-2 py-1 text-xs font-medium text-muted-foreground"

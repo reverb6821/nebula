@@ -10,10 +10,6 @@ import { PROCESS_STATUS_LABELS, PROCESS_STATUS_DOT } from '../utils/processStatu
 const store = useProcessesStore()
 const { search, statusFilter, hasActiveFilters, autoRefresh } = storeToRefs(store)
 
-// ─── Status filter group ──────────────────────────────────────────────────────
-// Label e colori ora arrivano da utils/processStatus.ts (prima erano
-// duplicati identici qui e in ProcessStatusBadge.vue).
-
 const statusOrder: ProcessStatus[] = ['R', 'S', 'D', 'Z', 'T', 'I']
 
 const filterGroups = computed<FilterGroup<ProcessStatus>[]>(() => [

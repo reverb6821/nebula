@@ -72,12 +72,6 @@ Sidebar(v-bind="props" class="h-full")
     SidebarMenu
       SidebarMenuItem
         SidebarMenuButton(size="lg")
-          //-
-            rounded-md (12px, "elemento") invece di rounded-lg:
-            con i nuovi token del tema (main.css) rounded-lg
-            ora vale 16px, troppo su un badge di 32px.
-            Logo puramente decorativo: alt="" + aria-hidden,
-            il nome "Nebula" accanto porta già il significato.
           div(
             class="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md text-sidebar-primary-foreground"
             aria-hidden="true"

@@ -33,11 +33,6 @@ th(
   :class="align === 'right' ? 'text-right' : 'text-left'"
   :aria-sort="ariaSort"
 )
-  //-
-    Prima il click era sul <th> stesso: nessun tabindex, nessuna
-    gestione tastiera, quindi non ordinabile senza mouse. Un <button>
-    dentro il <th> è il pattern corretto — il <th> resta un
-    contenitore semantico, il button porta focus/Enter/Space gratis.
   button(
     v-if="sortKey"
     type="button"

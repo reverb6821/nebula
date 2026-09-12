@@ -38,11 +38,6 @@ div(class="flex flex-col gap-3")
         | {{ t('daemons.daemonsCount', { n: stats.shown }) }}
         span(v-if="filteredFavorites.length > 0" class="ml-1 text-warning/70") · {{ t('daemons.pinnedCount', { n: filteredFavorites.length }) }}
 
-    //-
-      View toggle: prima aveva `rounded-lg ... rounded-xl` insieme
-      sullo stesso contenitore — la seconda vinceva sempre, la prima
-      era morta (stesso bug visto in Footer.vue). Ora un solo valore,
-      rounded-md, coerente con le altre coppie di bottoni icona.
     div(class="flex rounded-md border border-border bg-card p-0.5")
       SharedButton(
         variant="ghost"

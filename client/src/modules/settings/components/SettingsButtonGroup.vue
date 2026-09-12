@@ -6,7 +6,6 @@ defineProps<{
   options: O[]
   modelValue: T
   vertical?: boolean
-  /** id della label esterna (da SettingsRow) per aria-labelledby sul gruppo */
   ariaLabelledby?: string
 }>()
 

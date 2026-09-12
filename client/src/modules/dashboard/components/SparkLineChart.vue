@@ -53,12 +53,6 @@ const gridLines = [0, 0.5, 1]
 
 <template lang="pug">
 div
-  //-
-    Prima la colonna delle etichette Y stava in absolute sopra
-    l'SVG (inset-y-0 right-0): con valori vicini al massimo, il
-    testo finiva letteralmente sopra il tracciato. Ora è un flex
-    row — SVG e label si dividono lo spazio, zero sovrapposizione
-    possibile qualunque sia l'andamento della serie.
   div(class="flex gap-2" :style="{ height: `${height}px` }")
     svg(:viewBox="`0 0 ${WIDTH} ${height}`" preserveAspectRatio="none" class="h-full flex-1")
       line(

@@ -46,14 +46,6 @@ function formatBytes(bytes: number): string {
 </script>
 
 <template lang="pug">
-  //-
-    rounded-xl → resta rounded-lg altrove nel progetto per le card
-    (contenitore, 16px): qui era già rounded-xl ma con lo stesso intento
-    "contenitore", quindi normalizzato per coerenza col resto.
-    shadow con theme(colors.indigo...) usava sintassi Tailwind v3 non
-    più valida in v4: color-mix() con var(--ring) è CSS nativo.
-    Tutta la card è cliccabile (apre i log): prima nessun tabindex/
-    tastiera, ora navigabile e attivabile con Enter/Space.
   Card(
     tabindex="0"
     role="button"

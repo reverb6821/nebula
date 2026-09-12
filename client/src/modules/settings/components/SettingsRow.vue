@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// Genera un id univoco per la label, esposto ai figli via scoped slot
-// così ogni controllo (switch/select/gruppo bottoni) può collegarsi con
-// aria-labelledby — prima l'etichetta era un <p> scollegato da
-// qualunque cosa, uno screen reader in focus sul controllo non sentiva
-// mai a cosa si riferisse.
 const props = defineProps<{
   label: string
   hint?: string

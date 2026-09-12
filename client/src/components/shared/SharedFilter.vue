@@ -156,14 +156,6 @@ div(class="flex items-center gap-2")
               Kbd(class="h-4 px-1 text-[9px] leading-none") F
           TooltipContent(side="bottom" class="text-xs") Vai alla ricerca
 
-  //-
-    ── Advanced filters toggle ──────────────────────────────────────────
-    Popover invece di Collapsible: PopoverContent viene teleportato (Portal)
-    dentro <body>, uscendo completamente da qualsiasi ancestor con
-    overflow-hidden (come SidebarProvider/SidebarInset in AppLayout).
-    Collapsible invece renderizza inline nel DOM — se un ancestor ha
-    overflow-hidden, il pannello si "apre" ma resta invisibile perché
-    clippato, senza alcun errore in console.
   Popover(v-if="hasFilters" v-model:open="open")
     PopoverTrigger(
       aria-label="Filtri avanzati"

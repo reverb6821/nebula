@@ -59,7 +59,6 @@ function lineClass(line: string) {
 </script>
 
 <template lang="pug">
-  //- bg-[#080809] → bg-background: era un nero custom leggermente diverso dal token reale, ora coerente col resto dell'app.
   div(class="flex h-full flex-col border-l border-border bg-background")
     //- Header
     div(class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3")

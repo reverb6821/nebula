@@ -52,13 +52,8 @@ const hasAny = computed(() =>
           | {{ t('docker.images', { n: filteredImages.length }) }}
 
       div(class="flex items-center gap-2")
-        //- label internalized in PullImageDialog
         PullImageDialog(v-if="activeTab === 'images'")
 
-        //-
-          View toggle: prima "rounded-lg ... rounded-xl" insieme
-          (stesso bug visto in Footer.vue e DaemonList.vue) — la
-          seconda vinceva sempre, la prima era morta.
         div(class="flex rounded-md border border-border bg-card p-0.5")
           SharedButton(
             variant="ghost"

@@ -45,21 +45,10 @@ const bootTooltip = computed(() => {
 </script>
 
 <template lang="pug">
-//-
-  rounded-lg = 16px, livello "contenitore" del DESIGN.md. Niente
-  ombre (DESIGN.md: "Nessuna ombra tradizionale — separazione
-  visiva basata sul contrasto di luminosità"): l'elevazione viene
-  solo da bg-card vs bg-accent in hover e dal pannello bg-muted/50
-  per la riga boot, mai da un box-shadow.
-
-  Preferito: un bordo sinistro sottile invece del tint diffuso su
-  tutta la card di prima (troppo debole per notarsi davvero) — un
-  segnale netto, unico accento oltre alla stella piena.
 Card(
   class="group relative flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all duration-200 hover:border-ring/30 hover:bg-accent"
   :class="favorite ? 'border-l-2 border-l-warning' : ''"
 )
-  //- Pin: angolo in alto a destra, visibile in hover o se già attivo
   Tooltip
     TooltipTrigger(as-child)
       SharedButton(
@@ -73,12 +62,10 @@ Card(
         Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
     TooltipContent {{ favorite ? t('daemons.unpin') : t('daemons.pin') }}
 
-  //- Header: nome + stato, unico fuoco visivo in alto
   CardHeader(class="gap-1.5 p-0 pr-7")
     CardTitle(class="truncate font-mono text-sm font-semibold leading-tight text-foreground") {{ daemon.name }}
     DaemonStatusBadge(:status="daemon.status")
 
-  //- Descrizione
   CardContent(class="p-0")
     CardDescription(
       v-if="daemon.description && daemon.description !== daemon.name"
@@ -86,11 +73,6 @@ Card(
     ) {{ daemon.description }}
     span(v-else class="text-xs text-muted-foreground/70") {{ t('daemons.noDescription') }}
 
-  //-
-    Riga boot: prima accalcata nell'header insieme a badge e stella,
-    ora una riga propria con un pannello leggero (bg-muted/50) — lo
-    stesso linguaggio delle righe in Settings, invece di reinventarne
-    uno nuovo qui.
   div(class="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2")
     Tooltip
       TooltipTrigger(as-child)
@@ -103,11 +85,6 @@ Card(
       @update:model-value="emit('toggleEnabled')"
     )
 
-  //-
-    Footer: Start/Stop è l'azione primaria e ora si vede — pillola
-    con tinta semantica morbida invece di un'icona nuda uguale alle
-    altre. Restart resta icona neutra, spinta a destra: secondaria,
-    non compete visivamente con l'azione principale.
   div(class="-mx-4 -mb-4 mt-1 flex items-center gap-1.5 border-t border-border px-4 py-2.5")
     Tooltip
       TooltipTrigger(as-child)

@@ -41,12 +41,6 @@ const isStatic = computed(() => props.daemon.enabled === 'static')
 const isEnabled = computed(() => props.daemon.enabled === 'enabled')
 
 const dotClass = computed(() => {
-  // shadow-[...theme(colors.emerald.400/0.8)] usava la sintassi
-  // theme() di Tailwind v3 dentro un valore arbitrario: in v4 non è
-  // più il modo previsto per leggere i colori del tema e può non
-  // risolversi. color-mix() con var(--success) è CSS nativo e legge
-  // il token direttamente, quindi resta corretto anche se il tema
-  // cambia.
   if (isRunning.value) return 'bg-success shadow-[0_0_6px_color-mix(in_srgb,var(--success)_80%,transparent)] animate-pulse'
   if (isFailed.value) return 'bg-destructive'
   return 'bg-muted-foreground/50'
@@ -59,7 +53,6 @@ const bootTooltip = computed(() => {
 </script>
 
 <template lang="pug">
-//- rounded-xl → rounded-lg: vedi nota in DaemonCard.vue
 Item(
   variant="outline"
   class="group border-border rounded-lg bg-card transition-all duration-150 hover:bg-accent"
