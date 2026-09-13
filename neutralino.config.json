@@ -6,11 +6,13 @@
   "url": "/",
   "enableServer": true,
   "enableNativeAPI": true,
+  "tokenSecurity": "one-time",
   "nativeAllowList": [
     "app.*",
-    "filesystem.readDirectory",
-    "os.*",
-    "filesystem.*"
+    "os.execCommand",
+    "os.spawnProcess",
+    "os.updateSpawnedProcess",
+    "storage.*"
   ],
   "modes": {
     "window": {
@@ -19,7 +21,7 @@
       "height": 800,
       "minWidth": 800,
       "minHeight": 500,
-      "icon": "/client/src/assets/logo.png"
+      "icon": "/client/dist/logo.png"
     }
   },
   "cli": {
