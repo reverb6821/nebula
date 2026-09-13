@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
+import { flushPromises } from '@vue/test-utils'
 
 // Mock di @neutralinojs/lib: in ambiente jsdom non esiste window.NL_PORT,
 // quindi la vera libreria non funzionerebbe comunque — mockiamo solo il
@@ -8,7 +9,12 @@ import { nextTick } from 'vue'
 vi.mock('@neutralinojs/lib', () => ({
   storage: {
     getData: vi.fn(),
-    setData: vi.fn(),
+    // Default: si comporta come la vera API (async, risolve). vi.clearAllMocks()
+    // in beforeEach pulisce solo le chiamate registrate (mock.calls/results),
+    // NON l'implementazione impostata qui — quindi questo default resta
+    // valido per tutti i test, a meno che un singolo test non lo sovrascriva
+    // esplicitamente con mockRejectedValue/mockResolvedValueOnce.
+    setData: vi.fn().mockResolvedValue(undefined),
   },
 }))
 
@@ -53,11 +59,7 @@ describe('useSettingsStore', () => {
     // NE_ST_NOSTKEY: Neutralino.storage.getData rigetta se la chiave non c'è
     mockGetData.mockRejectedValue(new Error('NE_ST_NOSTKEY'))
     const settings = useSettingsStore()
-
-    await vi.waitFor(() => {
-      expect(mockGetData).toHaveBeenCalled()
-    })
-    await nextTick()
+    await flushPromises()
 
     expect(settings.state.fontSize).toBe('base')
   })
@@ -65,7 +67,12 @@ describe('useSettingsStore', () => {
   it('set() aggiorna lo stato, applica il DOM e persiste su storage', async () => {
     mockGetData.mockRejectedValue(new Error('NE_ST_NOSTKEY'))
     const settings = useSettingsStore()
-    await nextTick()
+    // flushPromises, non solo nextTick: load() è una catena di più
+    // microtask (getData rigetta → catch → return → .then() assegna
+    // state.value). Un solo nextTick() non garantisce che sia già finita:
+    // se il .then() di load() gira DOPO settings.set() qui sotto, ci
+    // sovrascrive lo stato appena impostato riportandolo ai default.
+    await flushPromises()
 
     settings.set('fontSize', 'xl')
     await nextTick()
@@ -81,11 +88,17 @@ describe('useSettingsStore', () => {
   it('reset() riporta tutti i campi ai default', async () => {
     mockGetData.mockRejectedValue(new Error('NE_ST_NOSTKEY'))
     const settings = useSettingsStore()
-    await nextTick()
+    await flushPromises()
 
     settings.set('fontSize', 'xl')
     settings.set('highContrast', true)
     await nextTick()
+
+    // Verifica intermedia: se set() fosse silenziosamente sovrascritto
+    // dalla stessa race di prima, questo fallirebbe qui invece di
+    // rendere il test "vero per coincidenza" (i default di reset()
+    // sarebbero indistinguibili da un set() mai applicato).
+    expect(settings.state.fontSize).toBe('xl')
 
     settings.reset()
     await nextTick()

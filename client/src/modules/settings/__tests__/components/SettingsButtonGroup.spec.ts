@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import SettingsButtonGroup from '../SettingsButtonGroup.vue'
+import SettingsButtonGroup from '../../components/SettingsButtonGroup.vue'
 
 // SharedButton è stubbato: questo file testa la logica di
 // SettingsButtonGroup (props passate, evento emesso, ruoli ARIA sul
