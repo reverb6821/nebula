@@ -1,42 +1,35 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { refDebounced } from '@vueuse/core'
+import { useIntervalFn } from '@vueuse/core'
 import { storage } from '@neutralinojs/lib'
-import type { Daemon, DaemonStatus, DaemonEnabled } from '@/types/daemon'
+import type { DockerImage, DockerContainer, ContainerStats, PullProgress } from '@/types/docker'
 import { useAsyncState } from '@/composables/useAsyncState'
 import { usePendingSet } from '@/composables/usePendingSet'
 import {
-  listDaemons,
-  startDaemon,
-  stopDaemon,
-  enableDaemon,
-  disableDaemon,
-  restartDaemon,
-} from '@/modules/daemons/composables/useDaemonAction'
+  pingDocker,
+  fetchImages,
+  fetchContainers,
+  fetchStats,
+  fetchLogs,
+  startContainer,
+  stopContainer,
+  restartContainer,
+  removeContainer,
+  removeImage,
+  pullImage,
+} from './composables/useDockerApi'
 
-const MIN_SEARCH_CHARS = 3
-const PAGE_SIZE = 12
-const STORAGE_KEY_VIEW  = 'daemons_view_mode'
-const STORAGE_KEY_FAVS  = 'daemons_favorites'
+const STORAGE_KEY_VIEW = 'docker_view_mode'
+const STORAGE_KEY_FAVS = 'docker_favorites'
 
-export interface DaemonFilters {
-  status: DaemonStatus[]
-  enabled: DaemonEnabled[]
-}
-
-// Persistenza via Neutralino.storage invece di localStorage: i dati
-// finiscono su disco in .storage/ nella cartella dell'app, non nel
-// profilo del webview. Sopravvivono a pulizie cache/dati del sistema
-// operativo che invece possono svuotare il localStorage, e funzionano
-// identicamente sia in modalità finestra singola sia con più istanze.
-// Richiede Neutralino.init() già chiamato all'avvio dell'app (fatto in
-// main.ts).
+// Persistenza via Neutralino.storage invece di localStorage: stessa
+// motivazione e stesso pattern usati in modules/daemons/store.ts —
+// dati su disco in .storage/, non nel profilo del webview.
 async function loadFavorites(): Promise<Set<string>> {
   try {
     const raw = await storage.getData(STORAGE_KEY_FAVS)
     return new Set(raw ? (JSON.parse(raw) as string[]) : [])
   } catch {
-    // NE_ST_NOSTKEY: chiave non ancora scritta (prima esecuzione) — set vuoto
     return new Set()
   }
 }
@@ -58,225 +51,203 @@ function saveViewMode(mode: 'list' | 'grid') {
   storage.setData(STORAGE_KEY_VIEW, mode).catch(() => {})
 }
 
-export const useDaemonsStore = defineStore('daemons', () => {
-  const daemons = ref<Daemon[]>([])
-  const search  = ref('')
-  const page    = ref(1)
-  const favorites = ref<Set<string>>(new Set())
-
-  // Caricamento asincrono: il primo render parte con un set vuoto,
-  // aggiornato non appena lo storage nativo risponde (di norma nello
-  // stesso frame o giù di lì, essendo una lettura da disco locale).
-  loadFavorites().then((favs) => { favorites.value = favs })
+export const useDockerStore = defineStore('docker', () => {
+  // ─── State ────────────────────────────────────────────────────────────────
+  const connected = ref(false)
 
   // Prima: loading/error locali + un withPending scritto a mano quasi
-  // identico a quello di docker/processes store. Ora dai due
-  // composable condivisi (vedi src/composables/), stesso trattamento
-  // già applicato a useDockerStore.
-  const { loading, error, run } = useAsyncState('Failed to load daemons')
-  const { pending: pendingNames, withPending } = usePendingSet<string>()
+  // identico a quello di daemons/processes store. Ora dai due
+  // composable condivisi (vedi src/composables/).
+  const { loading, error, run } = useAsyncState('Fetch failed')
+  const { pending: pendingIds, withPending } = usePendingSet<string>()
 
-  // Persistenza viewMode
+  const images = ref<DockerImage[]>([])
+  const containers = ref<DockerContainer[]>([])
+  const stats = ref<Map<string, ContainerStats>>(new Map())
+  const logs = ref<Map<string, string[]>>(new Map())
+
+  const activeTab = ref<'containers' | 'images'>('containers')
+  const search = ref('')
+  const selectedContainerId = ref<string | null>(null)
+  const pullProgress = ref<PullProgress | null>(null)
+  const pulling = ref(false)
+  const favorites = ref<Set<string>>(new Set())
+
+  // Caricamento asincrono, stesso pattern di daemons/store.ts.
+  loadFavorites().then((favs) => { favorites.value = favs })
+
   const viewMode = ref<'list' | 'grid'>('list')
   loadViewMode().then((v) => { viewMode.value = v })
   watch(viewMode, (v) => saveViewMode(v))
 
-  // Filtri
-  const filters = ref<DaemonFilters>({ status: [], enabled: [] })
-
-  const searchDebounced = refDebounced(search, 300)
-
-  watch([searchDebounced, filters], () => { page.value = 1 }, { deep: true })
-
-  // ─── Filtering ──────────────────────────────────────────────────────────────
-
-  function matchesFilters(d: Daemon): boolean {
-    const q = searchDebounced.value.toLowerCase().trim()
-
-    if (q.length >= MIN_SEARCH_CHARS) {
-      const ok =
-        d.name.toLowerCase().includes(q) ||
-        d.description.toLowerCase().includes(q) ||
-        (d.pid !== undefined && String(d.pid).includes(q))
-      if (!ok) return false
-    }
-
-    if (filters.value.status.length > 0 && !filters.value.status.includes(d.status))
-      return false
-
-    if (filters.value.enabled.length > 0 && !filters.value.enabled.includes(d.enabled))
-      return false
-
-    return true
-  }
-
-  // Converte Set in Array per forzare il tracking reattivo di Vue
+  // ─── Computed ─────────────────────────────────────────────────────────────
   const favoritesArray = computed(() => Array.from(favorites.value))
 
-  // Favoriti filtrati — sempre mostrati in cima, senza paginazione
-  const filteredFavorites = computed(() =>
-    daemons.value.filter((d) => favoritesArray.value.includes(d.name) && matchesFilters(d)),
+  const filteredContainers = computed(() => {
+    const q = search.value.toLowerCase().trim()
+    const all = q
+      ? containers.value.filter((c) => c.name.includes(q) || c.image.includes(q))
+      : containers.value
+    const favs = all.filter((c) => favoritesArray.value.includes(c.id))
+    const rest = all.filter((c) => !favoritesArray.value.includes(c.id))
+    return [...favs, ...rest]
+  })
+
+  const filteredImages = computed(() => {
+    const q = search.value.toLowerCase().trim()
+    const all = q
+      ? images.value.filter((img) => img.repoTags.some((t) => t.toLowerCase().includes(q)))
+      : images.value
+    const favs = all.filter((img) => favoritesArray.value.includes(img.id))
+    const rest = all.filter((img) => !favoritesArray.value.includes(img.id))
+    return [...favs, ...rest]
+  })
+
+  const runningCount = computed(
+    () => containers.value.filter((c) => c.status === 'running').length,
   )
 
-  // Non-favoriti filtrati — paginati
-  const allFilteredNonFav = computed(() =>
-    daemons.value.filter((d) => !favoritesArray.value.includes(d.name) && matchesFilters(d)),
+  const selectedContainer = computed(
+    () => containers.value.find((c) => c.id === selectedContainerId.value) ?? null,
   )
 
-  const filteredNonFav = computed(() =>
-    allFilteredNonFav.value.slice(0, page.value * PAGE_SIZE),
+  const selectedLogs = computed(
+    () => (selectedContainerId.value ? (logs.value.get(selectedContainerId.value) ?? []) : []),
   )
 
-  // Compatibilità con i componenti che usano `filtered`
-  const filtered = computed(() => [
-    ...filteredFavorites.value,
-    ...filteredNonFav.value,
-  ])
-
-  const hasMore = computed(
-    () => filteredNonFav.value.length < allFilteredNonFav.value.length,
-  )
-
-  const hasActiveFilters = computed(
-    () =>
-      filters.value.status.length > 0 ||
-      filters.value.enabled.length > 0 ||
-      search.value.length >= MIN_SEARCH_CHARS,
-  )
-
-  const stats = computed(() => ({
-    active:   daemons.value.filter((d) => d.status === 'active').length,
-    failed:   daemons.value.filter((d) => d.status === 'failed').length,
-    total:    daemons.value.length,
-    shown:    filtered.value.length,
-    matching: filteredFavorites.value.length + allFilteredNonFav.value.length,
-  }))
-
-  // ─── Favorites ──────────────────────────────────────────────────────────────
-
-  function toggleFavorite(name: string) {
+  // ─── Favorites ────────────────────────────────────────────────────────────
+  function toggleFavorite(id: string) {
     const next = new Set(favorites.value)
-    if (next.has(name)) next.delete(name)
-    else next.add(name)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
     favorites.value = next
     saveFavorites(next)
   }
 
-  function isFavorite(name: string): boolean {
-    return favoritesArray.value.includes(name)
+  // Prima remove() e deleteImage() facevano favorites.value.delete(id)
+  // direttamente sul Set esistente: nessuna reattività (Vue non
+  // traccia le mutazioni interne di un Set) e nessuna persistenza
+  // (saveFavorites non veniva mai chiamato) — un container/immagine
+  // preferito e poi rimosso restava per sempre come voce orfana nello
+  // storage. Stessa logica di riassegnazione già usata in
+  // toggleFavorite, estratta qui per essere riusata da entrambi.
+  function removeFavorite(id: string) {
+    if (!favorites.value.has(id)) return
+    const next = new Set(favorites.value)
+    next.delete(id)
+    favorites.value = next
+    saveFavorites(next)
   }
 
-  // ─── Pagination ─────────────────────────────────────────────────────────────
-
-  function loadMore() { page.value++ }
-
-  function resetFilters() {
-    search.value = ''
-    filters.value = { status: [], enabled: [] }
-    page.value = 1
+  function isFavorite(id: string): boolean {
+    return favoritesArray.value.includes(id)
   }
 
-  function toggleStatusFilter(status: DaemonStatus) {
-    const current = filters.value.status
-    filters.value = {
-      ...filters.value,
-      status: current.includes(status)
-        ? current.filter((s) => s !== status)
-        : [...current, status],
+  // ─── Connect & fetch ──────────────────────────────────────────────────────
+  async function connect() {
+    error.value = null
+    connected.value = await pingDocker()
+    if (!connected.value) {
+      error.value = 'Docker not found. Make sure Docker is installed and running.'
+      return
     }
+    await refresh()
   }
 
-  function toggleEnabledFilter(enabled: DaemonEnabled) {
-    const current = filters.value.enabled
-    filters.value = {
-      ...filters.value,
-      enabled: current.includes(enabled)
-        ? current.filter((e) => e !== enabled)
-        : [...current, enabled],
-    }
+  async function refresh() {
+    if (!connected.value) return
+    const result = await run(() => Promise.all([fetchImages(), fetchContainers()]))
+    if (!result) return
+    const [imgs, ctrs] = result
+    images.value = imgs
+    containers.value = ctrs
   }
 
-  // ─── Fetch ──────────────────────────────────────────────────────────────────
+  // ─── Stats polling ────────────────────────────────────────────────────────
+  useIntervalFn(async () => {
+    if (!connected.value) return
+    const running = containers.value.filter((c) => c.status === 'running')
+    const results = await Promise.allSettled(running.map((c) => fetchStats(c.id)))
+    const next = new Map(stats.value)
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') next.set(running[i]!.id, r.value)
+    })
+    stats.value = next
+  }, 3000)
 
-  async function fetch() {
-    const result = await run(() => listDaemons())
-    if (result === undefined) return
-    daemons.value = result
-    page.value = 1
+  // ─── Logs polling ─────────────────────────────────────────────────────────
+  useIntervalFn(async () => {
+    if (!connected.value || !selectedContainerId.value) return
+    try {
+      const lines = await fetchLogs(selectedContainerId.value, 200)
+      logs.value = new Map(logs.value).set(selectedContainerId.value, lines)
+    } catch { /* ignore */ }
+  }, 2000)
+
+  // ─── Container actions ────────────────────────────────────────────────────
+  async function start(id: string) {
+    await withPending(id, async () => { await startContainer(id); await refresh() })
   }
 
-  // ─── Helpers ────────────────────────────────────────────────────────────────
-
-  function patchDaemon(name: string, patch: Partial<Daemon>) {
-    const idx = daemons.value.findIndex((d) => d.name === name)
-    if (idx !== -1) daemons.value[idx] = { ...daemons.value[idx]!, ...patch } as Daemon
+  async function stop(id: string) {
+    await withPending(id, async () => { await stopContainer(id); await refresh() })
   }
 
-  // ─── Actions ────────────────────────────────────────────────────────────────
+  async function restart(id: string) {
+    await withPending(id, async () => { await restartContainer(id); await refresh() })
+  }
 
-  // Azione privilegiata (start/stop/enable/disable): se il comando fallisce
-  // (pkexec annullato, permessi negati...) niente patch ottimistica — lo
-  // stato mostrato deve restare quello vero, non quello sperato.
-  async function runAction(
-    name: string,
-    action: (name: string) => Promise<void>,
-    patch: Partial<Daemon>,
-  ) {
-    await withPending(name, async () => {
-      try {
-        await action(name)
-        patchDaemon(name, patch)
-        error.value = null
-      } catch (e) {
-        error.value = e instanceof Error ? e.message : 'Failed to update daemon'
-      }
+  async function remove(id: string) {
+    await withPending(id, async () => {
+      await removeContainer(id)
+      removeFavorite(id)
+      if (selectedContainerId.value === id) selectedContainerId.value = null
+      await refresh()
     })
   }
 
-  async function start(name: string) {
-    await runAction(name, startDaemon, { status: 'active' })
-  }
-
-  async function stop(name: string) {
-    await runAction(name, stopDaemon, { status: 'inactive' })
-  }
-
-  async function enable(name: string) {
-    await runAction(name, enableDaemon, { enabled: 'enabled' })
-  }
-
-  async function disable(name: string) {
-    await runAction(name, disableDaemon, { enabled: 'disabled' })
-  }
-
-  async function restart(name: string) {
-    await withPending(name, async () => {
-      try {
-        await restartDaemon(name)
-        const fresh = await listDaemons()
-        const updated = fresh.find((d) => d.name === name)
-        if (updated) patchDaemon(name, updated)
-        error.value = null
-      } catch (e) {
-        error.value = e instanceof Error ? e.message : 'Failed to restart daemon'
-      }
+  // ─── Image actions ────────────────────────────────────────────────────────
+  async function deleteImage(id: string) {
+    await withPending(id, async () => {
+      await removeImage(id)
+      removeFavorite(id)
+      await refresh()
     })
   }
 
-  async function toggleEnabled(name: string) {
-    const daemon = daemons.value.find((d) => d.name === name)
-    if (!daemon || daemon.enabled === 'static') return
-    daemon.enabled === 'enabled' ? await disable(name) : await enable(name)
+  async function pull(name: string) {
+    pulling.value = true
+    pullProgress.value = null
+    try {
+      await pullImage(name, (p) => { pullProgress.value = p })
+      await refresh()
+    } finally {
+      pulling.value = false
+    }
+  }
+
+  // ─── Logs ─────────────────────────────────────────────────────────────────
+  async function selectContainer(id: string | null) {
+    selectedContainerId.value = id
+    if (id && !logs.value.has(id)) {
+      const lines = await fetchLogs(id, 200)
+      logs.value = new Map(logs.value).set(id, lines)
+    }
   }
 
   return {
-    daemons, filtered, filteredFavorites, filteredNonFav, allFilteredNonFav,
-    hasMore, hasActiveFilters, favorites, favoritesArray,
-    loading, error, search, searchDebounced,
-    pendingNames, stats, filters, viewMode,
-    fetch, loadMore, resetFilters,
-    toggleStatusFilter, toggleEnabledFilter,
+    connected, loading, error,
+    images, containers, stats,
+    pendingIds, activeTab, search,
+    selectedContainerId, selectedContainer,
+    selectedLogs,
+    filteredContainers, filteredImages,
+    runningCount, pullProgress, pulling,
+    favorites, favoritesArray,
+    viewMode,
+    connect, refresh,
+    start, stop, restart, remove,
+    deleteImage, pull, selectContainer,
     toggleFavorite, isFavorite,
-    start, stop, restart, enable, disable, toggleEnabled,
   }
 })
