@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { storage } from '@neutralinojs/lib'
 
 const STORAGE_KEY = 'nebula_settings'
 
@@ -43,11 +44,16 @@ const lineHeightMap: Record<LineHeight, string> = {
   loose:   '2',
 }
 
-function load(): SettingsState {
+// Persistenza via Neutralino.storage invece di localStorage: stesso
+// motivo e stesso pattern usati in modules/daemons/store.ts e
+// modules/docker/store.ts — dati su disco in .storage/ nella cartella
+// dell'app, non nel profilo del webview.
+async function load(): Promise<SettingsState> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = await storage.getData(STORAGE_KEY)
     return raw ? { ...defaults, ...JSON.parse(raw) } : { ...defaults }
   } catch {
+    // NE_ST_NOSTKEY: chiave non ancora scritta (prima esecuzione)
     return { ...defaults }
   }
 }
@@ -63,10 +69,17 @@ export function applyToDOM(state: SettingsState) {
 }
 
 export const useSettingsStore = defineStore('settings', () => {
-  const state = ref<SettingsState>(load())
+  // Primo render con i default: lo storage nativo è asincrono, quindi
+  // non possiamo più leggerlo in modo sincrono al momento in cui il
+  // ref viene creato (come faceva localStorage.getItem prima). Il
+  // watch qui sotto applica comunque il DOM non appena `load()` risolve
+  // e aggiorna `state`, quindi il flash è limitato al primissimo frame.
+  const state = ref<SettingsState>({ ...defaults })
+
+  load().then((s) => { state.value = s })
 
   watch(state, (s) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s))
+    storage.setData(STORAGE_KEY, JSON.stringify(s)).catch(() => {})
     applyToDOM(s)
   }, { deep: true })
 

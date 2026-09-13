@@ -11,10 +11,6 @@ const { t } = useI18n()
 const settings = useSettingsStore()
 const s = computed(() => settings.state)
 
-// Prima queste tre erano const calcolate una sola volta al setup con
-// t() già "congelato": cambiando lingua a runtime le etichette restavano
-// quelle del primo render (stesso bug corretto in DockerToolbar.vue).
-// Un computed() richiama t() ogni volta che locale cambia.
 const fontSizeOptions = computed<{ value: FontSize; label: string }[]>(() => [
   { value: 'sm',   label: t('settings.fontSizeSmall')   },
   { value: 'base', label: t('settings.fontSizeDefault') },
@@ -36,81 +32,65 @@ const lineHeightOptions = computed<{ value: LineHeight; label: string }[]>(() =>
 ])
 </script>
 
-<template>
-  <SettingsSection :title="t('settings.sectionAppearance')">
+<template lang="pug">
+SettingsSection(:title="t('settings.sectionAppearance')")
 
-    <!-- Font size -->
-    <SettingsRow :label="t('settings.fontSize')">
-      <template #default="{ labelId }">
-        <SettingsButtonGroup
-          :options="fontSizeOptions"
-          :model-value="s.fontSize"
-          :aria-labelledby="labelId"
-          @update:model-value="settings.set('fontSize', $event)"
-        />
-      </template>
-    </SettingsRow>
+  //- Font size
+  SettingsRow(:label="t('settings.fontSize')")
+    template(#default="{ labelId }")
+      SettingsButtonGroup(
+        :options="fontSizeOptions"
+        :model-value="s.fontSize"
+        :aria-labelledby="labelId"
+        @update:model-value="settings.set('fontSize', $event)"
+      )
 
-    <!-- Font family -->
-    <SettingsRow :label="t('settings.fontFamily')">
-      <template #default="{ labelId }">
-        <SettingsButtonGroup
-          :options="fontFamilyOptions"
-          :model-value="s.fontFamily"
-          :aria-labelledby="labelId"
-          vertical
-          @update:model-value="settings.set('fontFamily', $event)"
-        >
-          <!-- Slot per mostrare ogni font nel suo stile -->
-          <template #default="{ option }">
-            <span :style="`font-family: ${option.previewFont}`">
-              {{ option.label }}
-            </span>
-            <span class="ml-2 text-[10px] opacity-50">Aa</span>
-          </template>
-        </SettingsButtonGroup>
-      </template>
-    </SettingsRow>
+  //- Font family
+  SettingsRow(:label="t('settings.fontFamily')")
+    template(#default="{ labelId }")
+      SettingsButtonGroup(
+        :options="fontFamilyOptions"
+        :model-value="s.fontFamily"
+        :aria-labelledby="labelId"
+        vertical
+        @update:model-value="settings.set('fontFamily', $event)"
+      )
+        //- Slot per mostrare ogni font nel suo stile
+        template(#default="{ option }")
+          span(:style="`font-family: ${option.previewFont}`") {{ option.label }}
+          span(class="ml-2 text-[10px] opacity-50") Aa
 
-    <!-- Line height -->
-    <SettingsRow :label="t('settings.lineHeight')">
-      <template #default="{ labelId }">
-        <SettingsButtonGroup
-          :options="lineHeightOptions"
-          :model-value="s.lineHeight"
-          :aria-labelledby="labelId"
-          @update:model-value="settings.set('lineHeight', $event)"
-        />
-      </template>
-    </SettingsRow>
+  //- Line height
+  SettingsRow(:label="t('settings.lineHeight')")
+    template(#default="{ labelId }")
+      SettingsButtonGroup(
+        :options="lineHeightOptions"
+        :model-value="s.lineHeight"
+        :aria-labelledby="labelId"
+        @update:model-value="settings.set('lineHeight', $event)"
+      )
 
-    <!-- Reduced motion -->
-    <SettingsRow
-      :label="t('settings.reducedMotion')"
-      :hint="t('settings.reducedMotionHint')"
-    >
-      <template #default="{ labelId }">
-        <SharedSwitch
-          :model-value="s.reducedMotion"
-          :aria-labelledby="labelId"
-          @update:model-value="settings.set('reducedMotion', $event)"
-        />
-      </template>
-    </SettingsRow>
+  //- Reduced motion
+  SettingsRow(
+    :label="t('settings.reducedMotion')"
+    :hint="t('settings.reducedMotionHint')"
+  )
+    template(#default="{ labelId }")
+      SharedSwitch(
+        :model-value="s.reducedMotion"
+        :aria-labelledby="labelId"
+        @update:model-value="settings.set('reducedMotion', $event)"
+      )
 
-    <!-- High contrast -->
-    <SettingsRow
-      :label="t('settings.highContrast')"
-      :hint="t('settings.highContrastHint')"
-    >
-      <template #default="{ labelId }">
-        <SharedSwitch
-          :model-value="s.highContrast"
-          :aria-labelledby="labelId"
-          @update:model-value="settings.set('highContrast', $event)"
-        />
-      </template>
-    </SettingsRow>
-
-  </SettingsSection>
+  //- High contrast
+  SettingsRow(
+    :label="t('settings.highContrast')"
+    :hint="t('settings.highContrastHint')"
+  )
+    template(#default="{ labelId }")
+      SharedSwitch(
+        :model-value="s.highContrast"
+        :aria-labelledby="labelId"
+        @update:model-value="settings.set('highContrast', $event)"
+      )
 </template>

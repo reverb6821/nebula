@@ -2,6 +2,6 @@
 import AppLayout from '@/components/layout/AppLayout.vue'
 </script>
 
-<template>
-  <AppLayout />
+<template lang="pug">
+  AppLayout
 </template>

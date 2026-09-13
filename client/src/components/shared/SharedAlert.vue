@@ -34,9 +34,6 @@ const icon = computed(() => {
   }
 })
 
-// Nebula è dark-only, quindi niente varianti dark:. Ogni stato usa il
-// token semantico corrispondente (destructive/success/warning) definito
-// in main.css — nessun colore hardcoded qui.
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'destructive':
@@ -52,27 +49,19 @@ const variantClass = computed(() => {
 })
 </script>
 
-<template>
-  <Alert
-    :variant="variant === 'destructive' ? 'destructive' : 'default'"
-    :class="[
-      variantClass,
-      // Contenitore → rounded-lg = 16px (DESIGN.md rounded.lg)
-      'rounded-lg bg-card',
-    ]"
-  >
-    <!-- Icona di stato: ridondante col colore/testo, quindi decorativa -->
-    <component :is="icon" class="h-4 w-4" aria-hidden="true" />
+<template lang="pug">
+Alert(
+  :variant="variant === 'destructive' ? 'destructive' : 'default'"
+  :class="[variantClass, 'rounded-lg bg-card']"
+)
+  component(:is="icon" class="h-4 w-4" aria-hidden="true")
 
-    <AlertTitle v-if="title || $slots.title" class="text-foreground">
-      <slot name="title">{{ title }}</slot>
-    </AlertTitle>
+  AlertTitle(v-if="title || $slots.title" class="text-foreground")
+    slot(name="title") {{ title }}
 
-    <AlertDescription
-      v-if="description || $slots.default"
-      class="text-muted-foreground"
-    >
-      <slot>{{ description }}</slot>
-    </AlertDescription>
-  </Alert>
+  AlertDescription(
+    v-if="description || $slots.default"
+    class="text-muted-foreground"
+  )
+    slot {{ description }}
 </template>

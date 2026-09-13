@@ -34,8 +34,6 @@ const enabledLabels: Record<DaemonEnabled, string> = {
 const filterGroups = computed<FilterGroup[]>(() => [
   {
     label: t('daemons.filterStatus'),
-    // I pallini colore ora usano i token semantici (bg-success/…)
-    // invece di emerald/red/amber hardcoded.
     options: [
       { value: 'active',   label: t('daemons.statusActive'),   dotClass: 'bg-success' },
       { value: 'inactive', label: t('daemons.statusInactive'), dotClass: 'bg-muted-foreground' },
@@ -57,11 +55,6 @@ const filterGroups = computed<FilterGroup[]>(() => [
   },
 ])
 
-// ── Active chips ──────────────────────────────────────────────────────────────
-// Prima mostravano l'enum grezzo ('active', 'boot: enabled', …) invece
-// della label tradotta già usata nel pannello — incoerente col resto
-// dell'interfaccia, che è sempre localizzata.
-
 const activeChips = computed<ActiveChip[]>(() => [
   ...filters.value.status.map(s => ({
     label: t(statusLabels[s]),
@@ -74,13 +67,13 @@ const activeChips = computed<ActiveChip[]>(() => [
 ])
 </script>
 
-<template>
-  <SharedFilter
-    v-model:search="search"
-    :placeholder="t('daemons.searchPlaceholder')"
-    :filter-groups="filterGroups"
-    :active-chips="activeChips"
-    :has-active-filters="hasActiveFilters"
-    @reset="store.resetFilters()"
-  />
+<template lang="pug">
+SharedFilter(
+  v-model:search="search"
+  :placeholder="t('daemons.searchPlaceholder')"
+  :filter-groups="filterGroups"
+  :active-chips="activeChips"
+  :has-active-filters="hasActiveFilters"
+  @reset="store.resetFilters()"
+)
 </template>

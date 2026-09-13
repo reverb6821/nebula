@@ -51,47 +51,35 @@ const xLabels = computed(() => {
 const gridLines = [0, 0.5, 1]
 </script>
 
-<template>
-  <div>
-    <!--
-      Prima la colonna delle etichette Y stava in absolute sopra
-      l'SVG (inset-y-0 right-0): con valori vicini al massimo, il
-      testo finiva letteralmente sopra il tracciato. Ora è un flex
-      row — SVG e label si dividono lo spazio, zero sovrapposizione
-      possibile qualunque sia l'andamento della serie.
-    -->
-    <div class="flex gap-2" :style="{ height: `${height}px` }">
-      <svg :viewBox="`0 0 ${WIDTH} ${height}`" preserveAspectRatio="none" class="h-full flex-1">
-        <line
-          v-for="g in gridLines"
-          :key="g"
-          x1="0"
-          :y1="g * height"
-          :x2="WIDTH"
-          :y2="g * height"
-          stroke="var(--border)"
-          stroke-width="1"
-        />
-        <polyline
-          v-for="s in series"
-          :key="s.id"
-          :points="pointsFor(s.values)"
-          fill="none"
-          :stroke="s.color"
-          stroke-width="1.5"
-          vector-effect="non-scaling-stroke"
-        />
-      </svg>
+<template lang="pug">
+div
+  div(class="flex gap-2" :style="{ height: `${height}px` }")
+    svg(:viewBox="`0 0 ${WIDTH} ${height}`" preserveAspectRatio="none" class="h-full flex-1")
+      line(
+        v-for="g in gridLines"
+        :key="g"
+        x1="0"
+        :y1="g * height"
+        :x2="WIDTH"
+        :y2="g * height"
+        stroke="var(--border)"
+        stroke-width="1"
+      )
+      polyline(
+        v-for="s in series"
+        :key="s.id"
+        :points="pointsFor(s.values)"
+        fill="none"
+        :stroke="s.color"
+        stroke-width="1.5"
+        vector-effect="non-scaling-stroke"
+      )
 
-      <div class="flex w-10 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] text-muted-foreground/70">
-        <span>{{ formatY(max) }}</span>
-        <span>{{ formatY(max / 2) }}</span>
-        <span>{{ formatY(0) }}</span>
-      </div>
-    </div>
+    div(class="flex w-10 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] text-muted-foreground/70")
+      span {{ formatY(max) }}
+      span {{ formatY(max / 2) }}
+      span {{ formatY(0) }}
 
-    <div class="mt-1 flex justify-between text-[10px] text-muted-foreground/70">
-      <span v-for="label in xLabels" :key="label">{{ label }}</span>
-    </div>
-  </div>
+  div(class="mt-1 flex justify-between text-[10px] text-muted-foreground/70")
+    span(v-for="label in xLabels" :key="label") {{ label }}
 </template>

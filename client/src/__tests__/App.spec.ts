@@ -1,24 +1,11 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createPinia } from 'pinia'
-import App from '../App.vue'
+import { describe, it, expect } from 'vitest'
 
-// Aggiungi questo mock globale per la rotta
-vi.mock('vue-router', () => ({
-  useRoute: vi.fn(() => ({ path: '/' }))
-}))
+import { mount } from '@vue/test-utils'
+import App from '../App.vue'
 
 describe('App', () => {
   it('mounts renders properly', () => {
-    const wrapper = mount(App, {
-      global: {
-        plugins: [createPinia()],
-        stubs: {
-          RouterView: true,
-          RouterLink: true,
-        },
-      },
-    })
-    expect(wrapper.exists()).toBe(true)
+    const wrapper = mount(App)
+    expect(wrapper.text()).toContain('You did it!')
   })
 })

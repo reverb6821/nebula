@@ -221,5 +221,6 @@ export const useProcessesStore = defineStore('processes', () => {
     selectedPid, select,
     fetch, setSort, kill, terminate, renice, niceStep,
     toggleStatusFilter, resetFilters,
+    stopAutoRefresh,
   }
 })

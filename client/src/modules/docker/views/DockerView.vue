@@ -12,7 +12,7 @@ import { usePageHeader } from '@/composables/usePageHeader'
 const { t } = useI18n()
 const store = useDockerStore()
 const {
-  connected, loading, error,
+  connected, loading,
   selectedContainerId, selectedContainer,
   selectedLogs,
   runningCount,
@@ -50,40 +50,33 @@ watch([subtitle, loading], syncHeader)
 onUnmounted(clearHeader)
 </script>
 
-<template>
-  <div class="flex h-full overflow-hidden">
+<template lang="pug">
+div(class="flex h-full overflow-hidden")
 
-    <div class="flex flex-1 flex-col gap-5 overflow-hidden px-2 py-3">
+  div(class="flex flex-1 flex-col gap-5 overflow-hidden px-2 py-3")
 
-      <Transition
-        enter-active-class="transition-all duration-200 ease-out"
-        enter-from-class="opacity-0 -translate-y-1"
-        enter-to-class="opacity-100 translate-y-0"
-      >
-        <SharedAlert v-if="!connected && !loading" variant="warning" :title="t('docker.notReachable')" :description="t('docker.notReachableHint')" />
-      </Transition>
-
-      <div class="min-h-0 flex-1 overflow-y-auto">
-        <DockerList />
-      </div>
-    </div>
-
-    <Transition
+    Transition(
       enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="translate-x-4 opacity-0"
-      enter-to-class="translate-x-0 opacity-100"
-      leave-active-class="transition-all duration-150 ease-in"
-      leave-from-class="translate-x-0 opacity-100"
-      leave-to-class="translate-x-4 opacity-0"
-    >
-      <div v-if="selectedContainerId && selectedContainer" class="w-[420px] shrink-0">
-        <LogsViewer
-          :container-name="selectedContainer.name"
-          :lines="selectedLogs"
-          @close="store.selectContainer(null)"
-        />
-      </div>
-    </Transition>
+      enter-from-class="opacity-0 -translate-y-1"
+      enter-to-class="opacity-100 translate-y-0"
+    )
+      SharedAlert(v-if="!connected && !loading" variant="warning" :title="t('docker.notReachable')" :description="t('docker.notReachableHint')")
 
-  </div>
+    div(class="min-h-0 flex-1 overflow-y-auto")
+      DockerList
+
+  Transition(
+    enter-active-class="transition-all duration-200 ease-out"
+    enter-from-class="translate-x-4 opacity-0"
+    enter-to-class="translate-x-0 opacity-100"
+    leave-active-class="transition-all duration-150 ease-in"
+    leave-from-class="translate-x-0 opacity-100"
+    leave-to-class="translate-x-4 opacity-0"
+  )
+    div(v-if="selectedContainerId && selectedContainer" class="w-[420px] shrink-0")
+      LogsViewer(
+        :container-name="selectedContainer.name"
+        :lines="selectedLogs"
+        @close="store.selectContainer(null)"
+      )
 </template>

@@ -23,36 +23,26 @@ defineEmits<{
 }>()
 </script>
 
-<template>
-  <Empty>
-    <EmptyHeader>
-      <!-- Icona dinamica: puramente decorativa, il titolo porta il senso -->
-      <EmptyMedia
-        v-if="icon"
-        variant="icon"
-        class="rounded-md border border-border bg-card text-muted-foreground"
-      >
-        <component :is="icon" aria-hidden="true" />
-      </EmptyMedia>
+<template lang="pug">
+Empty
+  EmptyHeader
+    EmptyMedia(
+      v-if="icon"
+      variant="icon"
+      class="rounded-md border border-border bg-card text-muted-foreground"
+    )
+      component(:is="icon" aria-hidden="true")
 
-      <EmptyTitle v-if="title || $slots.title" class="text-foreground">
-        <slot name="title">{{ title }}</slot>
-      </EmptyTitle>
+    EmptyTitle(v-if="title || $slots.title" class="text-foreground")
+      slot(name="title") {{ title }}
 
-      <EmptyDescription
-        v-if="description || $slots.description"
-        class="text-muted-foreground"
-      >
-        <slot name="description">{{ description }}</slot>
-      </EmptyDescription>
-    </EmptyHeader>
+    EmptyDescription(
+      v-if="description || $slots.description"
+      class="text-muted-foreground"
+    )
+      slot(name="description") {{ description }}
 
-    <EmptyContent v-if="actionLabel || $slots.default">
-      <slot>
-        <SharedButton variant="outline" size="sm" @click="$emit('action')">
-          {{ actionLabel }}
-        </SharedButton>
-      </slot>
-    </EmptyContent>
-  </Empty>
+  EmptyContent(v-if="actionLabel || $slots.default")
+    slot
+      SharedButton(variant="outline" size="sm" @click="$emit('action')") {{ actionLabel }}
 </template>
