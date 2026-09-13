@@ -1,73 +1,62 @@
-# client
+# Nebula Dock Client
 
-This template should help get you started developing with Vue 3 in Vite.
+The `client/` package is the Vue 3 frontend for Nebula Dock. It uses the
+Composition API with TypeScript, Vite, Pinia, Pinia Colada, Tailwind CSS,
+shadcn-vue/Reka UI components, vue-i18n, and the Neutralino client library.
+Vitest provides unit tests and Playwright provides end-to-end tests.
 
-## Recommended IDE Setup
+## Commands
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Run commands from the repository root with `bun --cwd client run <script>`, or
+change into `client/` and use `bun run <script>`:
 
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-bun install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-bun dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
+```bash
+bun run dev
 bun run build
+bun run type-check
+bun run lint
+bun run test:unit
+bun run test:e2e
+bun run preview
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+The `build` script runs type checking and the Vite production build. The
+frontend development server is useful for browser work; use `neu run` from the
+repository root when testing native Neutralino behavior.
 
-```sh
-bun test:unit
+## Source structure
+
+| Path | Responsibility |
+| --- | --- |
+| `src/components/` | Shared layout, reusable components, and UI primitives |
+| `src/composables/` | Shared stateful logic and Neutralino command helpers |
+| `src/modules/` | Feature-specific views, components, stores, and composables |
+| `src/stores/` | Application-wide Pinia stores |
+| `src/i18n/` | Localized messages and i18n setup |
+| `src/router/` | Vue Router configuration |
+| `src/types/` | Shared TypeScript types |
+
+Keep system-specific logic inside the relevant module composables. Reuse
+existing shared components and primitives instead of introducing duplicate UI
+patterns.
+
+## Neutralino safety
+
+Files that use Neutralino APIs must be client-only. Guard native access when
+the application runs in a browser or another non-desktop environment:
+
+```ts
+if (typeof window === 'undefined' || !window.Neutralino) return
 ```
 
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
+Execute operating-system commands through the existing
+`useNeutralinoCmd` composable. Use Neutralino filesystem APIs for file
+operations; do not use Node.js `child_process` or filesystem APIs in client
+code. Check command stderr and surface failures instead of treating an empty
+result as success.
 
-```sh
-# Install browsers for the first run
-npx playwright install
+## Design guidelines
 
-# When testing on CI, must build the project first
-bun run build
-
-# Runs the end-to-end tests
-bun test:e2e
-# Runs the tests only on Chromium
-bun test:e2e --project=chromium
-# Runs the tests of a specific file
-bun test:e2e tests/example.spec.ts
-# Runs the tests in debug mode
-bun test:e2e --debug
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-bun lint
-```
+Read [`DESIGN.md`](DESIGN.md) before changing the user interface. It defines
+the visual language, typography, layout, color, and component conventions for
+the client.
