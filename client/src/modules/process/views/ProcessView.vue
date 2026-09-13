@@ -22,8 +22,6 @@ const { setHeader, clearHeader } = usePageHeader()
 
 const columns = computed(() => createProcessColumns(sortKey.value, sortDir.value, store.setSort))
 
-// Prima "Processes" e "Error" erano in inglese hardcoded, incoerenti
-// col resto dell'app che è localizzata (vedi DaemonsView.vue).
 const subtitle = computed(
   () => t('processes.subtitle', { running: stats.value.running, shown: stats.value.shown, total: stats.value.total }),
 )
@@ -50,30 +48,28 @@ watch([subtitle, loading], syncHeader)
 onUnmounted(clearHeader)
 </script>
 
-<template>
-  <div class="flex h-full flex-col bg-background">
-    <ProcessMeters :tasks-total="stats.total" :tasks-running="stats.running" />
+<template lang="pug">
+div(class="flex h-full flex-col bg-background")
+  ProcessMeters(:tasks-total="stats.total" :tasks-running="stats.running")
 
-    <SharedAlert v-if="error" variant="destructive" :title="t('common.error')" :description="error" />
+  SharedAlert(v-if="error" variant="destructive" :title="t('common.error')" :description="error")
 
-    <div class="min-h-0 flex-1 overflow-auto">
-      <ProcessDataTable
-        :columns="columns"
-        :data="paginated"
-        :selected-pid="selectedPid"
-        :pending-pids="pendingPids"
-        @select="store.select($event)"
-      />
-    </div>
+  div(class="min-h-0 flex-1 overflow-auto")
+    ProcessDataTable(
+      :columns="columns"
+      :data="paginated"
+      :selected-pid="selectedPid"
+      :pending-pids="pendingPids"
+      @select="store.select($event)"
+    )
 
-    <ProcessPagination
-      v-if="filtered.length > 0"
-      :page="page"
-      :page-size="pageSize"
-      :total="filtered.length"
-      :total-pages="totalPages"
-      @update:page="store.setPage($event)"
-      @update:page-size="store.setPageSize($event)"
-    />
-  </div>
+  ProcessPagination(
+    v-if="filtered.length > 0"
+    :page="page"
+    :page-size="pageSize"
+    :total="filtered.length"
+    :total-pages="totalPages"
+    @update:page="store.setPage($event)"
+    @update:page-size="store.setPageSize($event)"
+  )
 </template>

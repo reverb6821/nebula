@@ -19,26 +19,18 @@ function onLocaleChange(value: AcceptableValue) {
 }
 </script>
 
-<template>
-  <SettingsSection :title="t('settings.sectionLanguage')">
-    <SettingsRow :label="t('settings.language')" :hint="t('settings.languageHint')">
-      <template #default="{ labelId }">
-        <Select :model-value="locale" @update:model-value="onLocaleChange">
-          <SelectTrigger :aria-labelledby="labelId" class="w-52 rounded-md border-border bg-card">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent class="rounded-md border-border bg-popover">
-            <SelectItem
-              v-for="loc in availableLocales"
-              :key="loc.code"
-              :value="loc.code"
-              class="rounded-sm text-foreground focus:bg-accent focus:text-foreground"
-            >
-              {{ loc.flag }} {{ loc.label }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </template>
-    </SettingsRow>
-  </SettingsSection>
+<template lang="pug">
+SettingsSection(:title="t('settings.sectionLanguage')")
+  SettingsRow(:label="t('settings.language')" :hint="t('settings.languageHint')")
+    template(#default="{ labelId }")
+      Select(:model-value="locale" @update:model-value="onLocaleChange")
+        SelectTrigger(:aria-labelledby="labelId" class="w-52 rounded-md border-border bg-card")
+          SelectValue
+        SelectContent(class="rounded-md border-border bg-popover")
+          SelectItem(
+            v-for="loc in availableLocales"
+            :key="loc.code"
+            :value="loc.code"
+            class="rounded-sm text-foreground focus:bg-accent focus:text-foreground"
+          ) {{ loc.flag }} {{ loc.label }}
 </template>

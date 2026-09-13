@@ -47,98 +47,73 @@ function formatBytes(bytes: number): string {
 }
 </script>
 
-<template>
-  <!--
-    L'intera riga è cliccabile (apre i log): prima nessun tabindex/
-    tastiera. shadow con theme(colors...) → color-mix() nativo, stessa
-    correzione fatta in DaemonItem.vue.
-  -->
-  <Item
+<template lang="pug">
+  Item(
     variant="outline"
     tabindex="0"
     role="button"
     :aria-pressed="selected"
     :aria-label="t('docker.openLogsFor', { name: container.name })"
     class="rounded-lg group cursor-pointer border-border bg-card transition-all duration-150 hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-    :class="{
-      'border-primary/40 bg-primary/5': selected,
-      'border-warning/20 bg-warning/[0.03]': favorite && !selected,
-    }"
+    :class="{ 'border-primary/40 bg-primary/5': selected, 'border-warning/20 bg-warning/[0.03]': favorite && !selected }"
     @click="emit('logs')"
     @keydown.enter="emit('logs')"
     @keydown.space.prevent="emit('logs')"
-  >
-    <!-- Status dot -->
-    <ItemMedia>
-      <span
+  )
+    //- Status dot
+    ItemMedia
+      span(
         class="h-1.5 w-1.5 rounded-full transition-colors duration-150"
-        :class="{
-          'bg-success shadow-[0_0_6px_color-mix(in_srgb,var(--success)_80%,transparent)] animate-pulse': container.status === 'running',
-          'bg-destructive': container.status === 'dead',
-          'bg-warning': container.status === 'paused',
-          'bg-primary animate-pulse': container.status === 'restarting',
-          'bg-muted-foreground/50': !['running','dead','paused','restarting'].includes(container.status),
-        }"
+        :class="{ 'bg-success shadow-[0_0_6px_color-mix(in_srgb,var(--success)_80%,transparent)] animate-pulse': container.status === 'running', 'bg-destructive': container.status === 'dead', 'bg-warning': container.status === 'paused', 'bg-primary animate-pulse': container.status === 'restarting', 'bg-muted-foreground/50': !['running','dead','paused','restarting'].includes(container.status) }"
         aria-hidden="true"
-      />
-    </ItemMedia>
+      )
 
-    <!-- Name + image -->
-    <ItemContent>
-      <ItemTitle class="flex items-center gap-2 font-mono text-sm font-medium text-foreground">
-        {{ container.name }}
-        <ContainerStatusBadge :status="container.status" />
-      </ItemTitle>
-      <ItemDescription class="mt-0.5 truncate font-mono text-xs text-muted-foreground">
-        {{ container.image }}
-        <template v-if="isRunning && stats">
-          <span class="mx-1.5 text-muted-foreground/60">·</span>
-          <span class="tabular-nums text-foreground/80">CPU {{ stats.cpuPercent.toFixed(1) }}%</span>
-          <span class="mx-1.5 text-muted-foreground/60">·</span>
-          <span class="tabular-nums text-foreground/80">{{ formatBytes(stats.memUsage) }}</span>
-        </template>
-      </ItemDescription>
-    </ItemContent>
+    //- Name + image
+    ItemContent
+      ItemTitle(class="flex items-center gap-2 font-mono text-sm font-medium text-foreground")
+        | {{ container.name }}
+        ContainerStatusBadge(:status="container.status")
+      ItemDescription(class="mt-0.5 truncate font-mono text-xs text-muted-foreground")
+        | {{ container.image }}
+        template(v-if="isRunning && stats")
+          span(class="mx-1.5 text-muted-foreground/60") ·
+          span(class="tabular-nums text-foreground/80") CPU {{ stats.cpuPercent.toFixed(1) }}%
+          span(class="mx-1.5 text-muted-foreground/60") ·
+          span(class="tabular-nums text-foreground/80") {{ formatBytes(stats.memUsage) }}
 
-    <!-- Actions -->
-    <ItemActions class="gap-0.5" @click.stop>
-      <!-- Favorite -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton
+    //- Actions
+    ItemActions(class="gap-0.5" @click.stop)
+      //- Favorite
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
             variant="ghost"
             size="icon"
             class="h-7 w-7 rounded-md hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
             :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
             :aria-label="favorite ? t('docker.unpin') : t('docker.pin')"
             @click="emit('toggleFavorite')"
-          >
-            <Star class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true" />
-          </SharedButton>
-        </TooltipTrigger>
-        <TooltipContent>{{ favorite ? t('docker.unpin') : t('docker.pin') }}</TooltipContent>
-      </Tooltip>
+          )
+            Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
+        TooltipContent {{ favorite ? t('docker.unpin') : t('docker.pin') }}
 
-      <!-- Logs -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton
+      //- Logs
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
             variant="ghost"
             size="icon"
             class="h-7 w-7 text-muted-foreground hover:bg-accent hover:text-foreground rounded-md transition-all duration-150"
             :aria-label="t('docker.logs')"
             @click="emit('logs')"
-          >
-            <FileText class="h-3.5 w-3.5" aria-hidden="true" />
-          </SharedButton>
-        </TooltipTrigger>
-        <TooltipContent>{{ t('docker.logs') }}</TooltipContent>
-      </Tooltip>
+          )
+            FileText(class="h-3.5 w-3.5" aria-hidden="true")
+        TooltipContent {{ t('docker.logs') }}
 
-      <!-- Start / Stop -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton
+      //- Start / Stop
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
             variant="ghost"
             size="icon"
             :loading="pending"
@@ -148,15 +123,13 @@ function formatBytes(bytes: number): string {
             class="h-7 w-7 hover:bg-accent rounded-md transition-all duration-150"
             :class="isRunning ? 'text-destructive hover:text-destructive' : 'text-success hover:text-success'"
             @click="isRunning ? emit('stop') : emit('start')"
-          />
-        </TooltipTrigger>
-        <TooltipContent>{{ isRunning ? t('common.stop') : t('common.start') }}</TooltipContent>
-      </Tooltip>
+          )
+        TooltipContent {{ isRunning ? t('common.stop') : t('common.start') }}
 
-      <!-- Restart -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton
+      //- Restart
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
             variant="ghost"
             size="icon"
             :disabled="pending || !isRunning"
@@ -164,15 +137,13 @@ function formatBytes(bytes: number): string {
             :aria-label="t('common.restart')"
             class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-all duration-150"
             @click="emit('restart')"
-          />
-        </TooltipTrigger>
-        <TooltipContent>{{ t('common.restart') }}</TooltipContent>
-      </Tooltip>
+          )
+        TooltipContent {{ t('common.restart') }}
 
-      <!-- Remove -->
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton
+      //- Remove
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
             variant="ghost"
             size="icon"
             :disabled="pending"
@@ -180,10 +151,6 @@ function formatBytes(bytes: number): string {
             :aria-label="t('common.remove')"
             class="h-7 w-7 text-destructive rounded-md hover:bg-destructive/15 hover:text-destructive transition-all duration-150"
             @click="emit('remove')"
-          />
-        </TooltipTrigger>
-        <TooltipContent>{{ t('common.remove') }}</TooltipContent>
-      </Tooltip>
-    </ItemActions>
-  </Item>
+          )
+        TooltipContent {{ t('common.remove') }}
 </template>

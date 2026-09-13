@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { useIntervalFn } from '@vueuse/core'
+import { storage } from '@neutralinojs/lib'
 import type { DockerImage, DockerContainer, ContainerStats, PullProgress } from '@/types/docker'
 import { useAsyncState } from '@/composables/useAsyncState'
 import { usePendingSet } from '@/composables/usePendingSet'
@@ -21,9 +22,12 @@ import {
 const STORAGE_KEY_VIEW = 'docker_view_mode'
 const STORAGE_KEY_FAVS = 'docker_favorites'
 
-function loadFavorites(): Set<string> {
+// Persistenza via Neutralino.storage invece di localStorage: stessa
+// motivazione e stesso pattern usati in modules/daemons/store.ts —
+// dati su disco in .storage/, non nel profilo del webview.
+async function loadFavorites(): Promise<Set<string>> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_FAVS)
+    const raw = await storage.getData(STORAGE_KEY_FAVS)
     return new Set(raw ? (JSON.parse(raw) as string[]) : [])
   } catch {
     return new Set()
@@ -31,7 +35,20 @@ function loadFavorites(): Set<string> {
 }
 
 function saveFavorites(favs: Set<string>) {
-  localStorage.setItem(STORAGE_KEY_FAVS, JSON.stringify([...favs]))
+  storage.setData(STORAGE_KEY_FAVS, JSON.stringify([...favs])).catch(() => {})
+}
+
+async function loadViewMode(): Promise<'list' | 'grid'> {
+  try {
+    const raw = await storage.getData(STORAGE_KEY_VIEW)
+    return raw === 'grid' ? 'grid' : 'list'
+  } catch {
+    return 'list'
+  }
+}
+
+function saveViewMode(mode: 'list' | 'grid') {
+  storage.setData(STORAGE_KEY_VIEW, mode).catch(() => {})
 }
 
 export const useDockerStore = defineStore('docker', () => {
@@ -54,12 +71,14 @@ export const useDockerStore = defineStore('docker', () => {
   const selectedContainerId = ref<string | null>(null)
   const pullProgress = ref<PullProgress | null>(null)
   const pulling = ref(false)
-  const favorites = ref<Set<string>>(loadFavorites())
+  const favorites = ref<Set<string>>(new Set())
 
-  const viewMode = ref<'list' | 'grid'>(
-    (localStorage.getItem(STORAGE_KEY_VIEW) as 'list' | 'grid') || 'list',
-  )
-  watch(viewMode, (v) => localStorage.setItem(STORAGE_KEY_VIEW, v))
+  // Caricamento asincrono, stesso pattern di daemons/store.ts.
+  loadFavorites().then((favs) => { favorites.value = favs })
+
+  const viewMode = ref<'list' | 'grid'>('list')
+  loadViewMode().then((v) => { viewMode.value = v })
+  watch(viewMode, (v) => saveViewMode(v))
 
   // ─── Computed ─────────────────────────────────────────────────────────────
   const favoritesArray = computed(() => Array.from(favorites.value))
@@ -109,8 +128,8 @@ export const useDockerStore = defineStore('docker', () => {
   // direttamente sul Set esistente: nessuna reattività (Vue non
   // traccia le mutazioni interne di un Set) e nessuna persistenza
   // (saveFavorites non veniva mai chiamato) — un container/immagine
-  // preferito e poi rimosso restava per sempre come voce orfana in
-  // localStorage. Stessa logica di riassegnazione già usata in
+  // preferito e poi rimosso restava per sempre come voce orfana nello
+  // storage. Stessa logica di riassegnazione già usata in
   // toggleFavorite, estratta qui per essere riusata da entrambi.
   function removeFavorite(id: string) {
     if (!favorites.value.has(id)) return

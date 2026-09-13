@@ -37,32 +37,28 @@ function formatDate(unix: number): string {
 }
 </script>
 
-<template>
-  <Item
+<template lang="pug">
+  Item(
     variant="outline"
     class="group rounded-lg border-border bg-card transition-all duration-150 hover:bg-accent"
-  >
-    <ItemMedia>
-      <HardDrive class="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-    </ItemMedia>
+  )
+    ItemMedia
+      HardDrive(class="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true")
 
-    <ItemContent>
-      <ItemTitle class="flex flex-wrap gap-x-2 font-mono text-sm text-foreground">
-        <span v-for="tag in image.repoTags" :key="tag">{{ tag }}</span>
-      </ItemTitle>
-      <ItemDescription class="mt-0.5 flex items-center gap-2 font-mono text-xs text-muted-foreground">
-        <span class="truncate">{{ image.id }}</span>
-        <span class="text-muted-foreground/60">·</span>
-        <span class="shrink-0 tabular-nums text-foreground/80">{{ formatBytes(image.size) }}</span>
-        <span class="text-muted-foreground/60">·</span>
-        <span class="shrink-0 text-muted-foreground">{{ formatDate(image.created) }}</span>
-      </ItemDescription>
-    </ItemContent>
+    ItemContent
+      ItemTitle(class="flex flex-wrap gap-x-2 font-mono text-sm text-foreground")
+        span(v-for="tag in image.repoTags" :key="tag") {{ tag }}
+      ItemDescription(class="mt-0.5 flex items-center gap-2 font-mono text-xs text-muted-foreground")
+        span(class="truncate") {{ image.id }}
+        span(class="text-muted-foreground/60") ·
+        span(class="shrink-0 tabular-nums text-foreground/80") {{ formatBytes(image.size) }}
+        span(class="text-muted-foreground/60") ·
+        span(class="shrink-0 text-muted-foreground") {{ formatDate(image.created) }}
 
-    <ItemActions>
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <SharedButton
+    ItemActions
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
             variant="ghost"
             size="icon"
             :disabled="pending"
@@ -70,10 +66,6 @@ function formatDate(unix: number): string {
             :aria-label="t('docker.removeImage')"
             class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive transition-all duration-150"
             @click="emit('remove')"
-          />
-        </TooltipTrigger>
-        <TooltipContent>{{ t('docker.removeImage') }}</TooltipContent>
-      </Tooltip>
-    </ItemActions>
-  </Item>
+          )
+        TooltipContent {{ t('docker.removeImage') }}
 </template>

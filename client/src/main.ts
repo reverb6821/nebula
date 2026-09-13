@@ -2,8 +2,9 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { PiniaColada } from '@pinia/colada'
 import { i18n } from './i18n/index.ts'
-import { init } from '@neutralinojs/lib'
+import { init, events, app as neuApp } from '@neutralinojs/lib'
 import { useSettingsStore, applyToDOM } from './modules/settings/store'
+import { useProcessesStore } from '@/modules/process/store.ts'
 
 import App from './App.vue'
 import router from './router'
@@ -24,3 +25,9 @@ const settings = useSettingsStore()
 applyToDOM(settings.state)
 
 init()
+
+events.on('windowClose', async () => {
+  const processesStore = useProcessesStore()
+  await processesStore.stopAutoRefresh()
+  neuApp.exit()
+})

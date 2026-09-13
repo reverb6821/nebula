@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { refDebounced } from '@vueuse/core'
+import { storage } from '@neutralinojs/lib'
 import type { Daemon, DaemonStatus, DaemonEnabled } from '@/types/daemon'
 import { useAsyncState } from '@/composables/useAsyncState'
 import { usePendingSet } from '@/composables/usePendingSet'
@@ -23,24 +24,50 @@ export interface DaemonFilters {
   enabled: DaemonEnabled[]
 }
 
-function loadFavorites(): Set<string> {
+// Persistenza via Neutralino.storage invece di localStorage: i dati
+// finiscono su disco in .storage/ nella cartella dell'app, non nel
+// profilo del webview. Sopravvivono a pulizie cache/dati del sistema
+// operativo che invece possono svuotare il localStorage, e funzionano
+// identicamente sia in modalità finestra singola sia con più istanze.
+// Richiede Neutralino.init() già chiamato all'avvio dell'app (fatto in
+// main.ts).
+async function loadFavorites(): Promise<Set<string>> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_FAVS)
+    const raw = await storage.getData(STORAGE_KEY_FAVS)
     return new Set(raw ? (JSON.parse(raw) as string[]) : [])
   } catch {
+    // NE_ST_NOSTKEY: chiave non ancora scritta (prima esecuzione) — set vuoto
     return new Set()
   }
 }
 
 function saveFavorites(favs: Set<string>) {
-  localStorage.setItem(STORAGE_KEY_FAVS, JSON.stringify([...favs]))
+  storage.setData(STORAGE_KEY_FAVS, JSON.stringify([...favs])).catch(() => {})
+}
+
+async function loadViewMode(): Promise<'list' | 'grid'> {
+  try {
+    const raw = await storage.getData(STORAGE_KEY_VIEW)
+    return raw === 'grid' ? 'grid' : 'list'
+  } catch {
+    return 'list'
+  }
+}
+
+function saveViewMode(mode: 'list' | 'grid') {
+  storage.setData(STORAGE_KEY_VIEW, mode).catch(() => {})
 }
 
 export const useDaemonsStore = defineStore('daemons', () => {
   const daemons = ref<Daemon[]>([])
   const search  = ref('')
   const page    = ref(1)
-  const favorites = ref<Set<string>>(loadFavorites())
+  const favorites = ref<Set<string>>(new Set())
+
+  // Caricamento asincrono: il primo render parte con un set vuoto,
+  // aggiornato non appena lo storage nativo risponde (di norma nello
+  // stesso frame o giù di lì, essendo una lettura da disco locale).
+  loadFavorites().then((favs) => { favorites.value = favs })
 
   // Prima: loading/error locali + un withPending scritto a mano quasi
   // identico a quello di docker/processes store. Ora dai due
@@ -50,10 +77,9 @@ export const useDaemonsStore = defineStore('daemons', () => {
   const { pending: pendingNames, withPending } = usePendingSet<string>()
 
   // Persistenza viewMode
-  const viewMode = ref<'list' | 'grid'>(
-    (localStorage.getItem(STORAGE_KEY_VIEW) as 'list' | 'grid') || 'list',
-  )
-  watch(viewMode, (v) => localStorage.setItem(STORAGE_KEY_VIEW, v))
+  const viewMode = ref<'list' | 'grid'>('list')
+  loadViewMode().then((v) => { viewMode.value = v })
+  watch(viewMode, (v) => saveViewMode(v))
 
   // Filtri
   const filters = ref<DaemonFilters>({ status: [], enabled: [] })
