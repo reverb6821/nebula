@@ -102,8 +102,12 @@ export default defineConfig({
      * Use the dev server by default for faster feedback loop.
      * Use the preview server on CI for more realistic testing.
      * Playwright will re-use the local server if there is already a dev-server running.
+     *
+     * "npm run" -> "bun run": con Bun come package manager, npm potrebbe
+     * risolvere le dipendenze in modo diverso da .bun/ (o non trovarle
+     * affatto se non è mai stato eseguito `npm install` in questo progetto).
      */
-    command: process.env.CI ? 'npm run preview' : 'npm run dev',
+    command: process.env.CI ? 'bun run preview' : 'bun run dev',
     port: process.env.CI ? 4173 : 5173,
     reuseExistingServer: !process.env.CI,
   },
