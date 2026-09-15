@@ -66,6 +66,18 @@ describe('useProcessesStore', () => {
 
       expect(store.processes.map((p) => p.pid)).toEqual([1, 2])
     })
+
+    it('mantiene la lista e registra lerrore quando listProcesses fallisce', async () => {
+      mockListProcesses.mockRejectedValue(new Error('process list failed'))
+      const store = useProcessesStore()
+      store.processes = [makeProcess({ pid: 7 })]
+
+      await store.fetch()
+
+      expect(store.processes.map((p) => p.pid)).toEqual([7])
+      expect(store.error).toBe('process list failed')
+      expect(store.loading).toBe(false)
+    })
   })
 
   describe('filtered', () => {
@@ -265,6 +277,15 @@ describe('useProcessesStore', () => {
       await store.niceStep(999, 5)
 
       expect(mockReniceProcess).not.toHaveBeenCalled()
+    })
+
+    it('rimuove il pid dal pending set dopo un errore di kill', async () => {
+      mockKillProcess.mockRejectedValue(new Error('permission denied'))
+      const store = useProcessesStore()
+
+      await expect(store.kill(1)).rejects.toThrow('permission denied')
+
+      expect(store.pendingPids.has(1)).toBe(false)
     })
   })
 

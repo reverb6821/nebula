@@ -30,6 +30,7 @@ import {
   pingDocker,
   fetchImages,
   fetchContainers,
+  fetchLogs,
   startContainer,
   stopContainer,
   restartContainer,
@@ -41,6 +42,7 @@ import {
 const mockPingDocker = vi.mocked(pingDocker)
 const mockFetchImages = vi.mocked(fetchImages)
 const mockFetchContainers = vi.mocked(fetchContainers)
+const mockFetchLogs = vi.mocked(fetchLogs)
 const mockStartContainer = vi.mocked(startContainer)
 const mockStopContainer = vi.mocked(stopContainer)
 const mockRestartContainer = vi.mocked(restartContainer)
@@ -100,6 +102,19 @@ describe('useDockerStore', () => {
       const store = useDockerStore()
       await store.refresh()
       expect(mockFetchContainers).not.toHaveBeenCalled()
+    })
+
+    it('mantiene i dati precedenti e registra lerrore se il refresh fallisce', async () => {
+      mockFetchContainers.mockRejectedValue(new Error('refresh failed'))
+      const store = useDockerStore()
+      store.connected = true
+      store.containers = [makeContainer({ id: 'existing' })]
+
+      await store.refresh()
+
+      expect(store.containers.map((container) => container.id)).toEqual(['existing'])
+      expect(store.error).toBe('refresh failed')
+      expect(store.loading).toBe(false)
     })
   })
 
@@ -170,6 +185,30 @@ describe('useDockerStore', () => {
       expect(store.isFavorite('a')).toBe(true)
       store.toggleFavorite('a')
       expect(store.isFavorite('a')).toBe(false)
+    })
+
+    describe('logs', () => {
+      it('selectContainer carica i log una sola volta e li espone', async () => {
+        mockFetchLogs.mockResolvedValue(['line 1', 'line 2'])
+        const store = useDockerStore()
+
+        await store.selectContainer('a')
+        await store.selectContainer('a')
+
+        expect(mockFetchLogs).toHaveBeenCalledTimes(1)
+        expect(store.selectedContainerId).toBe('a')
+        expect(store.selectedLogs).toEqual(['line 1', 'line 2'])
+      })
+
+      it('selectContainer mantiene il container selezionato se il caricamento log fallisce', async () => {
+        mockFetchLogs.mockRejectedValue(new Error('logs failed'))
+        const store = useDockerStore()
+
+        await expect(store.selectContainer('a')).rejects.toThrow('logs failed')
+
+        expect(store.selectedContainerId).toBe('a')
+        expect(store.selectedLogs).toEqual([])
+      })
     })
 
     it('remove() pulisce anche il preferito orfano, non solo il container', async () => {

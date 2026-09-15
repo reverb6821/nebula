@@ -17,18 +17,11 @@ vi.mock('@neutralinojs/lib', () => ({
 
 describe('App', () => {
   it('mounts renders properly', async () => {
-    // Route "catch-all": non ci serve conoscere le route reali dell'app,
-    // solo che useRoute()/useRouter() (usati da NavMain.vue) abbiano un
-    // router vero a cui agganciarsi — un componente <RouterView> stubbato
-    // non basta, perché useRoute() legge dal router iniettato, non dal tag.
     const router = createRouter({
       history: createMemoryHistory(),
       routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div />' } }],
     })
 
-    // Messaggi vuoti: le chiavi mancanti in un vero i18n producono solo un
-    // warning in console (fallback alla chiave stessa), non un errore —
-    // sufficiente per un test "si monta senza esplodere".
     const i18n = createI18n({ legacy: false, locale: 'it', messages: { it: {} } })
 
     const wrapper = mount(App, {
