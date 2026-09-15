@@ -50,10 +50,6 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  /* Stati semantici (successo/attenzione) usati da Alert, badge di stato
-     hardware, ecc. Non fanno parte dei token shadcn di default: li
-     aggiungiamo qui come cittadini di prima classe così da poter usare
-     text-success, border-warning/40 ecc. come per text-destructive. */
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -72,140 +68,95 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --shadow-cyber-panel: 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent);
+  --shadow-cyber-signal: 0 0 18px color-mix(in srgb, var(--primary) 22%, transparent);
 
-  /* Raggi: valori diretti da DESIGN.md (rounded.sm/md/lg = 8/12/16px),
-     non più derivati per calc() da un unico --radius: la formula
-     "-4 / -2 / +0 / +4" a incrementi di 2px non può produrre la scala
-     a incrementi di 4px richiesta dal design system. */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
 }
 
-/* ─── Nebula Design System ─────────────────────────────────────────────────
-   App dark-only. No light mode. Palette allineata a DESIGN.md
-   (tema "nebula-pc-manager"). Tutti i token sono definiti su :root
-   e replicati su .dark per compatibilita con shadcn (che legge .dark).
-   ───────────────────────────────────────────────────────────────────────── */
-
 :root {
-  /* --radius di riferimento per eventuali usi diretti di var(--radius)
-     nei primitive shadcn che non passano dalla scala sm/md/lg sopra. */
   --radius: 16px;
 
-  /* Base (DESIGN.md → background / surface) */
-  --background:            #0A0E14;
-  --foreground:            #C8CDD3;
+  --background: #070B12;
+  --foreground: #D7E2EC;
+  --card: #0E1622;
+  --card-foreground: #D7E2EC;
+  --popover: #121D2B;
+  --popover-foreground: #D7E2EC;
+  --primary: #28D7E5;
+  --primary-foreground: #041117;
+  --secondary: #5C5BE8;
+  --secondary-foreground: #F1F3FF;
+  --muted: #101A27;
+  --muted-foreground: #8EA4B8;
+  --accent: #142B3A;
+  --accent-foreground: #D7E2EC;
+  --destructive: #F05B78;
+  --destructive-foreground: #19060D;
+  --success: #3FE0A0;
+  --success-foreground: #041A14;
+  --warning: #F0B35A;
+  --warning-foreground: #211304;
+  --border: #203449;
+  --input: #172638;
+  --ring: #28D7E5;
+  --chart-1: #28D7E5;
+  --chart-2: #8B7CFF;
+  --chart-3: #3FE0A0;
+  --chart-4: #F0B35A;
+  --chart-5: #F05B78;
 
-  /* Cards / modals (DESIGN.md → surface) */
-  --card:                  #141A22;
-  --card-foreground:       #C8CDD3;
-
-  /* Popovers / dropdowns: leggermente più chiaro della card per
-     segnalare l'elevazione solo tramite contrasto di luminosità
-     (DESIGN.md: "Nessuna ombra tradizionale") */
-  --popover:               #182029;
-  --popover-foreground:    #C8CDD3;
-
-  /* Primary action (DESIGN.md → colors.primary, blu acciaio) */
-  --primary:               #5A7A9A;
-  /* NB: DESIGN.md indica testo neutro (#C8CDD3) sul primary, ma il
-     contrasto reale è 2.8:1 (fallisce WCAG AA 4.5:1). Usiamo bianco:
-     sale a ~4.5:1, sufficiente per testo bottone bold/grande (soglia
-     3:1) e più sicuro del token letterale. Vedi taste-skill §4.5
-     "Button Contrast Check". */
-  --primary-foreground:    #FFFFFF;
-
-  /* Secondary (DESIGN.md → colors.secondary, blu-grigio opaco) */
-  --secondary:             #3A4A5C;
-  --secondary-foreground:  #C8CDD3;
-
-  /* Muted */
-  --muted:                 #141A22;
-  --muted-foreground:      #8A93A0;
-
-  /* Accent (hover rows, selected items) — un filo più chiaro della
-     card per restare nella logica "contrasto di luminosità, non ombra" */
-  --accent:                #1C2530;
-  --accent-foreground:     #C8CDD3;
-
-  /* Destructive */
-  --destructive:           #EF4444;
-  --destructive-foreground: #FFFFFF;
-
-  /* Stati semantici aggiuntivi (non sono l'accento di brand: vedi
-     taste-skill §4.2, "un solo accento" si riferisce al brand color,
-     non agli stati esito che per convenzione restano un set separato) */
-  --success:               #3DD68C;
-  --success-foreground:    #062017;
-  --warning:               #E0A64D;
-  --warning-foreground:    #241804;
-
-  /* Borders / inputs (DESIGN.md → colors.tertiary / bordo) */
-  --border:                #1E2830;
-  --input:                 #182029;
-  --ring:                  #5A7A9A;
-
-  /* Charts - status semantics Nebula (desaturati per restare coerenti
-     con "no colori saturi o neon" di DESIGN.md) */
-  --chart-1:               #5A7A9A; /* accent blue, allineato a --primary */
-  --chart-2:               #3DD68C; /* success green */
-  --chart-3:               #E0A64D; /* warning amber */
-  --chart-4:               #E5626A; /* danger red, desaturato */
-  --chart-5:               #8E7CC3; /* purple / AI, desaturato */
-
-  /* Sidebar: stesso tono dello sfondo per un layout "seamless",
-     il contenuto si stacca tramite --card */
-  --sidebar:               #0A0E14;
-  --sidebar-foreground:    #C8CDD3;
-  --sidebar-primary:       #5A7A9A;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent:        #141A22;
-  --sidebar-accent-foreground: #C8CDD3;
-  --sidebar-border:        #1E2830;
-  --sidebar-ring:          #5A7A9A;
+  --sidebar: #070B12;
+  --sidebar-foreground: #D7E2EC;
+  --sidebar-primary: #28D7E5;
+  --sidebar-primary-foreground: #041117;
+  --sidebar-accent: #101A27;
+  --sidebar-accent-foreground: #D7E2EC;
+  --sidebar-border: #203449;
+  --sidebar-ring: #28D7E5;
 }
 
-/* shadcn legge .dark per il tema scuro: lo allineiamo ai token Nebula.
-   Nessuna differenza da :root perché l'app non ha modalità chiara. */
 .dark {
-  --background:            #0A0E14;
-  --foreground:            #C8CDD3;
-  --card:                  #141A22;
-  --card-foreground:       #C8CDD3;
-  --popover:               #182029;
-  --popover-foreground:    #C8CDD3;
-  --primary:               #5A7A9A;
-  --primary-foreground:    #FFFFFF;
-  --secondary:             #3A4A5C;
-  --secondary-foreground:  #C8CDD3;
-  --muted:                 #141A22;
-  --muted-foreground:      #8A93A0;
-  --accent:                #1C2530;
-  --accent-foreground:     #C8CDD3;
-  --destructive:           #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --success:               #3DD68C;
-  --success-foreground:    #062017;
-  --warning:               #E0A64D;
-  --warning-foreground:    #241804;
-  --border:                #1E2830;
-  --input:                 #182029;
-  --ring:                  #5A7A9A;
-  --chart-1:               #5A7A9A;
-  --chart-2:               #3DD68C;
-  --chart-3:               #E0A64D;
-  --chart-4:               #E5626A;
-  --chart-5:               #8E7CC3;
-  --sidebar:               #0A0E14;
-  --sidebar-foreground:    #C8CDD3;
-  --sidebar-primary:       #5A7A9A;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent:        #141A22;
-  --sidebar-accent-foreground: #C8CDD3;
-  --sidebar-border:        #1E2830;
-  --sidebar-ring:          #5A7A9A;
+  --background: #070B12;
+  --foreground: #D7E2EC;
+  --card: #0E1622;
+  --card-foreground: #D7E2EC;
+  --popover: #121D2B;
+  --popover-foreground: #D7E2EC;
+  --primary: #28D7E5;
+  --primary-foreground: #041117;
+  --secondary: #5C5BE8;
+  --secondary-foreground: #F1F3FF;
+  --muted: #101A27;
+  --muted-foreground: #8EA4B8;
+  --accent: #142B3A;
+  --accent-foreground: #D7E2EC;
+  --destructive: #F05B78;
+  --destructive-foreground: #19060D;
+  --success: #3FE0A0;
+  --success-foreground: #041A14;
+  --warning: #F0B35A;
+  --warning-foreground: #211304;
+  --border: #203449;
+  --input: #172638;
+  --ring: #28D7E5;
+  --chart-1: #28D7E5;
+  --chart-2: #8B7CFF;
+  --chart-3: #3FE0A0;
+  --chart-4: #F0B35A;
+  --chart-5: #F05B78;
+
+  --sidebar: #070B12;
+  --sidebar-foreground: #D7E2EC;
+  --sidebar-primary: #28D7E5;
+  --sidebar-primary-foreground: #041117;
+  --sidebar-accent: #101A27;
+  --sidebar-accent-foreground: #D7E2EC;
+  --sidebar-border: #203449;
+  --sidebar-ring: #28D7E5;
 }
 
 @layer base {
@@ -214,6 +165,22 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .cyber-panel {
+    @apply border border-border/90 bg-card;
+    box-shadow: var(--shadow-cyber-panel);
+  }
+
+  .cyber-signal {
+    @apply border border-primary/60;
+    box-shadow: var(--shadow-cyber-signal);
+  }
+
+  .cyber-label {
+    @apply font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground;
   }
 }
 
@@ -244,7 +211,10 @@ html {
 /* Reduced motion */
 html.reduce-motion *,
 html.reduce-motion *::before,
-html.reduce-motion *::after {
+html.reduce-motion *::after,
+html.reduce-motion .cyber-panel,
+html.reduce-motion .cyber-signal,
+html.reduce-motion .cyber-label {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
@@ -253,6 +223,14 @@ html.reduce-motion *::after {
 /* High contrast */
 html.high-contrast * {
   border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+html.high-contrast .cyber-panel,
+html.high-contrast .cyber-signal,
+html.high-contrast .cyber-label {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #e4e4e7 !important;
+  box-shadow: none !important;
 }
 
 html.high-contrast p,
