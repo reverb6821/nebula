@@ -9,7 +9,7 @@ import SettingsAppearance from '../../components/SettingsAppearance.vue'
 vi.mock('@neutralinojs/lib', () => ({
   storage: {
     getData: vi.fn().mockRejectedValue(new Error('NE_ST_NOSTKEY')),
-    setData: vi.fn(),
+    setData: vi.fn().mockResolvedValue(undefined),
   },
 }))
 
