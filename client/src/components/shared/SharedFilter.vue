@@ -100,6 +100,10 @@ function onKeydown(e: KeyboardEvent) {
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
+function onSearchUpdate(value: unknown) {
+  emit('update:search', value as string)
+}
 </script>
 
 <template lang="pug">
@@ -133,7 +137,7 @@ div(class="flex items-center gap-2")
       aria-label="Cerca"
       class="h-8 rounded-md border-border bg-card pl-8 text-xs text-foreground placeholder:text-muted-foreground/60 transition-all duration-150 focus:border-primary/40 focus:ring-ring"
       :class="search.length > 0 ? 'pr-8' : 'pr-16'"
-      @update:model-value="emit('update:search', $event as string)"
+      @update:model-value="onSearchUpdate"
     )
 
     //- Clear button
