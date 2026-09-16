@@ -37,11 +37,11 @@ const icon = computed(() => {
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'destructive':
-      return 'border-destructive/40 text-destructive [&>svg]:text-destructive'
+      return 'border-destructive/50 bg-destructive/10 text-destructive [&>svg]:text-destructive'
     case 'success':
-      return 'border-success/40 text-success [&>svg]:text-success'
+      return 'border-success/40 bg-success/5 text-success [&>svg]:text-success'
     case 'warning':
-      return 'border-warning/40 text-warning [&>svg]:text-warning'
+      return 'border-warning/40 bg-warning/5 text-warning [&>svg]:text-warning'
     case 'default':
     default:
       return 'border-border text-foreground [&>svg]:text-primary'

@@ -3,14 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Play, Square, RotateCcw, Star } from '@lucide/vue'
 import type { Daemon } from '@/types/daemon'
-import { SharedSwitch, SharedButton } from '@/components/shared'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
+import { SharedPanel, SharedSwitch, SharedButton } from '@/components/shared'
 import {
   Tooltip,
   TooltipContent,
@@ -45,47 +38,52 @@ const bootTooltip = computed(() => {
 </script>
 
 <template lang="pug">
-Card(
-  class="group relative flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all duration-200 hover:border-ring/30 hover:bg-accent"
-  :class="favorite ? 'border-l-2 border-l-warning' : ''"
+SharedPanel(
+  class="group relative transition-all duration-200 hover:border-primary/40 hover:bg-accent"
+  :favorite="favorite"
 )
-  Tooltip
-    TooltipTrigger(as-child)
-      SharedButton(
-        variant="ghost"
-        size="icon"
-        class="absolute right-3 top-3 h-6 w-6 rounded-md opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
-        :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
-        :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
-        @click="emit('toggleFavorite')"
-      )
-        Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
-    TooltipContent {{ favorite ? t('daemons.unpin') : t('daemons.pin') }}
-
-  CardHeader(class="gap-1.5 p-0 pr-7")
-    CardTitle(class="truncate font-mono text-sm font-semibold leading-tight text-foreground") {{ daemon.name }}
+  template(#header)
+    div(class="min-w-0")
+      div(class="flex items-center gap-2")
+        span(class="h-2 w-2 shrink-0 rounded-full shadow-[0_0_8px_currentColor]" :class="isRunning ? 'bg-success text-success' : 'bg-muted-foreground text-muted-foreground'" aria-hidden="true")
+        div(class="min-w-0")
+          div(class="truncate font-mono text-sm font-semibold leading-tight text-foreground") {{ daemon.name }}
+          div(class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('daemons.bootLabel') }}
+    div(class="flex items-center gap-2")
     DaemonStatusBadge(:status="daemon.status")
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
+            variant="ghost"
+            size="icon"
+            class="h-6 w-6 rounded-md"
+            :class="favorite ? 'text-warning' : 'text-muted-foreground hover:text-warning'"
+            :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
+            @click="emit('toggleFavorite')"
+          )
+            Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
+        TooltipContent {{ favorite ? t('daemons.unpin') : t('daemons.pin') }}
 
-  CardContent(class="p-0")
-    CardDescription(
-      v-if="daemon.description && daemon.description !== daemon.name"
-      class="line-clamp-2 text-xs text-muted-foreground"
-    ) {{ daemon.description }}
-    span(v-else class="text-xs text-muted-foreground/70") {{ t('daemons.noDescription') }}
+  template(#meta)
+    div(class="flex items-center justify-between gap-3")
+      div(
+        v-if="daemon.description && daemon.description !== daemon.name"
+        class="line-clamp-2 text-xs text-muted-foreground"
+      ) {{ daemon.description }}
+      span(v-else class="text-xs text-muted-foreground/70") {{ t('daemons.noDescription') }}
+      SharedSwitch(
+        :model-value="isEnabled"
+        :disabled="pending || isStatic"
+        :aria-label="bootTooltip"
+        @update:model-value="emit('toggleEnabled')"
+      )
 
-  div(class="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2")
-    Tooltip
-      TooltipTrigger(as-child)
-        span(class="text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('daemons.bootLabel') }}
-      TooltipContent {{ bootTooltip }}
-    SharedSwitch(
-      :model-value="isEnabled"
-      :disabled="pending || isStatic"
-      :aria-label="bootTooltip"
-      @update:model-value="emit('toggleEnabled')"
-    )
+  template(#default)
+    div(class="flex items-center justify-between rounded-md border border-border/70 bg-muted/50 px-3 py-2")
+      span(class="cyber-label") {{ t('daemons.bootLabel') }}
+      span(class="font-mono text-xs text-foreground") {{ isStatic ? 'STATIC' : isEnabled ? 'ENABLED' : 'DISABLED' }}
 
-  div(class="-mx-4 -mb-4 mt-1 flex items-center gap-1.5 border-t border-border px-4 py-2.5")
+  template(#footer)
     Tooltip
       TooltipTrigger(as-child)
         SharedButton(
@@ -110,7 +108,7 @@ Card(
           :disabled="pending || !isRunning"
           :icon="RotateCcw"
           :aria-label="t('common.restart')"
-          class="ml-auto h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-150"
+          class="ml-auto h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
           @click="emit('restart')"
         )
       TooltipContent {{ t('common.restart') }}

@@ -2,19 +2,22 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DaemonStatus } from '@/types/daemon'
-import { Badge } from '@/components/ui/badge'
+import { SharedStatusBadge } from '@/components/shared'
 import { CheckCircle2, XCircle, AlertCircle, HelpCircle } from '@lucide/vue'
-import { cn } from '@/lib/utils'
 
 const props = defineProps<{ status: DaemonStatus }>()
 
 const { t } = useI18n()
 
-const classes: Record<DaemonStatus, string> = {
-  active:   'bg-success/10 text-success hover:bg-success/15 border-success/25 font-medium',
-  inactive: 'bg-muted text-muted-foreground hover:bg-accent border-border font-medium',
-  failed:   'bg-destructive/10 text-destructive hover:bg-destructive/15 border-destructive/25 font-medium',
-  unknown:  'bg-warning/10 text-warning hover:bg-warning/15 border-warning/25 font-medium',
+const statusConfig: Record<DaemonStatus, {
+  tone: 'success' | 'neutral' | 'destructive' | 'warning'
+  icon: typeof CheckCircle2
+  pulse?: boolean
+}> = {
+  active: { tone: 'success', icon: CheckCircle2, pulse: true },
+  inactive: { tone: 'neutral', icon: XCircle },
+  failed: { tone: 'destructive', icon: AlertCircle },
+  unknown: { tone: 'warning', icon: HelpCircle },
 }
 
 const statusLabel = computed(() => {
@@ -29,13 +32,10 @@ const statusLabel = computed(() => {
 </script>
 
 <template lang="pug">
-Badge(
-  variant="outline"
-  :class="cn('gap-1 px-2 py-0.5 rounded-full border font-mono text-[10px]', classes[status])"
+SharedStatusBadge(
+  :label="statusLabel"
+  :tone="statusConfig[status].tone"
+  :icon="statusConfig[status].icon"
+  :animation="statusConfig[status].pulse ? 'pulse' : undefined"
 )
-  CheckCircle2(v-if="status === 'active'" class="h-3 w-3 animate-pulse" aria-hidden="true")
-  XCircle(v-else-if="status === 'inactive'" class="h-3 w-3" aria-hidden="true")
-  AlertCircle(v-else-if="status === 'failed'" class="h-3 w-3" aria-hidden="true")
-  HelpCircle(v-else class="h-3 w-3" aria-hidden="true")
-  | {{ statusLabel }}
 </template>
