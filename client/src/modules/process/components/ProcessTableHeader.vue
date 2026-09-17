@@ -29,7 +29,7 @@ function onSort() {
 
 <template lang="pug">
 th(
-  class="select-none py-2 text-[10px] font-semibold uppercase tracking-widest"
+  class="cyber-label select-none py-2"
   :class="align === 'right' ? 'text-right' : 'text-left'"
   :aria-sort="ariaSort"
 )

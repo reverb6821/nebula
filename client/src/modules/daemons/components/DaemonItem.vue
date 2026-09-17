@@ -55,7 +55,7 @@ const bootTooltip = computed(() => {
 <template lang="pug">
 Item(
   variant="outline"
-  class="group border-border rounded-lg bg-card transition-all duration-150 hover:bg-accent"
+  class="group cyber-panel rounded-lg transition-shadow duration-150 hover:bg-accent hover:shadow-cyber-signal"
   :class="{ 'border-warning/20 bg-warning/[0.03]': favorite }"
 )
   //- Status dot
@@ -64,7 +64,9 @@ Item(
 
   //- Name + description
   ItemContent
-    ItemTitle(class="font-mono text-sm font-medium text-foreground") {{ daemon.name }}
+    ItemTitle(class="flex items-center gap-2 font-mono text-sm font-medium text-foreground")
+      | {{ daemon.name }}
+      DaemonStatusBadge(:status="daemon.status")
     ItemDescription(
       v-if="daemon.description && daemon.description !== daemon.name"
       class="mt-0.5 truncate text-xs text-muted-foreground"
@@ -73,11 +75,25 @@ Item(
   //- Actions
   ItemActions(class="gap-0.5")
 
+    //- Favorite
+    Tooltip
+      TooltipTrigger(as-child)
+        SharedButton(
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7 rounded-md text-warning opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:bg-accent hover:text-warning"
+          :class="{ '!opacity-100': favorite }"
+          :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
+          @click="emit('toggleFavorite')"
+        )
+          Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
+      TooltipContent {{ favorite ? t('daemons.unpin') : t('daemons.pin') }}
+
     //- Boot toggle
     Tooltip
       TooltipTrigger(as-child)
         div(class="mr-1 flex items-center gap-1.5")
-          span(class="text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('daemons.bootLabel') }}
+          span(class="cyber-label") {{ t('daemons.bootLabel') }}
           SharedSwitch(
             :model-value="isEnabled"
             :disabled="pending || isStatic"
@@ -86,19 +102,6 @@ Item(
             @update:model-value="emit('toggleEnabled')"
           )
       TooltipContent(side="left") {{ bootTooltip }}
-
-    //- Favorite
-    Tooltip
-      TooltipTrigger(as-child)
-        SharedButton(
-          variant="ghost"
-          size="icon"
-          class="h-7 w-7 rounded-md text-warning hover:bg-accent hover:text-warning"
-          :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
-          @click="emit('toggleFavorite')"
-        )
-          Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
-      TooltipContent {{ favorite ? t('daemons.unpin') : t('daemons.pin') }}
 
     //- Start / Stop
     Tooltip

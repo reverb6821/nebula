@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { SharedPanel } from '@/components/shared'
+
 defineProps<{ title: string }>()
 </script>
 
 <template lang="pug">
-div(class="rounded-lg border border-border bg-card p-4")
-  header(class="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground") {{ title }}
+SharedPanel(class="transition-shadow hover:border-primary/35 hover:shadow-cyber-signal")
+  template(#header)
+    div(class="cyber-label") {{ title }}
   slot
 </template>

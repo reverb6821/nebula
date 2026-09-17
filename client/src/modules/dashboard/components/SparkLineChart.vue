@@ -64,6 +64,7 @@ div
         :y2="g * height"
         stroke="var(--border)"
         stroke-width="1"
+        stroke-dasharray="2 4"
       )
       polyline(
         v-for="s in series"
@@ -75,11 +76,11 @@ div
         vector-effect="non-scaling-stroke"
       )
 
-    div(class="flex w-10 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] text-muted-foreground/70")
+    div(class="flex w-10 shrink-0 flex-col justify-between py-0.5 text-right font-mono text-[10px] text-muted-foreground/70")
       span {{ formatY(max) }}
       span {{ formatY(max / 2) }}
       span {{ formatY(0) }}
 
-  div(class="mt-1 flex justify-between text-[10px] text-muted-foreground/70")
+  div(class="mt-1 flex justify-between font-mono text-[10px] text-muted-foreground/70")
     span(v-for="label in xLabels" :key="label") {{ label }}
 </template>

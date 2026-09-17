@@ -67,19 +67,19 @@ const data = {
 </script>
 
 <template lang="pug">
-Sidebar(v-bind="props" class="h-full")
+Sidebar(v-bind="props" class="h-full border-r border-primary/15 bg-sidebar")
   SidebarHeader
     SidebarMenu
       SidebarMenuItem
         SidebarMenuButton(size="lg")
           div(
-            class="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md text-sidebar-primary-foreground"
+            class="cyber-signal flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md text-sidebar-primary-foreground"
             aria-hidden="true"
           )
-            img(src="../../assets/logo.png" alt="" class="h-full w-full object-cover")
+            img(src="../../assets/logo.png" alt="Nebula logo" class="h-full w-full object-cover")
           div(class="grid flex-1 text-left text-sm leading-tight")
-            span(class="truncate font-medium") Nebula
-            span(class="truncate text-xs") System and Docker manager
+            span(class="truncate font-heading font-medium tracking-wide text-sidebar-foreground") NEBULA
+            span(class="truncate cyber-label") System and Docker manager
   SidebarContent
     NavMain(:items="data.navMain")
   SidebarFooter

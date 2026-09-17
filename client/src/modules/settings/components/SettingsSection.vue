@@ -7,7 +7,7 @@ defineProps<{ title: string }>()
 <template lang="pug">
 section(class="space-y-6")
   div
-    h2(class="text-xs font-semibold uppercase tracking-widest text-muted-foreground") {{ title }}
+    h2(class="cyber-label") {{ title }}
     Separator(class="mt-2 bg-border")
   slot
 </template>

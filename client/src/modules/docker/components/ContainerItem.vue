@@ -54,8 +54,8 @@ function formatBytes(bytes: number): string {
     role="button"
     :aria-pressed="selected"
     :aria-label="t('docker.openLogsFor', { name: container.name })"
-    class="rounded-lg group cursor-pointer border-border bg-card transition-all duration-150 hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-    :class="{ 'border-primary/40 bg-primary/5': selected, 'border-warning/20 bg-warning/[0.03]': favorite && !selected }"
+    class="group rounded-lg cyber-panel cursor-pointer transition-shadow duration-150 hover:bg-accent outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    :class="{ 'border-primary/40 bg-primary/5 shadow-cyber-signal': selected, 'border-warning/20 bg-warning/[0.03]': favorite && !selected }"
     @click="emit('logs')"
     @keydown.enter="emit('logs')"
     @keydown.space.prevent="emit('logs')"
@@ -81,7 +81,8 @@ function formatBytes(bytes: number): string {
           span(class="mx-1.5 text-muted-foreground/60") ·
           span(class="tabular-nums text-foreground/80") {{ formatBytes(stats.memUsage) }}
 
-    //- Actions
+    //- Actions — stessa grammatica di DaemonItem: icone sempre visibili, colore
+    //- ad indicare lo stato, nessun effetto opacity-on-hover.
     ItemActions(class="gap-0.5" @click.stop)
       //- Favorite
       Tooltip
@@ -89,8 +90,8 @@ function formatBytes(bytes: number): string {
           SharedButton(
             variant="ghost"
             size="icon"
-            class="h-7 w-7 rounded-md hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-            :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
+            class="h-7 w-7 rounded-md text-warning opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:bg-accent hover:text-warning"
+            :class="{ '!opacity-100': favorite }"
             :aria-label="favorite ? t('docker.unpin') : t('docker.pin')"
             @click="emit('toggleFavorite')"
           )

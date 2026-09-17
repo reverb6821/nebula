@@ -40,7 +40,7 @@ function formatDate(unix: number): string {
 <template lang="pug">
   Item(
     variant="outline"
-    class="group rounded-lg border-border bg-card transition-all duration-150 hover:bg-accent"
+    class="group rounded-lg cyber-panel transition-shadow duration-150 hover:bg-accent hover:shadow-cyber-signal"
   )
     ItemMedia
       HardDrive(class="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true")
@@ -64,7 +64,7 @@ function formatDate(unix: number): string {
             :disabled="pending"
             :icon="Trash2"
             :aria-label="t('docker.removeImage')"
-            class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive transition-all duration-150"
+            class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/15 hover:text-destructive transition-all duration-150"
             @click="emit('remove')"
           )
         TooltipContent {{ t('docker.removeImage') }}

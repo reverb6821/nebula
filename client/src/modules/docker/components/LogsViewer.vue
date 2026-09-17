@@ -61,7 +61,7 @@ function lineClass(line: string) {
 <template lang="pug">
   div(class="flex h-full flex-col border-l border-border bg-background")
     //- Header
-    div(class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3")
+    div(class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3 shadow-cyber-panel")
       div(class="min-w-0")
         p(class="truncate font-mono text-sm font-semibold text-foreground") {{ containerName }}
         p(class="mt-0.5 font-mono text-xs text-muted-foreground")

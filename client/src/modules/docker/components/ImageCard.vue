@@ -36,11 +36,11 @@ function formatDate(unix: number): string {
 </script>
 
 <template lang="pug">
-  Card(class="py-2 group cursor-pointer border-border bg-card transition-all duration-150 hover:bg-accent rounded-lg")
+  Card(class="py-2 group cyber-panel cursor-pointer transition-shadow duration-150 hover:bg-accent hover:shadow-cyber-signal rounded-lg")
     //- Header with Icon + tags
     CardHeader(class="space-y-1.5")
       div(class="flex items-start gap-2.5")
-        div(class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted ring-1 ring-border")
+        div(class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md cyber-panel")
           HardDrive(class="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true")
         div(class="min-w-0 flex-1")
           div(class="flex flex-wrap gap-1")
@@ -57,25 +57,27 @@ function formatDate(unix: number): string {
 
       //- Stat tiles
       div(class="grid grid-cols-2 gap-1.5")
-        div(class="rounded-md bg-muted px-2.5 py-1.5 ring-1 ring-border")
-          p(class="text-[9px] uppercase tracking-widest text-muted-foreground/70") {{ t('docker.imageSizeLabel') }}
+        div(class="cyber-panel rounded-md px-2.5 py-1.5")
+          p(class="cyber-label") {{ t('docker.imageSizeLabel') }}
           p(class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground") {{ formatBytes(image.size) }}
-        div(class="rounded-md bg-muted px-2.5 py-1.5 ring-1 ring-border")
-          p(class="text-[9px] uppercase tracking-widest text-muted-foreground/70") {{ t('docker.imageCreatedLabel') }}
+        div(class="cyber-panel rounded-md px-2.5 py-1.5")
+          p(class="cyber-label") {{ t('docker.imageCreatedLabel') }}
           p(class="mt-0.5 font-mono text-xs font-medium text-foreground") {{ formatDate(image.created) }}
 
-    //- Footer actions matching ContainerCard spacing
-    div(class="flex items-center justify-end gap-0.5 border-t border-border px-3 py-1" @click.stop)
+    //- Footer: azione primaria (remove) come pill etichettata — stessa grammatica
+    //- del bottone start/stop di DaemonCard/ContainerCard.
+    div(class="flex w-full items-center justify-end border-t border-border px-3 py-1" @click.stop)
       Tooltip
         TooltipTrigger(as-child)
           SharedButton(
             variant="ghost"
-            size="icon"
+            size="sm"
             :disabled="pending"
-            :icon="Trash2"
             :aria-label="t('docker.removeImage')"
-            class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/15 hover:text-destructive transition-all duration-150"
+            class="h-7 gap-1.5 rounded-md px-2.5 text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/15"
             @click="emit('remove')"
           )
+            Trash2(class="h-3 w-3" aria-hidden="true")
+            | {{ t('common.remove') }}
         TooltipContent {{ t('docker.removeImage') }}
 </template>

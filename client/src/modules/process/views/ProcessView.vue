@@ -14,7 +14,7 @@ import { usePageHeader } from '@/composables/usePageHeader'
 const { t } = useI18n()
 const store = useProcessesStore()
 const {
-  filtered, paginated, loading, error, sortKey, sortDir, pendingPids, stats,
+  processes, filtered, paginated, loading, error, sortKey, sortDir, pendingPids, stats,
   page, pageSize, totalPages, selectedPid,
 } = storeToRefs(store)
 
@@ -55,7 +55,10 @@ div(class="flex h-full flex-col bg-background")
   SharedAlert(v-if="error" variant="destructive" :title="t('common.error')" :description="error")
 
   div(class="min-h-0 flex-1 overflow-auto")
+    div(v-if="loading && processes.length === 0" class="space-y-1 p-2" aria-hidden="true")
+      div(v-for="i in 12" :key="i" class="h-8 animate-pulse rounded-md bg-muted")
     ProcessDataTable(
+      v-else
       :columns="columns"
       :data="paginated"
       :selected-pid="selectedPid"

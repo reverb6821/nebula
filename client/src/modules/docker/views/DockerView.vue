@@ -51,7 +51,7 @@ onUnmounted(clearHeader)
 </script>
 
 <template lang="pug">
-div(class="flex h-full overflow-hidden")
+div(class="flex h-full flex-col overflow-hidden md:flex-row")
 
   div(class="flex flex-1 flex-col gap-5 overflow-hidden px-2 py-3")
 
@@ -73,7 +73,10 @@ div(class="flex h-full overflow-hidden")
     leave-from-class="translate-x-0 opacity-100"
     leave-to-class="translate-x-4 opacity-0"
   )
-    div(v-if="selectedContainerId && selectedContainer" class="w-[420px] shrink-0")
+    div(
+      v-if="selectedContainerId && selectedContainer"
+      class="w-full shrink-0 border-t border-border md:w-[420px] md:border-t-0"
+    )
       LogsViewer(
         :container-name="selectedContainer.name"
         :lines="selectedLogs"
