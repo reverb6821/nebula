@@ -12,22 +12,35 @@ defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: T]
 }>()
+
+function moveSelection(event: KeyboardEvent, currentValue: T, options: O[]) {
+  const index = options.findIndex((option) => option.value === currentValue)
+  if (index < 0 || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return
+
+  event.preventDefault()
+  const direction = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1
+  const next = options[(index + direction + options.length) % options.length]
+  if (next) emit('update:modelValue', next.value)
+}
 </script>
 
 <template lang="pug">
 div(
   role="radiogroup"
   :aria-labelledby="ariaLabelledby"
-  :class="cn('flex gap-1.5', vertical && 'flex-col')"
+  :class="cn('flex w-full flex-wrap gap-1.5 sm:w-auto', vertical && 'flex-col flex-nowrap')"
 )
   SharedButton(
     v-for="opt in options"
     :key="opt.value"
+    type="button"
     variant="outline"
     role="radio"
     :aria-checked="modelValue === opt.value"
-    :class="cn('border px-3 py-1.5 text-left text-xs transition-colors rounded-md', modelValue === opt.value ? 'border-primary/40 bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground')"
+    :tabindex="modelValue === opt.value ? 0 : -1"
+    :class="cn('min-w-0 flex-1 border px-3 py-1.5 text-left text-xs transition-colors rounded-md active:scale-[0.98] sm:flex-none', modelValue === opt.value ? 'border-primary/40 bg-primary/10 text-foreground shadow-cyber-signal' : 'border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground')"
     @click="emit('update:modelValue', opt.value)"
+    @keydown="moveSelection($event, modelValue, options)"
   )
     slot(:option="opt") {{ opt.label }}
 </template>

@@ -145,8 +145,8 @@ export const useDockerStore = defineStore('docker', () => {
 
   // ─── Connect & fetch ──────────────────────────────────────────────────────
   async function connect() {
-    error.value = null
-    connected.value = await pingDocker()
+    const reachable = await run(() => pingDocker())
+    connected.value = reachable === true
     if (!connected.value) {
       error.value = 'Docker not found. Make sure Docker is installed and running.'
       return

@@ -26,7 +26,7 @@ const NUMBER_CLASS: Record<Severity, string> = {
 </script>
 
 <template lang="pug">
-div(class="cyber-panel rounded-lg p-3 transition-colors hover:border-primary/35")
+div(class="cyber-panel rounded-lg p-3 transition-shadow hover:border-primary/35 hover:shadow-cyber-signal")
   div(class="cyber-label flex items-center gap-1.5")
     component(:is="icon" class="h-3 w-3 shrink-0" aria-hidden="true")
     span(class="truncate") {{ label }}

@@ -6,6 +6,7 @@ const props = withDefaults(
     disabled?: boolean
     /** Necessario per l'accessibilità quando non si passa lo slot di default (label visibile) */
     ariaLabel?: string
+    ariaLabelledby?: string
   }>(),
   {
     modelValue: false,
@@ -19,10 +20,13 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
+// Used by the Pug template; ESLint cannot resolve this template reference.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function toggle() {
   if (props.disabled) return
   emit('update:modelValue', !props.modelValue)
 }
+
 </script>
 
 <template lang="pug">
@@ -33,9 +37,10 @@ div(class="flex items-center space-x-2")
     :id="id"
     :aria-checked="modelValue"
     :aria-label="!$slots.default ? ariaLabel : undefined"
+    :aria-labelledby="ariaLabelledby"
     :disabled="disabled"
     class="relative inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 before:absolute before:-inset-[13px] before:content-['']"
-    :class="modelValue ? 'bg-primary' : 'bg-secondary'"
+    :class="modelValue ? 'bg-primary shadow-cyber-signal' : 'bg-secondary'"
     @click="toggle"
   )
     span(
@@ -46,7 +51,7 @@ div(class="flex items-center space-x-2")
   label(
     v-if="$slots.default"
     :for="id"
-    class="cursor-pointer text-sm select-none text-foreground"
+    class="cursor-pointer select-none text-sm text-foreground"
   )
     slot
 </template>

@@ -28,8 +28,22 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const isRunning = computed(() => props.daemon.status === 'active')
+const isFailed = computed(() => props.daemon.status === 'failed')
 const isStatic  = computed(() => props.daemon.enabled === 'static')
 const isEnabled = computed(() => props.daemon.enabled === 'enabled')
+
+const statusDotClass = computed(() => {
+  if (isRunning.value) return 'bg-success text-success'
+  if (isFailed.value) return 'bg-destructive text-destructive'
+  return 'bg-muted-foreground text-muted-foreground'
+})
+
+const enabledLabel = computed(() => {
+  if (isStatic.value) return t('daemons.enabledStatic')
+  return isEnabled.value
+    ? t('daemons.enabledEnabled')
+    : t('daemons.enabledDisabled')
+})
 
 const bootTooltip = computed(() => {
   if (isStatic.value) return t('daemons.staticUnit')
@@ -39,25 +53,26 @@ const bootTooltip = computed(() => {
 
 <template lang="pug">
 SharedPanel(
-  class="group relative transition-all duration-200 hover:border-primary/40 hover:bg-accent"
+  class="group relative transition-all duration-150 hover:border-primary/40 hover:bg-accent"
   :favorite="favorite"
 )
   template(#header)
-    div(class="min-w-0")
-      div(class="flex items-center gap-2")
-        span(class="h-2 w-2 shrink-0 rounded-full shadow-[0_0_8px_currentColor]" :class="isRunning ? 'bg-success text-success' : 'bg-muted-foreground text-muted-foreground'" aria-hidden="true")
-        div(class="min-w-0")
+    div(class="flex items-start justify-between gap-2")
+      div(class="min-w-0")
+        div(class="flex items-center gap-2")
+          span(class="h-2 w-2 shrink-0 rounded-full shadow-[0_0_8px_currentColor]" :class="statusDotClass" aria-hidden="true")
           div(class="truncate font-mono text-sm font-semibold leading-tight text-foreground") {{ daemon.name }}
-          div(class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('daemons.bootLabel') }}
-    div(class="flex items-center gap-2")
-    DaemonStatusBadge(:status="daemon.status")
+        div(class="mt-1 flex items-center gap-2")
+          DaemonStatusBadge(:status="daemon.status")
+          span(class="cyber-label") {{ t('daemons.bootLabel') }}
+
       Tooltip
         TooltipTrigger(as-child)
           SharedButton(
             variant="ghost"
             size="icon"
-            class="h-6 w-6 rounded-md"
-            :class="favorite ? 'text-warning' : 'text-muted-foreground hover:text-warning'"
+            class="h-6 w-6 shrink-0 rounded-md hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+            :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
             :aria-label="favorite ? t('daemons.unpin') : t('daemons.pin')"
             @click="emit('toggleFavorite')"
           )
@@ -79,37 +94,39 @@ SharedPanel(
       )
 
   template(#default)
-    div(class="flex items-center justify-between rounded-md border border-border/70 bg-muted/50 px-3 py-2")
+    div(class="flex items-center justify-between cyber-panel rounded-md px-3 py-2")
       span(class="cyber-label") {{ t('daemons.bootLabel') }}
-      span(class="font-mono text-xs text-foreground") {{ isStatic ? 'STATIC' : isEnabled ? 'ENABLED' : 'DISABLED' }}
+      span(class="font-mono text-xs text-foreground") {{ enabledLabel }}
 
   template(#footer)
-    Tooltip
-      TooltipTrigger(as-child)
-        SharedButton(
-          variant="ghost"
-          size="sm"
-          :loading="pending"
-          :disabled="pending"
-          :aria-label="isRunning ? t('common.stop') : t('common.start')"
-          class="h-7 gap-1.5 rounded-md px-2.5 text-xs font-medium"
-          :class="isRunning ? 'bg-destructive/10 text-destructive hover:bg-destructive/15' : 'bg-success/10 text-success hover:bg-success/15'"
-          @click="isRunning ? emit('stop') : emit('start')"
-        )
-          component(:is="isRunning ? Square : Play" class="h-3 w-3" aria-hidden="true")
-          | {{ isRunning ? t('common.stop') : t('common.start') }}
-      TooltipContent {{ isRunning ? t('common.stop') : t('common.start') }}
+    div(class="flex w-full items-center gap-2")
+      Tooltip
+        TooltipTrigger(as-child)
+          SharedButton(
+            variant="ghost"
+            size="sm"
+            :loading="pending"
+            :disabled="pending"
+            :aria-label="isRunning ? t('common.stop') : t('common.start')"
+            class="h-7 gap-1.5 rounded-md px-2.5 text-xs font-medium"
+            :class="isRunning ? 'bg-destructive/10 text-destructive hover:bg-destructive/15' : 'bg-success/10 text-success hover:bg-success/15'"
+            @click="isRunning ? emit('stop') : emit('start')"
+          )
+            component(:is="isRunning ? Square : Play" class="h-3 w-3" aria-hidden="true")
+            | {{ isRunning ? t('common.stop') : t('common.start') }}
+        TooltipContent {{ isRunning ? t('common.stop') : t('common.start') }}
 
-    Tooltip
-      TooltipTrigger(as-child)
-        SharedButton(
-          variant="ghost"
-          size="icon"
-          :disabled="pending || !isRunning"
-          :icon="RotateCcw"
-          :aria-label="t('common.restart')"
-          class="ml-auto h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-          @click="emit('restart')"
-        )
-      TooltipContent {{ t('common.restart') }}
+      div(class="ml-auto flex items-center gap-0.5")
+        Tooltip
+          TooltipTrigger(as-child)
+            SharedButton(
+              variant="ghost"
+              size="icon"
+              :disabled="pending || !isRunning"
+              :icon="RotateCcw"
+              :aria-label="t('common.restart')"
+              class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+              @click="emit('restart')"
+            )
+          TooltipContent {{ t('common.restart') }}
 </template>

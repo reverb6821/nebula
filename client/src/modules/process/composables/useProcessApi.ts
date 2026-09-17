@@ -118,14 +118,21 @@ export function startProcessStream(
 // ─── Kill / Nice ─────────────────────────────────────────────────────────────
 
 export async function killProcess(pid: number): Promise<void> {
-  await runCmd(`pkexec kill -9 ${pid}`)
+  await runPrivileged(`pkexec kill -9 ${pid}`)
 }
 
 export async function terminateProcess(pid: number): Promise<void> {
-  await runCmd(`pkexec kill -15 ${pid}`)
+  await runPrivileged(`pkexec kill -15 ${pid}`)
 }
 
 export async function reniceProcess(pid: number, nice: number): Promise<void> {
   const clamped = Math.max(-20, Math.min(19, nice))
-  await runCmd(`pkexec renice ${clamped} -p ${pid}`)
+  await runPrivileged(`pkexec renice ${clamped} -p ${pid}`)
+}
+
+async function runPrivileged(cmd: string): Promise<void> {
+  const { exitCode, stderr } = await runCmd(cmd)
+  if (exitCode !== 0) {
+    throw new Error(stderr.trim() || `Command failed (exit code ${exitCode})`)
+  }
 }

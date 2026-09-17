@@ -54,13 +54,13 @@ const hasAny = computed(() =>
       div(class="flex items-center gap-2")
         PullImageDialog(v-if="activeTab === 'images'")
 
-        div(class="flex rounded-md border border-border bg-card p-0.5")
+        div(class="flex rounded-md border border-border bg-card p-0.5 shadow-cyber-panel")
           SharedButton(
             variant="ghost"
             size="icon"
             class="h-6 w-6 rounded-md transition-all duration-150"
             :class="viewMode === 'list' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'"
-            :aria-label="t('daemons.viewList')"
+            :aria-label="t('docker.viewList')"
             :aria-pressed="viewMode === 'list'"
             @click="store.viewMode = 'list'"
           )
@@ -70,7 +70,7 @@ const hasAny = computed(() =>
             size="icon"
             class="h-6 w-6 rounded-md transition-all duration-150"
             :class="viewMode === 'grid' ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'"
-            :aria-label="t('daemons.viewGrid')"
+            :aria-label="t('docker.viewGrid')"
             :aria-pressed="viewMode === 'grid'"
             @click="store.viewMode = 'grid'"
           )
@@ -124,7 +124,7 @@ const hasAny = computed(() =>
 
             div(v-if="restContainers.length > 0" class="flex items-center gap-3")
               div(class="h-px flex-1 bg-border")
-              span(class="text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('docker.allSection') }}
+              span(class="cyber-label") {{ t('docker.allSection') }}
               div(class="h-px flex-1 bg-border")
 
           //- Rest
@@ -172,7 +172,7 @@ const hasAny = computed(() =>
 
             div(v-if="restContainers.length > 0" class="flex items-center gap-3")
               div(class="h-px flex-1 bg-border")
-              span(class="text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('docker.allSection') }}
+              span(class="cyber-label") {{ t('docker.allSection') }}
               div(class="h-px flex-1 bg-border")
 
           //- Rest

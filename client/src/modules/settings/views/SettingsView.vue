@@ -23,7 +23,7 @@ const settings = useSettingsStore()
 
 <template lang="pug">
 div(class="flex h-full flex-col overflow-y-auto")
-  div(class="w-full max-w-2xl px-2 py-3")
+  div(class="w-full max-w-3xl px-4 py-6 sm:px-6")
     div(class="space-y-8")
       SettingsLanguage
       SettingsAppearance

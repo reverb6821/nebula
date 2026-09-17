@@ -133,6 +133,8 @@ export const itIT = {
     // Aggiunta: usata da ContainerCard/ContainerItem come aria-label
     // dell'intera card cliccabile ("Apri i log di {name}").
     openLogsFor: 'Apri i log di {name}',
+    viewList: 'Vista elenco',
+    viewGrid: 'Vista griglia',
   },
 
   settings: {
@@ -175,6 +177,11 @@ export const itIT = {
     resetConfirmTitle: 'Ripristinare tutte le impostazioni?',
     resetConfirmDescription: 'Questo riporterà ogni preferenza di aspetto e lingua al valore predefinito. L\'azione non può essere annullata.',
   },
+  footer: {
+    socialLinks: 'Collegamenti social',
+    repository: 'Repository di Nebula Dock su Codeberg',
+    mastodon: 'Nebula Dock su Mastodon',
+  },
 
   // Aggiunta: DashboardView.vue aveva ogni etichetta scritta in
   // italiano direttamente nel template, mai passata da t() — l'unica
@@ -209,5 +216,6 @@ export const itIT = {
     fsAvailable: 'Disponibile',
     fsUsed: 'Usato',
     fsEmpty: 'Nessun file system trovato.',
+    fsError: 'Impossibile leggere i file system.',
   },
 }

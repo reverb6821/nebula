@@ -226,4 +226,10 @@ describe('kill / terminate / renice', () => {
     await reniceProcess(1234, -100)
     expect(mockRunCmd).toHaveBeenCalledWith('pkexec renice -20 -p 1234')
   })
+
+  it('propaga stderr quando un comando privilegiato fallisce', async () => {
+    mockRunCmd.mockResolvedValue({ stdout: '', stderr: 'permission denied', exitCode: 1 })
+
+    await expect(killProcess(1234)).rejects.toThrow('permission denied')
+  })
 })

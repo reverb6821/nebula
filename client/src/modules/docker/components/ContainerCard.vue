@@ -84,65 +84,69 @@ function formatBytes(bytes: number): string {
 
       //- Stats bar
       div(v-if="isRunning && stats" class="grid grid-cols-2 gap-2")
-        div(class="rounded-md border border-border/70 bg-muted px-2.5 py-1.5")
-          p(class="text-[10px] uppercase tracking-widest text-muted-foreground/70") CPU
+        div(class="cyber-panel rounded-md px-2.5 py-1.5")
+          p(class="cyber-label") CPU
           p(class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground") {{ stats.cpuPercent.toFixed(1) }}%
-        div(class="rounded-md border border-border/70 bg-muted px-2.5 py-1.5")
-          p(class="text-[10px] uppercase tracking-widest text-muted-foreground/70") MEM
+        div(class="cyber-panel rounded-md px-2.5 py-1.5")
+          p(class="cyber-label") MEM
           p(class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground") {{ formatBytes(stats.memUsage) }}
 
+    //- Footer: azione primaria (start/stop) come pill, il resto come icone a destra —
+    //- stessa grammatica di DaemonCard.
     template(#footer)
-      div(class="flex w-full items-center justify-end gap-0.5" @click.stop)
+      div(class="flex w-full items-center gap-2" @click.stop)
         Tooltip
           TooltipTrigger(as-child)
             SharedButton(
               variant="ghost"
-              size="icon"
-              class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-              :aria-label="t('docker.logs')"
-              @click="emit('logs')"
-            )
-              FileText(class="h-3.5 w-3.5" aria-hidden="true")
-          TooltipContent {{ t('docker.logs') }}
-
-        Tooltip
-          TooltipTrigger(as-child)
-            SharedButton(
-              variant="ghost"
-              size="icon"
+              size="sm"
               :loading="pending"
               :disabled="pending"
-              :icon="isRunning ? Square : Play"
               :aria-label="isRunning ? t('common.stop') : t('common.start')"
-              class="h-7 w-7 rounded-md hover:bg-accent"
-              :class="isRunning ? 'text-destructive hover:text-destructive' : 'text-success hover:text-success'"
+              class="h-7 gap-1.5 rounded-md px-2.5 text-xs font-medium"
+              :class="isRunning ? 'bg-destructive/10 text-destructive hover:bg-destructive/15' : 'bg-success/10 text-success hover:bg-success/15'"
               @click="isRunning ? emit('stop') : emit('start')"
             )
+              component(:is="isRunning ? Square : Play" class="h-3 w-3" aria-hidden="true")
+              | {{ isRunning ? t('common.stop') : t('common.start') }}
           TooltipContent {{ isRunning ? t('common.stop') : t('common.start') }}
 
-        Tooltip
-          TooltipTrigger(as-child)
-            SharedButton(
-              variant="ghost"
-              size="icon"
-              :disabled="pending || !isRunning"
-              :icon="RotateCcw"
-              :aria-label="t('common.restart')"
-              class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-              @click="emit('restart')"
-            )
-          TooltipContent {{ t('common.restart') }}
+        div(class="ml-auto flex items-center gap-0.5")
+          Tooltip
+            TooltipTrigger(as-child)
+              SharedButton(
+                variant="ghost"
+                size="icon"
+                class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                :aria-label="t('docker.logs')"
+                @click="emit('logs')"
+              )
+                FileText(class="h-3.5 w-3.5" aria-hidden="true")
+            TooltipContent {{ t('docker.logs') }}
 
-        Tooltip
-          TooltipTrigger(as-child)
-            SharedButton(
-              variant="ghost"
-              size="icon"
-              :disabled="pending"
-              :icon="Trash2"
-              :aria-label="t('common.remove')"
-              class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/15 hover:text-destructive"
-              @click="emit('remove')"
-            )
-          TooltipContent {{ t('common.remove') }}
+          Tooltip
+            TooltipTrigger(as-child)
+              SharedButton(
+                variant="ghost"
+                size="icon"
+                :disabled="pending || !isRunning"
+                :icon="RotateCcw"
+                :aria-label="t('common.restart')"
+                class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                @click="emit('restart')"
+              )
+            TooltipContent {{ t('common.restart') }}
+
+          Tooltip
+            TooltipTrigger(as-child)
+              SharedButton(
+                variant="ghost"
+                size="icon"
+                :disabled="pending"
+                :icon="Trash2"
+                :aria-label="t('common.remove')"
+                class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/15 hover:text-destructive"
+                @click="emit('remove')"
+              )
+            TooltipContent {{ t('common.remove') }}
 </template>

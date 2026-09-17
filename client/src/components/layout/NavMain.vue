@@ -50,7 +50,7 @@ function isGroupActive(item: NavItem): boolean {
 
 <template lang="pug">
 SidebarGroup
-  SidebarGroupLabel {{ t('sidebar.navigation') }}
+  SidebarGroupLabel(class="cyber-label") {{ t('sidebar.navigation') }}
   SidebarMenu
     Collapsible(
       v-for="item in items"
@@ -60,7 +60,7 @@ SidebarGroup
     )
       SidebarMenuItem
         CollapsibleTrigger(v-if="item.items?.length" as-child)
-          SidebarMenuButton(:tooltip="item.title" :is-active="isGroupActive(item)" class="group rounded-md")
+          SidebarMenuButton(:tooltip="item.title" :is-active="isGroupActive(item)" class="group rounded-md font-mono text-xs uppercase tracking-wide")
             component(:is="item.icon" aria-hidden="true")
             span {{ t(`sidebar.${item.title}`) }}
             ChevronRight(
@@ -68,7 +68,7 @@ SidebarGroup
               aria-hidden="true"
             )
 
-        SidebarMenuButton(v-else as-child :tooltip="item.title" :is-active="isGroupActive(item)" class="rounded-md")
+        SidebarMenuButton(v-else as-child :tooltip="item.title" :is-active="isGroupActive(item)" class="rounded-md font-mono text-xs uppercase tracking-wide")
           RouterLink(:to="item.url")
             component(:is="item.icon" aria-hidden="true")
             span {{ t(`sidebar.${item.title}`) }}
@@ -77,6 +77,6 @@ SidebarGroup
           SidebarMenuSub
             SidebarMenuSubItem(v-for="subItem in item.items" :key="subItem.title")
               SidebarMenuSubButton(as-child :is-active="isRouteActive(subItem.url)")
-                RouterLink(:to="subItem.url" class="rounded-md")
+                RouterLink(:to="subItem.url" class="rounded-md font-mono text-[11px] uppercase tracking-wide")
                   span {{ t(`sidebar.${subItem.title}`) }}
 </template>

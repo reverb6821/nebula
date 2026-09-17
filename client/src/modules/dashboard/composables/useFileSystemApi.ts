@@ -14,7 +14,10 @@ export async function listFilesystems(): Promise<FsEntry[]> {
   const { stdout, exitCode } = await runCmd(
     'df -B1 --output=source,target,fstype,size,avail,used 2>/dev/null',
   )
-  if (exitCode !== 0 || !stdout.trim()) return []
+  if (exitCode !== 0) {
+    throw new Error('Unable to read file systems')
+  }
+  if (!stdout.trim()) return []
 
   const lines = stdout.trim().split('\n').slice(1) // salta l'header di df
 

@@ -112,14 +112,14 @@ div(class="flex items-center gap-2")
   //- ── Optional tabs ──────────────────────────────────────────────────────
   div(
     v-if="tabs && tabs.length"
-    class="flex rounded-md border border-border bg-card p-0.5"
+    class="flex rounded-md border border-border bg-card p-0.5 shadow-cyber-panel"
   )
     SharedButton(
       v-for="tab in tabs"
       :key="tab.value"
       variant="outline"
-      class="rounded-sm px-3 py-1.5 text-xs font-medium capitalize transition-all duration-150 border-transparent"
-      :class="activeTab === tab.value ? 'bg-primary/15 text-foreground border-primary/40' : 'text-muted-foreground hover:text-foreground'"
+      class="rounded-sm border-transparent px-3 py-1.5 text-[10px] normal-case tracking-normal"
+      :class="activeTab === tab.value ? 'bg-primary/15 text-foreground border-primary/40 shadow-cyber-signal' : 'text-muted-foreground hover:text-foreground'"
       @click="emit('update:activeTab', tab.value)"
     ) {{ tab.label }}
 
@@ -135,7 +135,7 @@ div(class="flex items-center gap-2")
       :model-value="search"
       :placeholder="placeholder"
       aria-label="Cerca"
-      class="h-8 rounded-md border-border bg-card pl-8 text-xs text-foreground placeholder:text-muted-foreground/60 transition-all duration-150 focus:border-primary/40 focus:ring-ring"
+      class="h-8 rounded-md border-border bg-card pl-8 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 transition-all duration-150 focus:border-primary/40 focus:ring-ring"
       :class="search.length > 0 ? 'pr-8' : 'pr-16'"
       @update:model-value="onSearchUpdate"
     )
@@ -164,15 +164,15 @@ div(class="flex items-center gap-2")
     PopoverTrigger(
       aria-label="Filtri avanzati"
       class="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-card transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background before:absolute before:-inset-[6px] before:content-['']"
-      :class="anyFilterActive ? 'border-primary/40 text-primary' : 'text-muted-foreground hover:text-foreground'"
+      :class="anyFilterActive ? 'border-primary/40 text-primary shadow-cyber-signal' : 'text-muted-foreground hover:text-foreground'"
     )
       SlidersHorizontal(class="h-3.5 w-3.5" aria-hidden="true")
 
-    //- ── Filter panel (contenitore → rounded.lg 16px) ─────────────────────
+    //- ── Filter panel ───────────────────────────────────────────────────
     PopoverContent(
       align="end"
       :side-offset="6"
-      class="w-64 rounded-lg border border-border bg-popover p-4 shadow-2xl shadow-black/50"
+      class="w-64 rounded-lg border border-border bg-popover p-4 shadow-cyber-panel"
     )
       div(class="flex flex-col gap-4")
 
@@ -180,7 +180,7 @@ div(class="flex items-center gap-2")
           Separator(v-if="gi > 0" class="bg-border")
 
           div
-            p(class="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70") {{ group.label }}
+            p(class="cyber-label mb-2.5") {{ group.label }}
             div(class="flex flex-col gap-2")
               label(
                 v-for="opt in group.options"
@@ -224,7 +224,7 @@ div(class="flex items-center gap-2")
         SharedButton(
           variant="ghost"
           size="sm"
-          class="w-full text-xs text-muted-foreground/70 hover:bg-accent hover:text-foreground"
+          class="w-full text-muted-foreground/70 hover:bg-accent hover:text-foreground"
           :disabled="!hasActiveFilters"
           @click="emit('reset')"
         )

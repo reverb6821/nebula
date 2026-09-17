@@ -37,7 +37,7 @@ const activeChips = computed<ActiveChip[]>(() =>
 div(class="flex items-center gap-3")
   //- Auto-refresh
   div(class="flex items-center gap-2")
-    span(class="text-[10px] uppercase tracking-widest text-muted-foreground") Auto
+    span(class="cyber-label") Auto
     SharedSwitch(
       :model-value="autoRefresh"
       aria-label="Aggiornamento automatico"

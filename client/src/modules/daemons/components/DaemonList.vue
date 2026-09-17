@@ -38,7 +38,7 @@ div(class="flex flex-col gap-3")
         | {{ t('daemons.daemonsCount', { n: stats.shown }) }}
         span(v-if="filteredFavorites.length > 0" class="ml-1 text-warning/70") · {{ t('daemons.pinnedCount', { n: filteredFavorites.length }) }}
 
-    div(class="flex rounded-md border border-border bg-card p-0.5")
+    div(class="flex rounded-md border border-border bg-card p-0.5 shadow-cyber-panel")
       SharedButton(
         variant="ghost"
         size="icon"
@@ -92,7 +92,7 @@ div(class="flex flex-col gap-3")
 
         div(v-if="filteredNonFav.length > 0" class="flex items-center gap-3")
           div(class="h-px flex-1 bg-border")
-          span(class="text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('daemons.allSection') }}
+          span(class="cyber-label") {{ t('daemons.allSection') }}
           div(class="h-px flex-1 bg-border")
 
       //- Rest
@@ -134,7 +134,7 @@ div(class="flex flex-col gap-3")
 
         div(v-if="filteredNonFav.length > 0" class="flex items-center gap-3")
           div(class="h-px flex-1 bg-border")
-          span(class="text-[10px] uppercase tracking-widest text-muted-foreground") {{ t('daemons.allSection') }}
+          span(class="cyber-label") {{ t('daemons.allSection') }}
           div(class="h-px flex-1 bg-border")
 
       //- Rest
@@ -155,7 +155,8 @@ div(class="flex flex-col gap-3")
   //- Load more
   button(
     v-if="hasMore"
-    class="w-full rounded-md border border-border py-2.5 text-xs text-muted-foreground transition-all duration-150 hover:bg-accent hover:text-foreground"
+    type="button"
+    class="w-full rounded-md border border-border py-2.5 text-xs text-muted-foreground transition-all duration-150 hover:border-primary/30 hover:bg-accent hover:text-foreground"
     @click="store.loadMore()"
   ) {{ t('daemons.loadMoreRemaining', { n: stats.matching - stats.shown }) }}
 </template>

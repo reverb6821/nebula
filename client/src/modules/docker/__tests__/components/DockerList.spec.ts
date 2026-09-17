@@ -24,8 +24,8 @@ const messages = {
     docker: {
       containers: 'Containers ({n})', images: 'Images ({n})', pinnedCount: '{n} pinned', pinned: 'Pinned',
       allSection: 'All', noContainers: 'No containers', noImages: 'No images', filtersModifyHint: 'Try adjusting filters',
+      viewList: 'List view', viewGrid: 'Grid view',
     },
-    daemons: { viewList: 'List view', viewGrid: 'Grid view' },
   },
 }
 

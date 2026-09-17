@@ -26,7 +26,7 @@ Button(
   :size="size"
   :disabled="disabled || loading"
   :aria-busy="loading"
-  class="relative inline-flex items-center justify-center gap-2 rounded-md focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+  class="relative inline-flex items-center justify-center gap-2 rounded-sm font-mono text-xs font-semibold uppercase tracking-wide transition-shadow duration-150 hover:shadow-cyber-signal focus-visible:border-primary focus-visible:shadow-cyber-signal focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 )
   Loader2(v-if="loading" class="h-4 w-4 animate-spin" aria-hidden="true")
 

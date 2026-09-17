@@ -67,7 +67,7 @@ async function handlePull() {
           enter-from-class="opacity-0 -translate-y-1"
           enter-to-class="opacity-100 translate-y-0"
         )
-          div(v-if="pulling || pullProgress" class="rounded-md border border-border bg-card p-3")
+          div(v-if="pulling || pullProgress" class="cyber-panel rounded-md p-3")
             div(v-if="pulling && !pullProgress" class="flex items-center gap-2 font-mono text-xs text-muted-foreground")
               span(class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true")
               | {{ t('docker.pullConnecting') }}

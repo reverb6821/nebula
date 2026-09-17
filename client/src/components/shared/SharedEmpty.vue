@@ -29,9 +29,11 @@ Empty
     EmptyMedia(
       v-if="icon"
       variant="icon"
-      class="rounded-md border border-border bg-card text-muted-foreground"
+      class="rounded-full border border-dashed border-primary/30 bg-card text-muted-foreground shadow-cyber-panel"
     )
       component(:is="icon" aria-hidden="true")
+
+    span(class="cyber-label mb-1 block") No signal // 0 results
 
     EmptyTitle(v-if="title || $slots.title" class="text-foreground")
       slot(name="title") {{ title }}

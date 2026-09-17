@@ -35,7 +35,7 @@ const rangeLabel = computed(() => {
 <template lang="pug">
 div(class="flex items-center justify-between border-t border-border bg-background px-2 py-1.5 font-mono text-[11px]")
   div(class="flex items-center gap-2")
-    span(id="process-page-size-label" class="text-[10px] uppercase tracking-widest text-muted-foreground") Rows
+    span(id="process-page-size-label" class="cyber-label") Rows
     Select(
       :model-value="String(pageSize)"
       @update:model-value="emit('update:pageSize', Number($event))"

@@ -25,14 +25,14 @@ const { title, subtitle, toolsComponent, toolsProps, onRefresh, refreshLoading }
 SidebarProvider(class="h-screen overflow-hidden bg-background")
   AppSidebar
   SidebarInset(class="flex h-screen flex-col overflow-hidden bg-background")
-    header(class="flex h-16 shrink-0 items-center gap-2 border-b border-primary/20 bg-background/95")
+    header(class="flex h-16 shrink-0 items-center gap-2 border-b border-primary/20 bg-background/95 shadow-cyber-panel")
 
       div(class="flex items-center gap-2 px-4")
         SidebarTrigger(class="-ml-1" aria-label="Apri/chiudi barra laterale")
         Separator(orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" aria-hidden="true")
         div(class="flex flex-col justify-center leading-tight")
           span(class="font-heading text-sm font-semibold uppercase tracking-wide text-foreground") {{ title }}
-          span(v-if="subtitle" class="font-mono text-[10px] uppercase tracking-widest text-muted-foreground") {{ subtitle }}
+          span(v-if="subtitle" class="cyber-label") {{ subtitle }}
 
       div(class="flex flex-1 items-center justify-end gap-2 px-4")
         component(:is="toolsComponent" v-if="toolsComponent" v-bind="toolsProps")

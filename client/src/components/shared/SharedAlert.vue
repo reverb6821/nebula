@@ -37,14 +37,14 @@ const icon = computed(() => {
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'destructive':
-      return 'border-destructive/50 bg-destructive/10 text-destructive [&>svg]:text-destructive'
+      return 'border-destructive/50 border-l-destructive bg-destructive/10 text-destructive [&>svg]:text-destructive'
     case 'success':
-      return 'border-success/40 bg-success/5 text-success [&>svg]:text-success'
+      return 'border-success/40 border-l-success bg-success/5 text-success [&>svg]:text-success'
     case 'warning':
-      return 'border-warning/40 bg-warning/5 text-warning [&>svg]:text-warning'
+      return 'border-warning/40 border-l-warning bg-warning/5 text-warning [&>svg]:text-warning'
     case 'default':
     default:
-      return 'border-border text-foreground [&>svg]:text-primary'
+      return 'border-border border-l-primary text-foreground [&>svg]:text-primary'
   }
 })
 </script>
@@ -52,11 +52,11 @@ const variantClass = computed(() => {
 <template lang="pug">
 Alert(
   :variant="variant === 'destructive' ? 'destructive' : 'default'"
-  :class="[variantClass, 'rounded-lg bg-card']"
+  :class="[variantClass, 'rounded-lg border-l-4 bg-card']"
 )
   component(:is="icon" class="h-4 w-4" aria-hidden="true")
 
-  AlertTitle(v-if="title || $slots.title" class="text-foreground")
+  AlertTitle(v-if="title || $slots.title" class="font-mono text-xs uppercase tracking-wide text-foreground")
     slot(name="title") {{ title }}
 
   AlertDescription(
