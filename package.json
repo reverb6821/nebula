@@ -9,7 +9,8 @@
   "scripts": {
     "prepare": "husky",
     "lint-staged": "lint-staged",
-    "release": "release-it"
+    "release": "release-it",
+    "build:prod": "cd client && neu run build && cd .. && neu build --embeded-resources"
   },
   "keywords": [],
   "author": "",
