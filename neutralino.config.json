@@ -12,6 +12,10 @@
     "os.execCommand",
     "os.spawnProcess",
     "os.updateSpawnedProcess",
+    "os.showNotification",
+    "os.getPath",
+    "filesystem.createDirectory",
+    "filesystem.writeFile",
     "storage.*"
   ],
   "modes": {

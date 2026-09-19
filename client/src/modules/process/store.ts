@@ -144,6 +144,10 @@ export const useProcessesStore = defineStore('processes', () => {
     processes.value = result
   }
 
+  function collectNow(): Promise<Process[]> {
+    return Promise.resolve(processes.value)
+  }
+
   // ─── Auto-refresh (stream) ──────────────────────────────────────────────────
   //
   // Non è un fetch one-shot: è una subscription push-based (callback
@@ -219,7 +223,7 @@ export const useProcessesStore = defineStore('processes', () => {
     sortKey, sortDir, pendingPids, autoRefresh, stats,
     page, pageSize, totalPages, paginated, setPage, setPageSize,
     selectedPid, select,
-    fetch, setSort, kill, terminate, renice, niceStep,
+    fetch, collectNow, setSort, kill, terminate, renice, niceStep,
     toggleStatusFilter, resetFilters,
     stopAutoRefresh,
   }

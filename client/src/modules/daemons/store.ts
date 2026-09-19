@@ -205,6 +205,10 @@ export const useDaemonsStore = defineStore('daemons', () => {
     page.value = 1
   }
 
+  function collectNow() {
+    return listDaemons()
+  }
+
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
   function patchDaemon(name: string, patch: Partial<Daemon>) {
@@ -274,7 +278,7 @@ export const useDaemonsStore = defineStore('daemons', () => {
     hasMore, hasActiveFilters, favorites, favoritesArray,
     loading, error, search, searchDebounced,
     pendingNames, stats, filters, viewMode,
-    fetch, loadMore, resetFilters,
+    fetch, collectNow, loadMore, resetFilters,
     toggleStatusFilter, toggleEnabledFilter,
     toggleFavorite, isFavorite,
     start, stop, restart, enable, disable, toggleEnabled,

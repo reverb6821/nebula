@@ -24,6 +24,7 @@ interface NavItem {
   url: string
   icon: LucideIcon
   isActive?: boolean
+  badge?: number
   items?: { title: string; url: string }[]
 }
 
@@ -63,8 +64,9 @@ SidebarGroup
           SidebarMenuButton(:tooltip="item.title" :is-active="isGroupActive(item)" class="group rounded-md font-mono text-xs uppercase tracking-wide")
             component(:is="item.icon" aria-hidden="true")
             span {{ t(`sidebar.${item.title}`) }}
+            span(v-if="typeof item.badge === 'number' && item.badge > 0" class="ml-auto min-w-5 rounded-sm border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-center font-mono text-[10px] text-destructive" :aria-label="`${item.badge} ${t('sidebar.alertCount')}`") {{ item.badge }}
             ChevronRight(
-              class="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-90"
+              class="ml-2 h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-90"
               aria-hidden="true"
             )
 
@@ -72,6 +74,7 @@ SidebarGroup
           RouterLink(:to="item.url")
             component(:is="item.icon" aria-hidden="true")
             span {{ t(`sidebar.${item.title}`) }}
+            span(v-if="typeof item.badge === 'number' && item.badge > 0" class="ml-auto min-w-5 rounded-sm border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-center font-mono text-[10px] text-destructive" :aria-label="`${item.badge} ${t('sidebar.alertCount')}`") {{ item.badge }}
 
         CollapsibleContent(v-if="item.items?.length")
           SidebarMenuSub

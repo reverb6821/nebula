@@ -3,13 +3,15 @@ import { onMounted, onUnmounted, computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowDown, ArrowUp, Thermometer, Zap, HardDrive, Cpu, MemoryStick, Network,
+  ArrowDown, ArrowUp, Thermometer, Zap, HardDrive, Cpu, MemoryStick, Network, AlertTriangle,
 } from '@lucide/vue'
 import { useResourcesStore } from '../store'
 import SparklineChart from '../components/SparkLineChart.vue'
 import DashboardCard from '../components/DashboardCard.vue'
 import KpiCard from '../components/KpiCard.vue'
 import { SharedAlert } from '@/components/shared'
+import { useAlertsStore } from '@/modules/alerts/store'
+import { useAlertMonitor } from '@/modules/alerts/composables/useAlertMonitor'
 import { cpuColor } from '../utils/cpuColors'
 import { severityFor, severityTextClass, severityBgClass } from '../utils/severity'
 import { formatBytesDecimal, formatRateBinary, formatPercent, formatTemp, formatWatts } from '../utils/format.ts'
@@ -18,6 +20,8 @@ import type { FsEntry } from '@/types/resources'
 
 const { t } = useI18n()
 const store = useResourcesStore()
+const alertsStore = useAlertsStore()
+const alertMonitor = useAlertMonitor()
 const {
   snapshot, sensors, sensorsUnavailable,
   cpuOverallHistory, cpuCoreHistory, memHistory, swapHistory,
@@ -26,8 +30,14 @@ const {
   netMaxRate, diskMaxRate,
 } = storeToRefs(store)
 
-onMounted(() => store.start())
-onUnmounted(() => store.stop())
+onMounted(() => {
+  store.start()
+  alertMonitor.start()
+})
+onUnmounted(() => {
+  store.stop()
+  alertMonitor.stop()
+})
 
 const cpuSeries = computed(() =>
   cpuCoreHistory.value.map((values, i) => ({ id: i, color: cpuColor(i), values })),
@@ -105,6 +115,16 @@ const rootFs = computed(
 const netTotalRate = computed(
   () => (snapshot.value?.netRxRate ?? 0) + (snapshot.value?.netTxRate ?? 0),
 )
+
+const activeAlerts = computed(() => alertsStore.triggeredEvents)
+const highestAlertSeverity = computed(() => {
+  const severities = activeAlerts.value.map((event) => event.severity)
+  if (severities.includes('critical')) return t('alerts.severityCritical')
+  if (severities.includes('warning')) return t('alerts.severityWarning')
+  if (severities.includes('info')) return t('alerts.severityInfo')
+  return t('dashboard.noActiveAlerts')
+})
+const degradedSourceCount = computed(() => alertsStore.sourceHealth.filter((source) => source.status !== 'healthy').length)
 </script>
 
 <template lang="pug">
@@ -138,6 +158,17 @@ div(class="flex flex-col gap-4 overflow-auto p-4 text-foreground")
       :value="formatRateBinary(netTotalRate)"
       :sub="t('dashboard.readWriteCombined')"
     )
+
+  DashboardCard(:title="t('dashboard.alertSummary')")
+    RouterLink(to="/alerts" class="block rounded-md border border-border/70 bg-background/35 p-3 transition-colors hover:border-primary/45 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring")
+      div(class="flex items-start justify-between gap-3")
+        div(class="flex items-center gap-2")
+          AlertTriangle(class="h-4 w-4 text-warning" aria-hidden="true")
+          span(class="cyber-label") {{ t('dashboard.alerts') }}
+        span(class="font-mono text-2xl font-semibold text-foreground") {{ activeAlerts.length }}
+      div(class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground")
+        span {{ t('dashboard.highestSeverity') }}: {{ highestAlertSeverity }}
+        span {{ t('dashboard.degradedSourcesCount') }}: {{ degradedSourceCount }}
 
   //- Griglia principale: CPU / Memoria / Rete / Disco
   div(class="grid grid-cols-1 gap-4 lg:grid-cols-2")
