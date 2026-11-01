@@ -8,11 +8,18 @@ import App from '../App.vue'
 // Stesso motivo di store.spec.ts: niente window.NL_PORT in jsdom.
 vi.mock('@neutralinojs/lib', () => ({
   storage: {
-    getData: vi.fn().mockRejectedValue(new Error('NE_ST_NOSTKEY')),
-    setData: vi.fn().mockResolvedValue(undefined),
+    getData: vi.fn<() => Promise<never>>().mockRejectedValue(new Error('NE_ST_NOSTKEY')),
+    setData: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
   },
-  os: { execCommand: vi.fn(), spawnProcess: vi.fn(), updateSpawnedProcess: vi.fn() },
-  events: { on: vi.fn(), off: vi.fn() },
+  os: {
+    execCommand: vi.fn<() => Promise<void>>(),
+    spawnProcess: vi.fn<() => Promise<void>>(),
+    updateSpawnedProcess: vi.fn<() => Promise<void>>(),
+  },
+  events: {
+    on: vi.fn<(event: string, listener: (...args: unknown[]) => void) => void>(),
+    off: vi.fn<(event: string, listener: (...args: unknown[]) => void) => void>(),
+  },
 }))
 
 describe('App', () => {

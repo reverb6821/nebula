@@ -7,20 +7,20 @@ import type { Process } from '@/types/process'
 import type { FsEntry, ResourcesSnapshot, SensorsSnapshot } from '@/types/resources'
 
 const mocks = vi.hoisted(() => ({
-  collectResourcesNow: vi.fn(),
-  collectSensorsNow: vi.fn(),
-  collectProcessesNow: vi.fn(),
-  collectDaemonsNow: vi.fn(),
-  listFilesystems: vi.fn(),
-  notifyTriggeredAlert: vi.fn(),
+  collectResourcesNow: vi.fn<() => Promise<ResourcesSnapshot | null>>(),
+  collectSensorsNow: vi.fn<() => Promise<SensorsSnapshot>>(),
+  collectProcessesNow: vi.fn<() => Promise<Process[]>>(),
+  collectDaemonsNow: vi.fn<() => Promise<Daemon[]>>(),
+  listFilesystems: vi.fn<() => Promise<FsEntry[]>>(),
+  notifyTriggeredAlert: vi.fn<() => Promise<void>>(),
 }))
 
-const collectResourcesNow = mocks.collectResourcesNow as ReturnType<typeof vi.fn<() => Promise<ResourcesSnapshot | null>>>
-const collectSensorsNow = mocks.collectSensorsNow as ReturnType<typeof vi.fn<() => Promise<SensorsSnapshot>>>
-const collectProcessesNow = mocks.collectProcessesNow as ReturnType<typeof vi.fn<() => Promise<Process[]>>>
-const collectDaemonsNow = mocks.collectDaemonsNow as ReturnType<typeof vi.fn<() => Promise<Daemon[]>>>
-const listFilesystems = mocks.listFilesystems as ReturnType<typeof vi.fn<() => Promise<FsEntry[]>>>
-const notifyTriggeredAlert = mocks.notifyTriggeredAlert as ReturnType<typeof vi.fn>
+const collectResourcesNow = mocks.collectResourcesNow
+const collectSensorsNow = mocks.collectSensorsNow
+const collectProcessesNow = mocks.collectProcessesNow
+const collectDaemonsNow = mocks.collectDaemonsNow
+const listFilesystems = mocks.listFilesystems
+const notifyTriggeredAlert = mocks.notifyTriggeredAlert
 
 
 vi.mock('@/modules/dashboard/store', () => ({ useResourcesStore: () => ({ collectResourcesNow: mocks.collectResourcesNow, collectSensorsNow: mocks.collectSensorsNow }) }))
