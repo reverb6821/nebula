@@ -22,7 +22,10 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    emptyOutDir: false, // non cancellare neutralino.js copiato da `neu update`
+    // Svuota dist/ a ogni build: `neu build --embed-resources` incorpora
+    // l'intera cartella, quindi bundle e asset vecchi finirebbero nel binario.
+    // La libreria Neutralino arriva dal pacchetto npm, non da un neutralino.js.
+    emptyOutDir: true,
   },
     server: {
     port: 5173,

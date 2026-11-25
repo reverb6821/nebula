@@ -10,11 +10,12 @@
     "prepare": "husky",
     "lint-staged": "lint-staged",
     "release": "release-it",
-    "build:prod": "cd client && neu run build && cd .. && neu build --embeded-resources"
+    "build:prod": "bun --cwd=client run build && neu build --release --embed-resources",
+    "build:appimage": "bun run build:prod && scripts/build-appimage.sh"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "bun@1.4.0",
   "devDependencies": {
     "@commitlint/cli": "^21.2.0",

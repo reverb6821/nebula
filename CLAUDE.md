@@ -37,8 +37,8 @@ bun run lint-staged
 # Cut a new release (versioning, changelog, tag) via release-it
 bun run release
 
-# Production build: builds the Neutralino client bundle, then packages
-# the Neutralino app embedding the built resources
+# Production build: builds the client, then packages the Neutralino
+# binaries (resources embedded) into dist/
 bun run build:prod
 ```
 
@@ -52,7 +52,7 @@ For frontend-only commands (dev server, unit/E2E tests, type-check, lint), see `
 - `client` is declared under `"workspaces"` in the root `package.json`. Do not duplicate root-level tooling (husky, commitlint, release-it) inside `client/` — it belongs at the repo root and applies to the whole monorepo.
 
 ### 2. Neutralino Shell
-- `build:prod` first builds the client (`neu run build` from within `client/`), then builds the Neutralino app from the root with `neu build --embeded-resources`, embedding the client's build output into the native app.
+- `build:prod` first builds the client (`bun --cwd=client run build`: type-check plus Vite build into `client/dist/`), then packages the Neutralino app from the root with `neu build --release --embed-resources`, embedding the client's build output into each binary in `dist/`.
 - Native/OS-level integration code (IPC, process execution, cross-platform logic) lives in the client under `@/composables/useNeutralinoCmd` and module-level composables — see `client/CLAUDE.md`.
 
 ### 3. Commits & Releases

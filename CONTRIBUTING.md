@@ -29,7 +29,7 @@ branch operations use the repository's shared workflow.
 Start the Vite client from the repository root:
 
 ```bash
-bun --cwd client run dev
+bun --cwd=client run dev
 ```
 
 This mode is useful for browser-based UI work and client-side development.
@@ -52,11 +52,11 @@ outside Neutralino.
 Run the relevant checks from the repository root:
 
 ```bash
-bun --cwd client run type-check
-bun --cwd client run lint
-bun --cwd client run test:unit -- --run
-bun --cwd client run test:e2e
-bun --cwd client run build
+bun --cwd=client run type-check
+bun --cwd=client run lint
+bun --cwd=client run test:unit -- --run
+bun --cwd=client run test:e2e
+bun --cwd=client run build
 ```
 
 Playwright may require browser installation on a new machine. Desktop-only
@@ -180,7 +180,7 @@ runtime.
 Install the browsers required by the local Playwright setup, then rerun:
 
 ```bash
-bun --cwd client run test:e2e
+bun --cwd=client run test:e2e
 ```
 
 ### A native command fails
