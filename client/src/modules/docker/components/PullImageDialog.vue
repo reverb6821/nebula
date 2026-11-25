@@ -41,15 +41,11 @@ async function handlePull() {
 <template lang="pug">
   Dialog(v-model:open="open")
     DialogTrigger(as-child)
-      SharedButton(
-        variant="outline"
-        size="sm"
-        class="gap-1.5 border-border bg-card text-muted-foreground hover:border-ring/40 hover:bg-accent hover:text-foreground"
-      )
-        Download(class="h-3.5 w-3.5" aria-hidden="true")
+      Button
+        Download(class="size-4" aria-hidden="true")
         | {{ t('docker.pullImage') }}
 
-    DialogContent(class="border-border bg-popover sm:max-w-md")
+    DialogContent(class="rounded-lg border-border bg-popover sm:max-w-md")
       DialogHeader
         DialogTitle(class="text-base font-semibold text-foreground") {{ t('docker.pullImageTitle') }}
 
@@ -57,7 +53,7 @@ async function handlePull() {
         Input(
           v-model="imageName"
           placeholder="nginx:latest, ubuntu:22.04…"
-          class="rounded-md border-border bg-muted font-mono text-foreground placeholder:text-muted-foreground/70 focus:border-ring/50 focus:ring-ring/20"
+          class="h-10 rounded-[9px] border-0 bg-white/7 font-mono text-foreground placeholder:text-muted-foreground"
           :disabled="pulling"
           @keydown.enter="handlePull"
         )
@@ -67,7 +63,7 @@ async function handlePull() {
           enter-from-class="opacity-0 -translate-y-1"
           enter-to-class="opacity-100 translate-y-0"
         )
-          div(v-if="pulling || pullProgress" class="rounded-md border border-border bg-card p-3")
+          div(v-if="pulling || pullProgress" class="rounded-md border border-border bg-white/4 p-3")
             div(v-if="pulling && !pullProgress" class="flex items-center gap-2 font-mono text-xs text-muted-foreground")
               span(class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true")
               | {{ t('docker.pullConnecting') }}
@@ -75,7 +71,7 @@ async function handlePull() {
               div(class="flex items-center justify-between gap-2")
                 p(class="font-mono text-xs text-foreground") {{ pullProgress.status }}
                 span(v-if="progressPercent !== null" class="font-mono text-xs tabular-nums text-muted-foreground") {{ progressPercent }}%
-              p(v-if="pullProgress.id" class="mt-0.5 font-mono text-[10px] text-muted-foreground/70") {{ pullProgress.id }}
+              p(v-if="pullProgress.id" class="mt-0.5 font-mono text-[0.625rem] text-muted-foreground/70") {{ pullProgress.id }}
 
               //- Progress bar
               div(v-if="progressPercent !== null" class="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-muted")

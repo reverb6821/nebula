@@ -1,6 +1,5 @@
 <script setup lang="ts" generic="T extends string, O extends { value: T; label: string }">
 import { cn } from '@/lib/utils'
-import { SharedButton } from '@/components/shared'
 
 defineProps<{
   options: O[]
@@ -12,22 +11,34 @@ defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: T]
 }>()
+
+function moveSelection(event: KeyboardEvent, currentValue: T, options: O[]) {
+  const index = options.findIndex((option) => option.value === currentValue)
+  if (index < 0 || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return
+
+  event.preventDefault()
+  const direction = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1
+  const next = options[(index + direction + options.length) % options.length]
+  if (next) emit('update:modelValue', next.value)
+}
 </script>
 
 <template lang="pug">
 div(
   role="radiogroup"
   :aria-labelledby="ariaLabelledby"
-  :class="cn('flex gap-1.5', vertical && 'flex-col')"
+  :class="cn('flex flex-wrap gap-0.5 rounded-[10px] bg-white/5 p-[3px]', vertical && 'flex-col flex-nowrap')"
 )
-  SharedButton(
+  button(
     v-for="opt in options"
     :key="opt.value"
-    variant="outline"
+    type="button"
     role="radio"
     :aria-checked="modelValue === opt.value"
-    :class="cn('border px-3 py-1.5 text-left text-xs transition-colors rounded-md', modelValue === opt.value ? 'border-primary/40 bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground')"
+    :tabindex="modelValue === opt.value ? 0 : -1"
+    :class="cn('min-h-9 rounded-[7px] px-3.5 text-13 font-semibold transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', modelValue === opt.value ? 'bg-white/15 text-white' : 'text-group-foreground hover:bg-white/6')"
     @click="emit('update:modelValue', opt.value)"
+    @keydown="moveSelection($event, modelValue, options)"
   )
     slot(:option="opt") {{ opt.label }}
 </template>

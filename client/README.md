@@ -7,7 +7,7 @@ Vitest provides unit tests and Playwright provides end-to-end tests.
 
 ## Commands
 
-Run commands from the repository root with `bun --cwd client run <script>`, or
+Run commands from the repository root with `bun --cwd=client run <script>`, or
 change into `client/` and use `bun run <script>`:
 
 ```bash

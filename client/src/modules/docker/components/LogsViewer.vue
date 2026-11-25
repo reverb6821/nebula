@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, computed } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X, Download, ArrowDown } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
@@ -59,7 +59,7 @@ function lineClass(line: string) {
 </script>
 
 <template lang="pug">
-  div(class="flex h-full flex-col border-l border-border bg-background")
+  div(class="flex h-full flex-col bg-card")
     //- Header
     div(class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3")
       div(class="min-w-0")
@@ -72,7 +72,7 @@ function lineClass(line: string) {
         Button(
           variant="ghost"
           size="icon"
-          class="h-7 w-7 text-muted-foreground hover:bg-accent hover:text-foreground"
+          class="text-muted-foreground hover:text-foreground"
           :aria-label="t('docker.logsDownload')"
           @click="downloadLogs"
         )
@@ -80,7 +80,7 @@ function lineClass(line: string) {
         Button(
           variant="ghost"
           size="icon"
-          class="h-7 w-7 text-muted-foreground hover:bg-accent hover:text-foreground"
+          class="text-muted-foreground hover:text-foreground"
           :aria-label="t('common.close')"
           @click="emit('close')"
         )

@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useIntervalFn } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
+import { MeterBar } from '@/components/shared'
 import { createSystemMetersSampler } from '../composables/useSystemMeters'
 import type { SystemMeters } from '../composables/useSystemMeters'
 
 defineProps<{ tasksTotal: number; tasksRunning: number }>()
+
+const { t } = useI18n()
 
 const meters = ref<SystemMeters | null>(null)
 const sample = createSystemMetersSampler()
@@ -34,67 +38,37 @@ function formatUptime(seconds: number): string {
   return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':')
 }
 
-function barColor(percent: number): string {
-  if (percent >= 80) return 'bg-destructive'
-  if (percent >= 50) return 'bg-warning'
-  return 'bg-success'
+// Arancio sopra il 15%, come nel design (source/Processes.dc.html).
+function coreColor(percent: number): string {
+  return percent > 15 ? 'bg-caution' : 'bg-primary-text'
+}
+
+function pct(used: number, total: number): number {
+  return total > 0 ? (used / total) * 100 : 0
 }
 </script>
 
 <template lang="pug">
-div(class="border-b border-border bg-background px-3 py-2 font-mono text-[11px] text-foreground")
-  //- CPU per-core, ordine column-major come htop (3 righe)
-  div(
-    class="grid gap-x-6 gap-y-0.5"
-    style="grid-template-rows: repeat(3, auto); grid-auto-flow: column;"
-  )
-    div(v-for="core in meters?.cores ?? []" :key="core.id" class="flex items-center gap-1")
-      span(class="w-4 text-right text-muted-foreground") {{ core.id }}
-      span(class="text-muted-foreground/60") [
-      span(class="relative h-3 w-24 overflow-hidden bg-muted")
-        span(
-          class="absolute inset-y-0 left-0 transition-[width] duration-500"
-          :class="barColor(core.percent)"
-          :style="{ width: `${core.percent}%` }"
-        )
-      span(class="text-muted-foreground/60") ]
-      span(class="w-12 text-right tabular-nums text-muted-foreground") {{ core.percent.toFixed(1) }}%
-
-  //- Mem
-  div(class="mt-1.5 flex items-center gap-1")
-    span(class="w-8 text-muted-foreground") Mem
-    span(class="text-muted-foreground/60") [
-    span(class="relative h-3 w-64 overflow-hidden bg-muted")
-      span(
-        class="absolute inset-y-0 left-0 bg-success transition-[width] duration-500"
-        :style="{ width: `${meters && meters.memTotalBytes > 0 ? (meters.memUsedBytes / meters.memTotalBytes) * 100 : 0}%` }"
-      )
-    span(class="text-muted-foreground/60") ]
-    span(class="ml-1 tabular-nums text-muted-foreground") {{ formatCompact(meters?.memUsedBytes ?? 0) }}/{{ formatCompact(meters?.memTotalBytes ?? 0) }}
-
-  //- Swap
-  div(class="mt-0.5 flex items-center gap-1")
-    span(class="w-8 text-muted-foreground") Swp
-    span(class="text-muted-foreground/60") [
-    span(class="relative h-3 w-64 overflow-hidden bg-muted")
-      span(
-        class="absolute inset-y-0 left-0 bg-destructive transition-[width] duration-500"
-        :style="{ width: `${meters && meters.swapTotalBytes > 0 ? (meters.swapUsedBytes / meters.swapTotalBytes) * 100 : 0}%` }"
-      )
-    span(class="text-muted-foreground/60") ]
-    span(class="ml-1 tabular-nums text-muted-foreground") {{ formatCompact(meters?.swapUsedBytes ?? 0) }}/{{ formatCompact(meters?.swapTotalBytes ?? 0) }}
-
-  //- Tasks / Load / Uptime (semplificato: niente breakdown thread, vedi nota in chat)
-  div(class="mt-1.5 flex items-center gap-4 text-muted-foreground")
-    span
-      | Tasks:
-      span(class="text-foreground") {{ tasksTotal }}
-      | ,
-      span(class="text-success") {{ tasksRunning }} running
-    span
-      | Load average:
-      span(class="text-foreground") {{ meters?.loadAvg.map((n) => n.toFixed(2)).join(' ') ?? '- - -' }}
-    span
-      | Uptime:
-      span(class="text-foreground") {{ formatUptime(meters?.uptimeSeconds ?? 0) }}
+section(
+  :aria-label="t('processes.systemLoad')"
+  class="flex flex-wrap gap-x-9 gap-y-5 rounded-lg border border-border bg-card px-5 py-[18px]"
+)
+  div(class="grid min-w-0 flex-[3_1_520px] grid-cols-[repeat(auto-fill,minmax(min(150px,100%),1fr))] gap-x-5 gap-y-2.5")
+    div(v-for="core in meters?.cores ?? []" :key="core.id" class="flex items-center gap-2 font-mono text-xs")
+      span(class="w-[18px] text-right text-muted-foreground") {{ core.id }}
+      MeterBar(:value="core.percent" :height="10" :radius="3" class="flex-1" :bar-class="coreColor(core.percent)" :label="t('processes.coreLabel', { n: core.id })")
+      span(class="w-11 text-right") {{ core.percent.toFixed(1) }}%
+  div(class="flex min-w-0 flex-[1_1_280px] flex-col gap-3")
+    div(class="flex items-center gap-2.5 font-mono text-xs")
+      span(class="w-[38px] text-muted-foreground") Mem
+      MeterBar(:value="pct(meters?.memUsedBytes ?? 0, meters?.memTotalBytes ?? 0)" :height="10" :radius="3" class="flex-1" bar-class="bg-success" label="Mem")
+      span {{ formatCompact(meters?.memUsedBytes ?? 0) }}/{{ formatCompact(meters?.memTotalBytes ?? 0) }}
+    div(class="flex items-center gap-2.5 font-mono text-xs")
+      span(class="w-[38px] text-muted-foreground") Swap
+      MeterBar(:value="pct(meters?.swapUsedBytes ?? 0, meters?.swapTotalBytes ?? 0)" :height="10" :radius="3" class="flex-1" bar-class="bg-caution" label="Swap")
+      span {{ formatCompact(meters?.swapUsedBytes ?? 0) }}/{{ formatCompact(meters?.swapTotalBytes ?? 0) }}
+    div(class="mt-1 flex flex-wrap gap-2")
+      span(class="rounded-[7px] bg-white/5 px-2.5 py-1.5 font-mono text-xs") {{ t('processes.tasks', { total: tasksTotal, running: tasksRunning }) }}
+      span(class="rounded-[7px] bg-white/5 px-2.5 py-1.5 font-mono text-xs") load {{ meters?.loadAvg.map((n) => n.toFixed(2)).join(' ') ?? '- - -' }}
+      span(class="rounded-[7px] bg-white/5 px-2.5 py-1.5 font-mono text-xs") up {{ formatUptime(meters?.uptimeSeconds ?? 0) }}
 </template>

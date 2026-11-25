@@ -8,13 +8,13 @@ import { flushPromises } from '@vue/test-utils'
 // namespace storage, che è l'unica parte usata da questo store.
 vi.mock('@neutralinojs/lib', () => ({
   storage: {
-    getData: vi.fn(),
+    getData: vi.fn<typeof import('@neutralinojs/lib')['storage']['getData']>(),
     // Default: si comporta come la vera API (async, risolve). vi.clearAllMocks()
     // in beforeEach pulisce solo le chiamate registrate (mock.calls/results),
     // NON l'implementazione impostata qui — quindi questo default resta
     // valido per tutti i test, a meno che un singolo test non lo sovrascriva
     // esplicitamente con mockRejectedValue/mockResolvedValueOnce.
-    setData: vi.fn().mockResolvedValue(undefined),
+    setData: vi.fn<typeof import('@neutralinojs/lib')['storage']['setData']>().mockResolvedValue(undefined),
   },
 }))
 
@@ -55,6 +55,15 @@ describe('useSettingsStore', () => {
     expect(settings.state.fontFamily).toBe('system')
   })
 
+  it('riporta al default un font salvato non piu\' supportato', async () => {
+    mockGetData.mockResolvedValue(JSON.stringify({ fontFamily: 'dyslexic', fontSize: 'lg' }))
+    const settings = useSettingsStore()
+
+    await vi.waitUntil(() => settings.state.fontSize === 'lg')
+
+    expect(settings.state.fontFamily).toBe('system')
+  })
+
   it('torna ai default se la chiave non esiste ancora (prima esecuzione)', async () => {
     // NE_ST_NOSTKEY: Neutralino.storage.getData rigetta se la chiave non c'è
     mockGetData.mockRejectedValue(new Error('NE_ST_NOSTKEY'))
@@ -78,7 +87,7 @@ describe('useSettingsStore', () => {
     await nextTick()
 
     expect(settings.state.fontSize).toBe('xl')
-    expect(document.documentElement.style.getPropertyValue('--app-font-size')).toBe('18px')
+    expect(document.documentElement.style.getPropertyValue('--app-font-size')).toBe('20px')
     expect(mockSetData).toHaveBeenCalledWith(
       'nebula_settings',
       expect.stringContaining('"fontSize":"xl"'),
@@ -109,6 +118,7 @@ describe('useSettingsStore', () => {
 
   it('applyToDOM imposta le CSS variable e le classi corrette', () => {
     applyToDOM({
+      accent: 'teal',
       fontSize: 'sm',
       fontFamily: 'mono',
       lineHeight: 'loose',
@@ -117,9 +127,23 @@ describe('useSettingsStore', () => {
     })
 
     const root = document.documentElement
-    expect(root.style.getPropertyValue('--app-font-size')).toBe('13px')
+    expect(root.style.getPropertyValue('--app-font-size')).toBe('15px')
     expect(root.style.getPropertyValue('--app-line-height')).toBe('2')
     expect(root.classList.contains('reduce-motion')).toBe(true)
     expect(root.classList.contains('high-contrast')).toBe(true)
+    expect(root.dataset.accent).toBe('teal')
+  })
+
+  it('applyToDOM rimuove data-accent per il blu di default', () => {
+    document.documentElement.dataset.accent = 'orange'
+    applyToDOM({
+      accent: 'blue',
+      fontSize: 'base',
+      fontFamily: 'system',
+      lineHeight: 'normal',
+      reducedMotion: false,
+      highContrast: false,
+    })
+    expect(document.documentElement.dataset.accent).toBeUndefined()
   })
 })

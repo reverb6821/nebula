@@ -7,23 +7,23 @@ import type { DockerContainer, DockerImage } from '@/types/docker'
 
 vi.mock('@neutralinojs/lib', () => ({
   storage: {
-    getData: vi.fn().mockRejectedValue(new Error('NE_ST_NOSTKEY')),
-    setData: vi.fn().mockResolvedValue(undefined),
+    getData: vi.fn<typeof import('@neutralinojs/lib')['storage']['getData']>().mockRejectedValue(new Error('NE_ST_NOSTKEY')),
+    setData: vi.fn<typeof import('@neutralinojs/lib')['storage']['setData']>().mockResolvedValue(undefined),
   },
 }))
 
 vi.mock('@/modules/docker/composables/useDockerApi', () => ({
-  pingDocker: vi.fn(),
-  fetchImages: vi.fn(),
-  fetchContainers: vi.fn(),
-  fetchStats: vi.fn(),
-  fetchLogs: vi.fn(),
-  startContainer: vi.fn(),
-  stopContainer: vi.fn(),
-  restartContainer: vi.fn(),
-  removeContainer: vi.fn(),
-  removeImage: vi.fn(),
-  pullImage: vi.fn(),
+  pingDocker: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['pingDocker']>(),
+  fetchImages: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['fetchImages']>(),
+  fetchContainers: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['fetchContainers']>(),
+  fetchStats: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['fetchStats']>(),
+  fetchLogs: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['fetchLogs']>(),
+  startContainer: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['startContainer']>(),
+  stopContainer: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['stopContainer']>(),
+  restartContainer: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['restartContainer']>(),
+  removeContainer: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['removeContainer']>(),
+  removeImage: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['removeImage']>(),
+  pullImage: vi.fn<typeof import('@/modules/docker/composables/useDockerApi')['pullImage']>(),
 }))
 
 import {
@@ -299,7 +299,7 @@ describe('useDockerStore', () => {
       mockPullImage.mockRejectedValue(new Error('pull failed'))
       const store = useDockerStore()
 
-      await expect(store.pull('bad:tag')).rejects.toThrow()
+      await expect(store.pull('bad:tag')).rejects.toThrow('pull failed')
       expect(store.pulling).toBe(false)
     })
   })

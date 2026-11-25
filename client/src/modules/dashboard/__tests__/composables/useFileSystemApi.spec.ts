@@ -3,7 +3,7 @@ import { runCmd } from '@/composables/useNeutralinoCmd'
 import { listFilesystems } from '../../composables/useFileSystemApi'
 
 vi.mock('@/composables/useNeutralinoCmd', () => ({
-  runCmd: vi.fn(),
+  runCmd: vi.fn<typeof import('@/composables/useNeutralinoCmd')['runCmd']>(),
 }))
 
 const mockedRunCmd = vi.mocked(runCmd)
@@ -45,9 +45,9 @@ describe('listFilesystems', () => {
     ])
   })
 
-  it('returns no entries when df fails or returns no output', async () => {
+  it('throws when df fails and returns no entries when output is empty', async () => {
     mockedRunCmd.mockResolvedValueOnce({ exitCode: 1, stderr: 'failed', stdout: '' })
-    await expect(listFilesystems()).resolves.toEqual([])
+    await expect(listFilesystems()).rejects.toThrow('Unable to read file systems')
 
     mockedRunCmd.mockResolvedValueOnce({ exitCode: 0, stderr: '', stdout: 'Filesystem Mounted on Type' })
     await expect(listFilesystems()).resolves.toEqual([])

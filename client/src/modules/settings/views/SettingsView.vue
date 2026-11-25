@@ -1,51 +1,71 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RotateCcw } from '@lucide/vue'
+import { ExternalLink } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/shared'
+import { usePageHeader } from '@/composables/usePageHeader'
 import { useSettingsStore } from '@/modules/settings/store'
 import SettingsLanguage from '../components/SettingsLanguage.vue'
 import SettingsAppearance from '../components/SettingsAppearance.vue'
-import { SharedButton } from '@/components/shared'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+import SettingsFont from '../components/SettingsFont.vue'
+import SettingsAccessibility from '../components/SettingsAccessibility.vue'
+import SettingsSection from '../components/SettingsSection.vue'
 
 const { t } = useI18n()
 const settings = useSettingsStore()
+const { setHeader, clearHeader } = usePageHeader()
+
+const appVersion = typeof window !== 'undefined' && window.NL_APPVERSION ? window.NL_APPVERSION : '0.0.1'
+const resetOpen = ref(false)
+
+// Link spostati qui dal vecchio footer dell'app.
+const links = [
+  { key: 'repository', href: 'https://codeberg.org/reverb6821/nebula-dock/src/branch/main' },
+  { key: 'mastodon', href: 'https://mastodon.uno/@reverb6821' },
+] as const
+
+onMounted(() => {
+  setHeader({
+    title: t('settings.title'),
+    subtitle: t('settings.subtitle'),
+    toolsComponent: null,
+  })
+})
+onUnmounted(clearHeader)
 </script>
 
 <template lang="pug">
-div(class="flex h-full flex-col overflow-y-auto")
-  div(class="w-full max-w-2xl px-2 py-3")
-    div(class="space-y-8")
-      SettingsLanguage
-      SettingsAppearance
-      //- Reset
-      div(class="flex justify-end border-t border-border pt-4")
-        AlertDialog
-          AlertDialogTrigger(as-child)
-            SharedButton(
-              variant="ghost"
-              size="sm"
-              class="gap-1.5 text-muted-foreground hover:text-foreground"
-            )
-              RotateCcw(class="h-3.5 w-3.5" aria-hidden="true")
-              | {{ t('settings.resetToDefaults') }}
-          AlertDialogContent
-            AlertDialogHeader
-              AlertDialogTitle {{ t('settings.resetConfirmTitle') }}
-              AlertDialogDescription {{ t('settings.resetConfirmDescription') }}
-            AlertDialogFooter
-              AlertDialogCancel {{ t('common.cancel') }}
-              AlertDialogAction(
-                class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                @click="settings.reset()"
-              ) {{ t('settings.resetToDefaults') }}
+div(class="mx-auto flex w-full max-w-[760px] flex-col gap-7 px-8 pt-4 pb-14")
+  SettingsLanguage
+  SettingsAppearance
+  SettingsFont
+  SettingsAccessibility
+
+  SettingsSection(:title="t('settings.sectionAbout')")
+    div(class="flex min-h-[60px] items-center gap-4 px-4 py-3")
+      span(class="flex-1") {{ t('settings.version') }}
+      span(class="font-mono text-group-foreground") Nebula Dock {{ appVersion }}
+    a(
+      v-for="link in links"
+      :key="link.key"
+      :href="link.href"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="flex min-h-[60px] items-center gap-4 px-4 py-3 hover:bg-white/3"
+    )
+      span(class="flex-1") {{ t(`footer.${link.key}`) }}
+      ExternalLink(class="size-4 text-muted-foreground" aria-hidden="true")
+
+  div(class="flex justify-end")
+    Button(variant="destructive-soft" @click="resetOpen = true") {{ t('settings.resetToDefaults') }}
+
+  ConfirmDialog(
+    v-model:open="resetOpen"
+    :title="t('settings.resetConfirmTitle')"
+    :description="t('settings.resetConfirmDescription')"
+    :confirm-label="t('settings.resetToDefaults')"
+    :cancel-label="t('common.cancel')"
+    @confirm="settings.reset()"
+  )
 </template>

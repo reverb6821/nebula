@@ -4,10 +4,9 @@ import type { ResourcesSnapshot, SensorsSnapshot } from '@/types/resources'
 import { useResourcesStore } from '../store'
 
 let resourceTick: (() => Promise<ResourcesSnapshot | null>) | undefined
-let sensorTick: (() => Promise<SensorsSnapshot>) | undefined
 
-const pause = vi.fn()
-const resume = vi.fn()
+const pause = vi.fn<() => void>()
+const resume = vi.fn<() => void>()
 
 vi.mock('@vueuse/core', () => ({
   useIntervalFn: (callback: () => Promise<void>) => {
@@ -17,11 +16,15 @@ vi.mock('@vueuse/core', () => ({
 }))
 
 vi.mock('../composables/useResourcesApi', () => ({
-  createResourcesSampler: vi.fn(() => vi.fn()),
+  createResourcesSampler: vi.fn<typeof import('../composables/useResourcesApi')['createResourcesSampler']>(
+    () => vi.fn<ReturnType<typeof import('../composables/useResourcesApi')['createResourcesSampler']>>(),
+  ),
 }))
 
 vi.mock('../composables/useSensorsApi', () => ({
-  createSensorsSampler: vi.fn(() => vi.fn()),
+  createSensorsSampler: vi.fn<typeof import('../composables/useSensorsApi')['createSensorsSampler']>(
+    () => vi.fn<ReturnType<typeof import('../composables/useSensorsApi')['createSensorsSampler']>>(),
+  ),
 }))
 
 const snapshot: ResourcesSnapshot = {
@@ -56,7 +59,6 @@ describe('useResourcesStore', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     resourceTick = undefined
-    sensorTick = undefined
   })
 
   it('stores resource history and runs sensors every third tick', async () => {

@@ -1,3 +1,4 @@
+import type { PullProgress } from '@/types/docker'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   pingDocker,
@@ -14,7 +15,7 @@ import {
 } from '../../composables/useDockerApi'
 
 vi.mock('@/composables/useNeutralinoCmd', () => ({
-  runCmd: vi.fn(),
+  runCmd: vi.fn<typeof import('@/composables/useNeutralinoCmd')['runCmd']>(),
 }))
 
 import { runCmd } from '../../../../composables/useNeutralinoCmd'
@@ -148,7 +149,7 @@ describe('removeImage', () => {
 describe('pullImage', () => {
   it('segnala connessione, poi ogni riga di output, poi il completamento', async () => {
     mockRunCmd.mockResolvedValue({ stdout: 'Pulling fs layer\nDownload complete', stderr: '', exitCode: 0 })
-    const onProgress = vi.fn()
+    const onProgress = vi.fn<(progress: PullProgress) => void>()
 
     await pullImage('nginx:latest', onProgress)
 
@@ -164,7 +165,7 @@ describe('pullImage', () => {
 
   it('in caso di errore segnala done:true con error e rilancia l\'eccezione', async () => {
     mockRunCmd.mockResolvedValue({ stdout: '', stderr: 'manifest not found', exitCode: 1 })
-    const onProgress = vi.fn()
+    const onProgress = vi.fn<(progress: PullProgress) => void>()
 
     await expect(pullImage('nope:latest', onProgress)).rejects.toThrow('manifest not found')
 

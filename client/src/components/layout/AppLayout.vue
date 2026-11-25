@@ -1,54 +1,59 @@
-<script lang="ts">
-export const description = "An inset sidebar with secondary navigation."
-export const iframeHeight = "800px"
-</script>
-
 <script setup lang="ts">
-import AppSidebar from "./AppSidebar.vue"
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { RefreshCw } from '@lucide/vue'
-import { SharedButton } from '@/components/shared'
-import { usePageHeader } from "@/composables/usePageHeader"
+import { onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import Footer from "./Footer.vue"
+import AppSidebar from './AppSidebar.vue'
+import PageHeader from './PageHeader.vue'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { usePageHeader } from '@/composables/usePageHeader'
+import { useAlertMonitorBackground } from '@/modules/alerts/composables/useAlertMonitor'
+import { useDockerStore } from '@/modules/docker/store'
+import { useIntervalFn } from '@vueuse/core'
 
-const { title, subtitle, toolsComponent, toolsProps, onRefresh, refreshLoading } = storeToRefs(usePageHeader())
+const header = usePageHeader()
+const { title, subtitle, titleComponent, titleProps, toolsComponent, toolsProps, onRefresh, refreshLoading } = storeToRefs(header)
+
+// Un solo monitor per tutta l'app: prima ogni vista (Dashboard, Alerts)
+// ne avviava uno proprio e lo fermava all'unmount, quindi badge sidebar,
+// banner e pagina Alerts potevano mostrare conteggi diversi.
+// Cadenza lenta in background, piena quando una vista mostra gli alert
+// (vedi useAlertMonitorViewer in Overview e Alerts).
+const alertMonitor = useAlertMonitorBackground()
+
+// Badge Docker in sidebar (running/totale): connessione all'avvio e
+// aggiornamento periodico dell'elenco container.
+const dockerStore = useDockerStore()
+const DOCKER_BADGE_REFRESH_MS = 60_000
+const dockerBadgeTimer = useIntervalFn(() => {
+  if (dockerStore.connected) void dockerStore.refresh()
+}, DOCKER_BADGE_REFRESH_MS, { immediate: false })
+
+onMounted(() => {
+  alertMonitor.start()
+  void dockerStore.connect()
+  dockerBadgeTimer.resume()
+})
+onUnmounted(() => {
+  alertMonitor.stop()
+  dockerBadgeTimer.pause()
+})
 </script>
 
 <template lang="pug">
-SidebarProvider(class="h-screen overflow-hidden")
-  AppSidebar
-  SidebarInset(class="flex h-screen flex-col overflow-hidden")
-    header(class="flex h-16 shrink-0 items-center gap-2 border-b border-border")
-
-      div(class="flex items-center gap-2 px-4")
-        SidebarTrigger(class="-ml-1" aria-label="Apri/chiudi barra laterale")
-        Separator(orientation="vertical" class="mr-2 data-[orientation=vertical]:h-4" aria-hidden="true")
-        div(class="flex flex-col justify-center leading-tight")
-          span(class="text-sm font-semibold tracking-tight text-foreground") {{ title }}
-          span(v-if="subtitle" class="text-xs text-muted-foreground") {{ subtitle }}
-
-      div(class="flex flex-1 items-center justify-end gap-2 px-4")
-        component(:is="toolsComponent" v-if="toolsComponent" v-bind="toolsProps")
-        SharedButton(
-          v-if="onRefresh"
-          variant="ghost"
-          size="icon"
-          :disabled="refreshLoading"
-          aria-label="Aggiorna"
-          class="h-8 w-8 text-muted-foreground hover:bg-accent hover:text-foreground"
-          @click="onRefresh()"
-        )
-          RefreshCw(class="h-3.5 w-3.5" :class="{ 'animate-spin': refreshLoading }" aria-hidden="true")
-
-    main(class="flex min-h-0 flex-1 flex-col p-4 pt-0")
-      ScrollArea(class="my-2 h-full")
+TooltipProvider(:delay-duration="300")
+  SidebarProvider(class="h-svh overflow-hidden bg-background")
+    AppSidebar
+    SidebarInset(class="flex h-svh min-w-0 flex-col overflow-hidden bg-background")
+      PageHeader(
+        :title="title"
+        :subtitle="subtitle"
+        :title-component="titleComponent"
+        :title-props="titleProps"
+        :tools-component="toolsComponent"
+        :tools-props="toolsProps"
+        :on-refresh="onRefresh"
+        :refresh-loading="refreshLoading"
+      )
+      main(class="min-h-0 flex-1 overflow-y-auto")
         RouterView
-    Footer
 </template>

@@ -32,6 +32,28 @@ export default defineConfigWithVueTs(
     files: ['src/**/__tests__/*'],
   },
 
+  {
+    // Componenti shadcn-vue generati dalla CLI: nomi a parola singola
+    // (Button, Card...) e `any` fanno parte del codice upstream.
+    name: 'app/shadcn-generated',
+    files: ['src/components/ui/**'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+
+  {
+    // I template sono in Pug, che il parser di ESLint non legge: le
+    // variabili usate solo nel template risulterebbero inutilizzate. Il
+    // controllo resta a vue-tsc (plugin Pug + noUnusedLocals/noUnusedParameters).
+    name: 'app/pug-templates',
+    files: ['**/*.vue'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   skipFormatting,
