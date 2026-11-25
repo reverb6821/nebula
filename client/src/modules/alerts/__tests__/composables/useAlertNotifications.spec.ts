@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AlertEvent, SourceHealth } from '@/types/alert'
 
 const neutralino = vi.hoisted(() => ({
-  showNotification: vi.fn(),
-  getPath: vi.fn(),
-  createDirectory: vi.fn(),
-  writeFile: vi.fn(),
+  showNotification: vi.fn<typeof import('@neutralinojs/lib')['os']['showNotification']>(),
+  getPath: vi.fn<typeof import('@neutralinojs/lib')['os']['getPath']>(),
+  createDirectory: vi.fn<typeof import('@neutralinojs/lib')['filesystem']['createDirectory']>(),
+  writeFile: vi.fn<typeof import('@neutralinojs/lib')['filesystem']['writeFile']>(),
 }))
 
 vi.mock('@neutralinojs/lib', () => ({

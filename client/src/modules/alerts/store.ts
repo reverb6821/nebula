@@ -55,6 +55,11 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   const filteredEvents = computed(() => events.value.filter((event) => matchesFilters(event, filters.value)))
   const triggeredEvents = computed(() => events.value.filter((event) => event.state === 'triggered'))
+  // Fonte unica per banner Overview, badge sidebar e card "Active" della
+  // pagina Alerts: eventi triggered, indipendenti dai filtri della pagina.
+  const activeAlertCount = computed(() => triggeredEvents.value.length)
+  const hasCriticalActive = computed(() => triggeredEvents.value.some((event) => event.severity === 'critical'))
+  const degradedSources = computed(() => sourceHealth.value.filter((source) => source.status !== 'healthy'))
   const activeEvents = computed(() => filteredEvents.value.filter((event) => event.state === 'triggered'))
   const acknowledgedEvents = computed(() => filteredEvents.value.filter((event) => event.state === 'acknowledged'))
   const resolvedEvents = computed(() => filteredEvents.value.filter((event) => event.state === 'resolved'))
@@ -175,6 +180,9 @@ export const useAlertsStore = defineStore('alerts', () => {
     events,
     filteredEvents,
     triggeredEvents,
+    activeAlertCount,
+    hasCriticalActive,
+    degradedSources,
     activeEvents,
     acknowledgedEvents,
     resolvedEvents,

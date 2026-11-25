@@ -6,18 +6,18 @@ import { listDaemons, startDaemon, stopDaemon } from '../composables/useDaemonAc
 
 vi.mock('@neutralinojs/lib', () => ({
   storage: {
-    getData: vi.fn().mockRejectedValue(new Error('storage unavailable')),
-    setData: vi.fn().mockResolvedValue(undefined),
+    getData: vi.fn<typeof import('@neutralinojs/lib')['storage']['getData']>().mockRejectedValue(new Error('storage unavailable')),
+    setData: vi.fn<typeof import('@neutralinojs/lib')['storage']['setData']>().mockResolvedValue(undefined),
   },
 }))
 
 vi.mock('../composables/useDaemonAction', () => ({
-  listDaemons: vi.fn(),
-  startDaemon: vi.fn(),
-  stopDaemon: vi.fn(),
-  enableDaemon: vi.fn(),
-  disableDaemon: vi.fn(),
-  restartDaemon: vi.fn(),
+  listDaemons: vi.fn<typeof import('../composables/useDaemonAction')['listDaemons']>(),
+  startDaemon: vi.fn<typeof import('../composables/useDaemonAction')['startDaemon']>(),
+  stopDaemon: vi.fn<typeof import('../composables/useDaemonAction')['stopDaemon']>(),
+  enableDaemon: vi.fn<typeof import('../composables/useDaemonAction')['enableDaemon']>(),
+  disableDaemon: vi.fn<typeof import('../composables/useDaemonAction')['disableDaemon']>(),
+  restartDaemon: vi.fn<typeof import('../composables/useDaemonAction')['restartDaemon']>(),
 }))
 
 const mockedListDaemons = vi.mocked(listDaemons)

@@ -115,6 +115,12 @@ export const useDockerStore = defineStore('docker', () => {
     () => (selectedContainerId.value ? (logs.value.get(selectedContainerId.value) ?? []) : []),
   )
 
+  // Errori di azioni avviate dalle viste (conferme, menu): passano da qui
+  // invece di scrivere error.value dall'esterno.
+  function setError(message: string | null) {
+    error.value = message
+  }
+
   // ─── Favorites ────────────────────────────────────────────────────────────
   function toggleFavorite(id: string) {
     const next = new Set(favorites.value)
@@ -245,7 +251,7 @@ export const useDockerStore = defineStore('docker', () => {
     runningCount, pullProgress, pulling,
     favorites, favoritesArray,
     viewMode,
-    connect, refresh,
+    setError, connect, refresh,
     start, stop, restart, remove,
     deleteImage, pull, selectContainer,
     toggleFavorite, isFavorite,

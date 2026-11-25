@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import type { Daemon } from '@/types/daemon'
 import type { Process } from '@/types/process'
 import type { FsEntry, ResourcesSnapshot, SensorsSnapshot } from '@/types/resources'
@@ -23,7 +23,10 @@ import { useProcessesStore } from '@/modules/process/store'
 import { useDaemonsStore } from '@/modules/daemons/store'
 import { notifyTriggeredAlert } from '@/modules/alerts/composables/useAlertNotifications'
 
-const POLL_INTERVAL_MS = 5_000
+// Cadenza piena quando una vista mostra gli alert (Overview, Alerts);
+// in background resta attiva solo per badge sidebar e notifiche.
+export const POLL_INTERVAL_MS = 5_000
+export const BACKGROUND_POLL_INTERVAL_MS = 60_000
 
 interface Collection<T> {
   value: T
@@ -150,9 +153,10 @@ export function useAlertMonitor() {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   let interval: ReturnType<typeof setInterval> | null = null
+  let intervalMs = POLL_INTERVAL_MS
   let generation = 0
 
-  async function collectSnapshot(now: number): Promise<{ snapshot: NormalizedSnapshot; health: SourceHealth[] }> {
+  async function collectSnapshot(now: number): Promise<{ snapshot: NormalizedSnapshot; health: SourceHealth[]; daemons: Collection<Daemon[] | null> }> {
     const [resources, sensors, filesystems, processes, daemons] = await Promise.all([
       isolate(() => resourcesStore.collectResourcesNow()),
       isolate(() => resourcesStore.collectSensorsNow()),
@@ -167,16 +171,26 @@ export function useAlertMonitor() {
     const degraded = (source: string, category: AlertCategory, error: unknown) =>
       health.push(sourceHealth(source, category, 'degraded', messageFor(error), now))
 
-    resources.error ? degraded('resources', 'resources', resources.error) : resources.value ? healthy('resources', 'resources') : degraded('resources', 'resources', 'Resource sample unavailable')
-    sensors.error
-      ? degraded('sensors', 'temperatures', sensors.error)
-      : sensors.value && Object.values(sensors.value).some((value) => value !== null)
-        ? healthy('sensors', 'temperatures')
-        : degraded('sensors', 'temperatures', 'Hardware sensors unavailable')
-    filesystems.error ? degraded('filesystem', 'storage', filesystems.error) : healthy('filesystem', 'storage')
-    processes.error ? degraded('processes', 'processes', processes.error) : healthy('processes', 'processes')
-    daemons.error ? degraded('daemons', 'services', daemons.error) : healthy('daemons', 'services')
-    degraded('network', 'network', 'Network error and connectivity metrics unavailable')
+    if (resources.error) degraded('resources', 'resources', resources.error)
+    else if (resources.value) healthy('resources', 'resources')
+    else degraded('resources', 'resources', 'Resource sample unavailable')
+
+    if (sensors.error) degraded('sensors', 'temperatures', sensors.error)
+    else if (sensors.value && Object.values(sensors.value).some((value) => value !== null)) healthy('sensors', 'temperatures')
+    else degraded('sensors', 'temperatures', 'Hardware sensors unavailable')
+
+    if (filesystems.error) degraded('filesystem', 'storage', filesystems.error)
+    else healthy('filesystem', 'storage')
+
+    if (processes.error) degraded('processes', 'processes', processes.error)
+    else healthy('processes', 'processes')
+
+    if (daemons.error) degraded('daemons', 'services', daemons.error)
+    else healthy('daemons', 'services')
+
+    // Nessuna sorgente di metriche di rete (errori interfaccia, link) e'
+    // ancora implementata: non la si registra come "degradata", altrimenti
+    // banner e card di stato resterebbero sempre accesi su un sistema sano.
 
     const resourceSnapshot = resources.value
     return {
@@ -190,6 +204,7 @@ export function useAlertMonitor() {
         network: normalizeNetwork(resourceSnapshot),
       },
       health,
+      daemons,
     }
   }
 
@@ -198,10 +213,13 @@ export function useAlertMonitor() {
     const now = Date.now()
     isLoading.value = true
     try {
-      const { snapshot, health } = await collectSnapshot(now)
+      const { snapshot, health, daemons } = await collectSnapshot(now)
       if (currentGeneration !== generation) return
 
       error.value = null
+      // L'elenco servizi e' gia' stato raccolto: lo si riusa per tenere
+      // aggiornati badge sidebar e lista "Needs attention".
+      if (daemons.value) daemonsStore.syncDaemons(daemons.value)
       health.forEach((record) => alertsStore.recordSourceHealth(record))
       for (const preset of ALERT_PRESETS) {
         for (const record of recordsFor(snapshot, preset.category)) {
@@ -233,7 +251,17 @@ export function useAlertMonitor() {
     isRunning.value = true
     generation++
     void pollNow()
-    interval = setInterval(() => { void pollNow() }, POLL_INTERVAL_MS)
+    interval = setInterval(() => { void pollNow() }, intervalMs)
+  }
+
+  // Cambia la cadenza senza perdere lo stato; se e' in esecuzione riavvia
+  // solo il timer (nessun poll extra).
+  function setPollInterval(ms: number) {
+    if (ms === intervalMs) return
+    intervalMs = ms
+    if (interval === null) return
+    clearInterval(interval)
+    interval = setInterval(() => { void pollNow() }, intervalMs)
   }
 
   function stop() {
@@ -245,5 +273,44 @@ export function useAlertMonitor() {
     generation++
   }
 
-  return { start, stop, isRunning, isLoading, error, pollNow }
+  return { start, stop, isRunning, isLoading, error, pollNow, setPollInterval }
+}
+
+// Istanza unica condivisa: avviata una volta da AppLayout e letta dalle
+// viste (stato di caricamento/errore) senza avviarne altre. Cosi' banner
+// Overview, badge sidebar e pagina Alerts leggono gli stessi eventi.
+let sharedMonitor: ReturnType<typeof useAlertMonitor> | null = null
+
+export function useSharedAlertMonitor() {
+  sharedMonitor ??= useAlertMonitor()
+  return sharedMonitor
+}
+
+// Viste che mostrano gli alert: finche' almeno una e' montata il monitor
+// condiviso gira a POLL_INTERVAL_MS, altrimenti a BACKGROUND_POLL_INTERVAL_MS.
+let alertViewers = 0
+
+function applyViewerCadence(monitor: ReturnType<typeof useAlertMonitor>) {
+  monitor.setPollInterval(alertViewers > 0 ? POLL_INTERVAL_MS : BACKGROUND_POLL_INTERVAL_MS)
+}
+
+export function useAlertMonitorViewer() {
+  const monitor = useSharedAlertMonitor()
+  onMounted(() => {
+    alertViewers += 1
+    applyViewerCadence(monitor)
+    // Dati freschi entrando nella vista, senza attendere il prossimo tick lento.
+    if (alertViewers === 1 && monitor.isRunning.value) void monitor.pollNow()
+  })
+  onUnmounted(() => {
+    alertViewers = Math.max(0, alertViewers - 1)
+    applyViewerCadence(monitor)
+  })
+  return monitor
+}
+
+export function useAlertMonitorBackground() {
+  const monitor = useSharedAlertMonitor()
+  applyViewerCadence(monitor)
+  return monitor
 }

@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   collectSensorsNow: vi.fn<() => Promise<SensorsSnapshot>>(),
   collectProcessesNow: vi.fn<() => Promise<Process[]>>(),
   collectDaemonsNow: vi.fn<() => Promise<Daemon[]>>(),
+  syncDaemons: vi.fn<(list: Daemon[]) => void>(),
   listFilesystems: vi.fn<() => Promise<FsEntry[]>>(),
   notifyTriggeredAlert: vi.fn<() => Promise<void>>(),
 }))
@@ -25,7 +26,7 @@ const notifyTriggeredAlert = mocks.notifyTriggeredAlert
 
 vi.mock('@/modules/dashboard/store', () => ({ useResourcesStore: () => ({ collectResourcesNow: mocks.collectResourcesNow, collectSensorsNow: mocks.collectSensorsNow }) }))
 vi.mock('@/modules/process/store', () => ({ useProcessesStore: () => ({ collectNow: mocks.collectProcessesNow }) }))
-vi.mock('@/modules/daemons/store', () => ({ useDaemonsStore: () => ({ collectNow: mocks.collectDaemonsNow }) }))
+vi.mock('@/modules/daemons/store', () => ({ useDaemonsStore: () => ({ collectNow: mocks.collectDaemonsNow, syncDaemons: mocks.syncDaemons }) }))
 vi.mock('@/modules/dashboard/composables/useFileSystemApi', () => ({ listFilesystems: mocks.listFilesystems }))
 vi.mock('@/modules/alerts/composables/useAlertNotifications', () => ({ notifyTriggeredAlert: mocks.notifyTriggeredAlert }))
 
@@ -120,5 +121,48 @@ describe('useAlertMonitor', () => {
 
     expect(monitor.isRunning.value).toBe(false)
     expect(useAlertsStore().sourceHealth).toEqual([])
+  })
+
+  it('does not report the unimplemented network source as degraded', async () => {
+    const monitor = useAlertMonitor()
+    await monitor.pollNow()
+
+    const alertsStore = useAlertsStore()
+    expect(alertsStore.sourceHealth.some((source) => source.source === 'network')).toBe(false)
+    expect(alertsStore.degradedSources).toEqual([])
+  })
+
+  it('syncs the collected service list into the daemons store', async () => {
+    const monitor = useAlertMonitor()
+    await monitor.pollNow()
+
+    expect(mocks.syncDaemons).toHaveBeenCalledWith([daemon])
+  })
+
+  it('does not sync services when the collector fails', async () => {
+    collectDaemonsNow.mockRejectedValue(new Error('systemctl unavailable'))
+    const monitor = useAlertMonitor()
+    await monitor.pollNow()
+
+    expect(mocks.syncDaemons).not.toHaveBeenCalled()
+  })
+
+  it('reschedules polling when the interval changes', async () => {
+    const monitor = useAlertMonitor()
+    monitor.start()
+    await vi.advanceTimersByTimeAsync(0)
+    collectResourcesNow.mockClear()
+
+    monitor.setPollInterval(60_000)
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(collectResourcesNow).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(55_000)
+    expect(collectResourcesNow).toHaveBeenCalledTimes(1)
+
+    monitor.setPollInterval(5_000)
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(collectResourcesNow).toHaveBeenCalledTimes(2)
+    monitor.stop()
   })
 })

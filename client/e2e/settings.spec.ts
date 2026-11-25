@@ -3,28 +3,36 @@ import { resetBrowserState } from './helpers'
 
 test.beforeEach(async ({ page }) => {
   await resetBrowserState(page)
-  await page.goto('/#/settings')
+  await page.goto('/#/preferences')
 })
 
-test('renders language and appearance settings', async ({ page }) => {
-  await expect(page.getByRole('heading', { name: 'Language' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Appearance' })).toBeVisible()
-  await expect(page.getByRole('combobox', { name: 'Language' })).toBeVisible()
+test('renders the preference groups', async ({ page }) => {
+  for (const group of ['Language', 'Appearance', 'Font', 'Accessibility', 'About']) {
+    await expect(page.getByRole('heading', { name: group, exact: true })).toBeVisible()
+  }
+  await expect(page.getByRole('combobox', { name: 'Interface language' })).toBeVisible()
 })
 
 test('changes the application language', async ({ page }) => {
-  await page.getByRole('combobox', { name: 'Language' }).click()
+  await page.getByRole('combobox', { name: 'Interface language' }).click()
   await page.getByRole('option', { name: /Italiano/ }).click()
 
-  await expect(page.getByText('Impostazioni')).toBeVisible()
-  await expect(page.getByText('Aspetto')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Aspetto' })).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'it-IT')
 })
 
+test('applies the accent color to the document', async ({ page }) => {
+  await page.getByRole('radio', { name: 'Orange' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-accent', 'orange')
+
+  await page.getByRole('radio', { name: 'Blue' }).click()
+  await expect(page.locator('html')).not.toHaveAttribute('data-accent', /.+/)
+})
+
 test('changes appearance preferences and resets them after confirmation', async ({ page }) => {
-  const largeFont = page.getByRole('radio', { name: 'Large', exact: true })
-  await largeFont.click()
-  await expect(largeFont).toHaveAttribute('aria-checked', 'true')
+  const largeText = page.getByRole('radio', { name: 'Large', exact: true })
+  await largeText.click()
+  await expect(largeText).toHaveAttribute('aria-checked', 'true')
 
   const reducedMotion = page.getByRole('switch', { name: 'Reduce motion' })
   await reducedMotion.click()
@@ -34,6 +42,6 @@ test('changes appearance preferences and resets them after confirmation', async 
   await expect(page.getByRole('alertdialog')).toBeVisible()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Reset to defaults' }).click()
 
-  await expect(largeFont).toHaveAttribute('aria-checked', 'false')
+  await expect(largeText).toHaveAttribute('aria-checked', 'false')
   await expect(reducedMotion).toHaveAttribute('aria-checked', 'false')
 })

@@ -5,10 +5,12 @@ import { storage } from '@neutralinojs/lib'
 const STORAGE_KEY = 'nebula_settings'
 
 export type FontSize   = 'sm' | 'base' | 'lg' | 'xl'
-export type FontFamily = 'system' | 'inter' | 'mono' | 'dyslexic'
+export type FontFamily = 'system' | 'inter' | 'mono'
 export type LineHeight = 'normal' | 'relaxed' | 'loose'
+export type AccentColor = 'blue' | 'teal' | 'purple' | 'orange' | 'slate'
 
 interface SettingsState {
+  accent:        AccentColor
   fontSize:      FontSize
   fontFamily:    FontFamily
   lineHeight:    LineHeight
@@ -17,6 +19,7 @@ interface SettingsState {
 }
 
 const defaults: SettingsState = {
+  accent:        'blue',
   fontSize:      'base',
   fontFamily:    'system',
   lineHeight:    'normal',
@@ -25,17 +28,18 @@ const defaults: SettingsState = {
 }
 
 const fontFamilyMap: Record<FontFamily, string> = {
-  system:   'system-ui, -apple-system, sans-serif',
-  inter:    '"Inter", system-ui, sans-serif',
-  mono:     '"JetBrains Mono", "Fira Code", monospace',
-  dyslexic: '"OpenDyslexic", "OpenDyslexic Regular", system-ui, sans-serif',
+  system:   'var(--font-sans)',
+  inter:    '"Inter Variable", "Inter", system-ui, sans-serif',
+  mono:     'var(--font-mono)',
 }
 
+// Dimensione della root: le utility Tailwind sono in rem, quindi 16px
+// e' la scala del design (body text-sm = 14px). Le altre scalano tutto.
 const fontSizeMap: Record<FontSize, string> = {
-  sm:   '13px',
-  base: '14px',
-  lg:   '16px',
-  xl:   '18px',
+  sm:   '15px',
+  base: '16px',
+  lg:   '18px',
+  xl:   '20px',
 }
 
 const lineHeightMap: Record<LineHeight, string> = {
@@ -51,7 +55,11 @@ const lineHeightMap: Record<LineHeight, string> = {
 async function load(): Promise<SettingsState> {
   try {
     const raw = await storage.getData(STORAGE_KEY)
-    return raw ? { ...defaults, ...JSON.parse(raw) } : { ...defaults }
+    if (!raw) return { ...defaults }
+    const saved = { ...defaults, ...JSON.parse(raw) } as SettingsState
+    // Valori non piu' supportati (es. il vecchio font 'dyslexic') tornano al default.
+    if (!(saved.fontFamily in fontFamilyMap)) saved.fontFamily = defaults.fontFamily
+    return saved
   } catch {
     // NE_ST_NOSTKEY: chiave non ancora scritta (prima esecuzione)
     return { ...defaults }
@@ -66,6 +74,10 @@ export function applyToDOM(state: SettingsState) {
   root.style.setProperty('--app-line-height', lineHeightMap[state.lineHeight])
   root.classList.toggle('reduce-motion', state.reducedMotion)
   root.classList.toggle('high-contrast', state.highContrast)
+  // Accento: il blu GNOME e' il default di main.css, gli altri si
+  // attivano con [data-accent] (vedi design/nebula-handoff/theme.css).
+  if (state.accent && state.accent !== 'blue') root.dataset.accent = state.accent
+  else delete root.dataset.accent
 }
 
 export const useSettingsStore = defineStore('settings', () => {

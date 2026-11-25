@@ -1,78 +1,119 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Download, ExternalLink, ShieldCheck, Siren } from '@lucide/vue'
-import { SharedButton, SharedEmpty, SharedPanel, SharedStatusBadge } from '@/components/shared'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Download } from '@lucide/vue'
+import { Button } from '@/components/ui/button'
+import { StatusBadge } from '@/components/shared'
+import type { StatusBadgeTone } from '@/components/shared/StatusBadge.vue'
 import type { AlertEvent } from '@/types/alert'
 import { ALERT_PRESETS } from '@/modules/alerts/utils/alertPresets'
 
+// Dettaglio alert (source/Alerts.dc.html): badge stato e sorgente, titolo
+// 20px, risorsa in accent mono, tabella proprieta', timeline, azioni.
 const props = defineProps<{
   event?: AlertEvent | null
+  restartPending?: boolean
 }>()
+
 const emit = defineEmits<{
   acknowledge: [event: AlertEvent]
   export: [event: AlertEvent]
+  restartUnit: [event: AlertEvent]
 }>()
+
 const { t } = useI18n()
 
-function stateKey(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}
 const preset = computed(() => props.event ? ALERT_PRESETS.find((item) => item.key === props.event?.presetKey) : undefined)
+const title = computed(() => preset.value ? t(`alerts.messages.${preset.value.messageKey}`) : t('alerts.unknownAlert'))
 const canAcknowledge = computed(() => props.event?.state === 'triggered')
+const isService = computed(() => props.event?.category === 'services')
+const occurrences = computed(() => props.event?.transitions.filter((tr) => tr.state === 'triggered').length ?? 0)
+
+const stateTone = computed<StatusBadgeTone>(() => {
+  const state = props.event?.state
+  if (state === 'resolved') return 'resolved'
+  if (state === 'acknowledged') return 'acknowledged'
+  return 'triggered'
+})
+
 function stateLabel(state: AlertEvent['state']) {
-  return t(`alerts.state${stateKey(state)}`)
+  return t(`alerts.state${state.charAt(0).toUpperCase()}${state.slice(1)}`)
 }
+
+function dotClass(state: AlertEvent['state']) {
+  if (state === 'resolved') return 'bg-success'
+  if (state === 'acknowledged') return 'bg-warning'
+  return 'bg-[#ff7b63]'
+}
+
 function formatDate(timestamp: number) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(timestamp)
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'short' }).format(timestamp)
+}
+
+function formatTime(timestamp: number) {
+  return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(timestamp)
 }
 </script>
 
 <template lang="pug">
-SharedPanel(v-if="event" class="flex h-full flex-col")
-  template(#header)
-    div(class="flex min-w-0 items-center gap-3")
-      div(class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-destructive/25 bg-destructive/10 text-destructive" aria-hidden="true")
-        Siren(class="h-4 w-4")
-      div(class="min-w-0")
-        h2(class="truncate font-heading text-sm font-semibold uppercase tracking-wide text-foreground") {{ t('alerts.detailTitle') }}
-        p(class="cyber-label mt-1 truncate") {{ event.resourceKey }}
-    SharedStatusBadge(:label="stateLabel(event.state)" :tone="event.severity === 'critical' ? 'destructive' : event.severity === 'warning' ? 'warning' : 'primary'")
-  ScrollArea(class="flex-1")
-    div(class="space-y-5 p-4")
-      div
-        p(class="text-base font-medium leading-relaxed text-foreground") {{ preset ? t(`alerts.messages.${preset.messageKey}`) : t('alerts.unknownAlert') }}
-        p(class="mt-2 text-sm text-muted-foreground") {{ t('alerts.observedValue', { value: event.observedValue ?? t('alerts.notAvailable'), threshold: event.threshold }) }}
-      dl(class="grid gap-3 text-sm sm:grid-cols-2")
-        div(class="rounded-md border border-border/70 bg-background/35 p-3")
-          dt(class="cyber-label") {{ t('alerts.firstDetected') }}
-          dd(class="mt-1 font-mono text-xs text-foreground") {{ formatDate(event.firstDetectedAt) }}
-        div(class="rounded-md border border-border/70 bg-background/35 p-3")
-          dt(class="cyber-label") {{ t('alerts.lastUpdated') }}
-          dd(class="mt-1 font-mono text-xs text-foreground") {{ formatDate(event.lastUpdatedAt) }}
-      div
-        h3(class="cyber-label mb-2") {{ t('alerts.timeline') }}
-        ol(class="space-y-2 border-l border-primary/20 pl-4")
-          li(v-for="transition in event.transitions" :key="`${transition.state}-${transition.at}`" class="relative")
-            span(class="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-primary" aria-hidden="true")
-            p(class="text-xs text-foreground") {{ stateLabel(transition.state) }}
-            p(class="font-mono text-[11px] text-muted-foreground") {{ formatDate(transition.at) }}
-  div(class="flex flex-wrap gap-2 border-t border-border/70 p-4")
-    SharedButton(
-      variant="outline"
-      size="sm"
-      :disabled="!canAcknowledge"
-      :aria-label="t('alerts.acknowledge')"
-      @click="emit('acknowledge', event)"
-    )
-      ShieldCheck(class="h-3.5 w-3.5" aria-hidden="true")
-      | {{ t('alerts.acknowledge') }}
-    SharedButton(variant="ghost" size="sm" @click="emit('export', event)")
-      Download(class="h-3.5 w-3.5" aria-hidden="true")
-      | {{ t('alerts.export') }}
-    span(v-if="event.resolvedAt" class="ml-auto flex items-center gap-1 font-mono text-[11px] text-success")
-      ExternalLink(class="h-3 w-3" aria-hidden="true")
-      | {{ t('alerts.resolvedAt', { value: formatDate(event.resolvedAt) }) }}
-SharedEmpty(v-else :icon="Siren" :title="t('alerts.detailEmptyTitle')" :description="t('alerts.detailEmptyDescription')")
+section(
+  :aria-label="t('alerts.detailTitle')"
+  class="flex min-w-0 flex-[1.4_1_440px] flex-col gap-5 rounded-lg border border-border bg-card px-6 py-[22px]"
+)
+  template(v-if="event")
+    div(class="flex flex-col gap-2")
+      span(class="flex flex-wrap gap-2")
+        StatusBadge(:tone="stateTone" :label="stateLabel(event.state)" class="px-[9px] py-[3px]")
+        StatusBadge(tone="inactive" :label="t('alerts.sourceLabel', { name: t(`alerts.category.${event.category}`) })" class="px-[9px] py-[3px] text-group-foreground")
+      h2(class="text-xl font-bold") {{ title }}
+      span(class="font-mono text-sm break-all text-primary-text") {{ event.resourceKey }}{{ isService ? '.service' : '' }}
+
+    dl(class="overflow-hidden rounded-[10px] bg-white/3 [&>div+div]:border-t [&>div+div]:border-border")
+      div(class="flex justify-between gap-3 px-4 py-3")
+        dt(class="text-muted-foreground") {{ t('alerts.firstDetected') }}
+        dd(class="font-mono") {{ formatDate(event.firstDetectedAt) }}
+      div(class="flex justify-between gap-3 px-4 py-3")
+        dt(class="text-muted-foreground") {{ t('alerts.lastUpdated') }}
+        dd(class="font-mono") {{ formatDate(event.lastUpdatedAt) }}
+      div(class="flex justify-between gap-3 px-4 py-3")
+        dt(class="text-muted-foreground") {{ t('alerts.observed') }}
+        dd(class="font-mono" :class="event.state === 'triggered' ? 'text-destructive-text' : undefined")
+          | {{ event.observedValue ?? t('alerts.notAvailable') }} / {{ event.threshold }}
+      div(class="flex justify-between gap-3 px-4 py-3")
+        dt(class="text-muted-foreground") {{ t('alerts.occurrences') }}
+        dd(class="font-mono") {{ occurrences }}
+
+    div(class="flex flex-col gap-3")
+      h3(class="text-sm font-bold text-group-foreground") {{ t('alerts.timeline') }}
+      ol(class="flex flex-col gap-3")
+        li(
+          v-for="transition in event.transitions"
+          :key="`${transition.state}-${transition.at}`"
+          class="flex gap-3.5"
+        )
+          span(class="mt-1 size-2.5 shrink-0 rounded-full" :class="dotClass(transition.state)" aria-hidden="true")
+          span(class="flex flex-col gap-0.5")
+            span(class="font-semibold") {{ t('alerts.timelineEntry', { state: stateLabel(transition.state) }) }}
+            span(class="font-mono text-xs text-muted-foreground")
+              | {{ formatTime(transition.at) }}
+              template(v-if="transition.observedValue !== null")  · {{ t('alerts.observedShort', { value: transition.observedValue }) }}
+
+    div(class="flex flex-wrap gap-2 border-t border-border pt-4")
+      Button(:disabled="!canAcknowledge" @click="emit('acknowledge', event)") {{ t('alerts.acknowledge') }}
+      Button(
+        v-if="isService"
+        variant="secondary"
+        :disabled="restartPending"
+        @click="emit('restartUnit', event)"
+      ) {{ t('alerts.restartUnit') }}
+      Button(v-if="isService" variant="secondary" as-child)
+        RouterLink(to="/services") {{ t('alerts.openInServices') }}
+      div(class="flex-1")
+      Button(variant="ghost" class="text-group-foreground" @click="emit('export', event)")
+        Download(class="size-4" aria-hidden="true")
+        | {{ t('alerts.export') }}
+
+  div(v-else class="flex flex-1 flex-col items-center justify-center gap-1 py-10 text-center")
+    span(class="font-semibold") {{ t('alerts.detailEmptyTitle') }}
+    span(class="text-13 text-muted-foreground") {{ t('alerts.detailEmptyDescription') }}
 </template>

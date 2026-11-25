@@ -2,9 +2,19 @@
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "exclude": ["src/**/__tests__/*"],
+  "vueCompilerOptions": {
+    // I template sono in Pug: senza il plugin vue-tsc non li analizza.
+    "plugins": ["@vue/language-plugin-pug"]
+  },
   "compilerOptions": {
     // Extra safety for array and object lookups, but may have false positives.
     "noUncheckedIndexedAccess": true,
+
+    // ESLint non legge i template Pug: le variabili usate solo nel template
+    // sembrano inutilizzate. Il controllo lo fa vue-tsc (con il plugin Pug),
+    // che vede anche il template.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
 
     // Path mapping for cleaner imports.
     "paths": {

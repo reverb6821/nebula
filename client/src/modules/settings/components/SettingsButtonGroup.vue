@@ -1,6 +1,5 @@
 <script setup lang="ts" generic="T extends string, O extends { value: T; label: string }">
 import { cn } from '@/lib/utils'
-import { SharedButton } from '@/components/shared'
 
 defineProps<{
   options: O[]
@@ -28,17 +27,16 @@ function moveSelection(event: KeyboardEvent, currentValue: T, options: O[]) {
 div(
   role="radiogroup"
   :aria-labelledby="ariaLabelledby"
-  :class="cn('flex w-full flex-wrap gap-1.5 sm:w-auto', vertical && 'flex-col flex-nowrap')"
+  :class="cn('flex flex-wrap gap-0.5 rounded-[10px] bg-white/5 p-[3px]', vertical && 'flex-col flex-nowrap')"
 )
-  SharedButton(
+  button(
     v-for="opt in options"
     :key="opt.value"
     type="button"
-    variant="outline"
     role="radio"
     :aria-checked="modelValue === opt.value"
     :tabindex="modelValue === opt.value ? 0 : -1"
-    :class="cn('min-w-0 flex-1 border px-3 py-1.5 text-left text-xs transition-colors rounded-md active:scale-[0.98] sm:flex-none', modelValue === opt.value ? 'border-primary/40 bg-primary/10 text-foreground shadow-cyber-signal' : 'border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground')"
+    :class="cn('min-h-9 rounded-[7px] px-3.5 text-13 font-semibold transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', modelValue === opt.value ? 'bg-white/15 text-white' : 'text-group-foreground hover:bg-white/6')"
     @click="emit('update:modelValue', opt.value)"
     @keydown="moveSelection($event, modelValue, options)"
   )

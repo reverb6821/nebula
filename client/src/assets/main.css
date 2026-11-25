@@ -1,241 +1,213 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* Display font per H1 / numeri d'impatto (DESIGN.md: "Tipografia
-   rovinata/gotica"). Rubik Distressed è l'approssimazione reale più
-   vicina disponibile su Google Fonts: non esiste un font letterale
-   chiamato "Gothic Display", quindi questo è un mapping esplicito,
-   non un nome inventato. Usare solo per H1 e stat di grande formato,
-   mai per il corpo del testo (vedi DESIGN.md "Cose da evitare"). */
-@import url('https://fonts.googleapis.com/css2?family=Rubik+Distressed&display=swap');
+/*
+ * Nebula - tema "Graphite Adwaita" (Tailwind v4 + shadcn-vue).
+ * Sorgente: design/nebula-handoff/theme.css. App dark-first: <html class="dark">.
+ * Font serviti in locale via @fontsource (l'app deve funzionare offline).
+ */
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
 
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@font-face {
-  font-family: 'OpenDyslexic';
-  src: url('/fonts/OpenDyslexic-Regular.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'OpenDyslexic';
-  src: url('/fonts/OpenDyslexic-Bold.otf') format('opentype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
 @custom-variant dark (&:is(.dark *));
 
+:root,
+.dark {
+  /* superfici */
+  --background: #1e1e21;            /* finestra */
+  --foreground: #ffffff;
+  --card: #2b2b30;                  /* card / liste boxed */
+  --card-foreground: #ffffff;
+  --popover: #2b2b30;
+  --popover-foreground: #ffffff;
+  --muted: #303035;                 /* barre azioni, footer di card */
+  --muted-foreground: #a9a9ae;      /* testo secondario: 4.5:1 su --card */
+  --secondary: rgb(255 255 255 / 0.10);  /* pulsanti "flat" GNOME */
+  --secondary-foreground: #ffffff;
+  --group-foreground: #c3c3c8;      /* titoli di gruppo */
+  --accent: rgb(255 255 255 / 0.08);     /* hover righe / ghost */
+  --accent-foreground: #ffffff;
+  --border: rgb(255 255 255 / 0.06);
+  --input: rgb(255 255 255 / 0.07);      /* fondo di input/search */
+  --ring: #99c1f1;
+
+  /* accento (default: blu GNOME, sostituibile a runtime) */
+  --primary: #1c71d8;
+  --primary-foreground: #ffffff;
+  --primary-soft: rgb(28 113 216 / 0.32); /* voce sidebar attiva, chip selezionati */
+  --primary-text: #99c1f1;                /* accento usato come testo/linee grafici */
+
+  /* stati */
+  --destructive: #c01c28;
+  --destructive-foreground: #ffffff;
+  --destructive-text: #ff938c;
+  --destructive-surface: #3a2226;
+  --success: #8ff0a4;
+  --success-foreground: #0b2a14;
+  --warning: #f8e45c;
+  --warning-foreground: #2a2405;
+  --warning-surface: #3d3510;
+  --warning-text: #fbf0a6;
+  --caution: #ffbe6f;               /* valori alti, sorgenti degradate */
+  --idle: #77767b;                  /* servizi/container fermi */
+  --chart-1: var(--primary-text);
+  --chart-2: #ffa348;               /* seconda serie (upload, write) */
+  --chart-3: var(--success);
+  --chart-4: var(--caution);
+  --chart-5: var(--destructive-text);
+
+  /* sidebar shadcn-vue */
+  --sidebar: #2a2a2e;
+  --sidebar-foreground: #e4e4e7;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(255 255 255 / 0.06);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(0 0 0 / 0.3);
+  --sidebar-ring: var(--ring);
+
+  --radius: 0.75rem;                /* 12px card; md=10, sm=8 */
+
+  /* preferenze utente (scritte da modules/settings/store.ts) */
+  --app-font-family: var(--font-sans);
+  --app-font-size: 16px;
+  --app-line-height: 1.5;
+}
+
+/* Accenti alternativi (Preferences > Accent color): data-accent su <html> */
+[data-accent="teal"]   { --primary: #2a7a6f; --primary-soft: rgb(42 122 111 / .32); --primary-text: #9cc4be; }
+[data-accent="purple"] { --primary: #813d9c; --primary-soft: rgb(129 61 156 / .32); --primary-text: #c8a7d5; }
+[data-accent="orange"] { --primary: #c64600; --primary-soft: rgb(198 70 0 / .32);   --primary-text: #e8b08c; }
+[data-accent="slate"]  { --primary: #5e5c64; --primary-soft: rgb(94 92 100 / .32);  --primary-text: #b9b8bd; }
+
+/* High contrast (DESIGN.md 6) */
+html.high-contrast {
+  --border: rgb(255 255 255 / 0.20);
+  --muted-foreground: #c3c3c8;
+  --sidebar-border: rgb(255 255 255 / 0.20);
+}
+
 @theme inline {
-  --font-heading: 'Rubik Distressed', var(--font-sans);
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
+  --font-sans: "Inter Variable", "Inter", "Adwaita Sans", "Cantarell", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", "Adwaita Mono", ui-monospace, monospace;
+
+  /* Scala tipografica del design in rem (16px = Text size "Default"),
+     cosi' anche i valori non standard seguono la preferenza utente. */
+  --text-3xs: 0.5625rem;   /* 9px  */
+  --text-2xs: 0.6875rem;   /* 11px */
+  --text-13: 0.8125rem;    /* 13px */
+  --text-15: 0.9375rem;    /* 15px */
+  --text-stat: 1.875rem;   /* 30px */
+  --text-kpi: 2.125rem;    /* 34px */
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-text: var(--primary-text);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-group-foreground: var(--group-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-text: var(--destructive-text);
+  --color-destructive-surface: var(--destructive-surface);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --shadow-cyber-panel: 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent);
-  --shadow-cyber-signal: 0 0 18px color-mix(in srgb, var(--primary) 22%, transparent);
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-}
-
-:root {
-  --radius: 16px;
-
-  --background: #070B12;
-  --foreground: #D7E2EC;
-  --card: #0E1622;
-  --card-foreground: #D7E2EC;
-  --popover: #121D2B;
-  --popover-foreground: #D7E2EC;
-  --primary: #28D7E5;
-  --primary-foreground: #041117;
-  --secondary: #5C5BE8;
-  --secondary-foreground: #F1F3FF;
-  --muted: #101A27;
-  --muted-foreground: #8EA4B8;
-  --accent: #142B3A;
-  --accent-foreground: #D7E2EC;
-  --destructive: #F05B78;
-  --destructive-foreground: #19060D;
-  --success: #3FE0A0;
-  --success-foreground: #041A14;
-  --warning: #F0B35A;
-  --warning-foreground: #211304;
-  --border: #203449;
-  --input: #172638;
-  --ring: #28D7E5;
-  --chart-1: #28D7E5;
-  --chart-2: #8B7CFF;
-  --chart-3: #3FE0A0;
-  --chart-4: #F0B35A;
-  --chart-5: #F05B78;
-
-  --sidebar: #070B12;
-  --sidebar-foreground: #D7E2EC;
-  --sidebar-primary: #28D7E5;
-  --sidebar-primary-foreground: #041117;
-  --sidebar-accent: #101A27;
-  --sidebar-accent-foreground: #D7E2EC;
-  --sidebar-border: #203449;
-  --sidebar-ring: #28D7E5;
-}
-
-.dark {
-  --background: #070B12;
-  --foreground: #D7E2EC;
-  --card: #0E1622;
-  --card-foreground: #D7E2EC;
-  --popover: #121D2B;
-  --popover-foreground: #D7E2EC;
-  --primary: #28D7E5;
-  --primary-foreground: #041117;
-  --secondary: #5C5BE8;
-  --secondary-foreground: #F1F3FF;
-  --muted: #101A27;
-  --muted-foreground: #8EA4B8;
-  --accent: #142B3A;
-  --accent-foreground: #D7E2EC;
-  --destructive: #F05B78;
-  --destructive-foreground: #19060D;
-  --success: #3FE0A0;
-  --success-foreground: #041A14;
-  --warning: #F0B35A;
-  --warning-foreground: #211304;
-  --border: #203449;
-  --input: #172638;
-  --ring: #28D7E5;
-  --chart-1: #28D7E5;
-  --chart-2: #8B7CFF;
-  --chart-3: #3FE0A0;
-  --chart-4: #F0B35A;
-  --chart-5: #F05B78;
-
-  --sidebar: #070B12;
-  --sidebar-foreground: #D7E2EC;
-  --sidebar-primary: #28D7E5;
-  --sidebar-primary-foreground: #041117;
-  --sidebar-accent: #101A27;
-  --sidebar-accent-foreground: #D7E2EC;
-  --sidebar-border: #203449;
-  --sidebar-ring: #28D7E5;
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-text: var(--warning-text);
+  --color-caution: var(--caution);
+  --color-idle: var(--idle);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-heading: var(--font-sans);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  * { @apply border-border outline-ring/50; }
+
+  html {
+    font-size: var(--app-font-size);
   }
+
+  html,
+  body,
+  #app {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-sm antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+    Font e interlinea scelti dall'utente: applicati a #app ed ereditati.
+    Le classi Tailwind text-* portano un proprio line-height, quindi
+    l'interlinea va forzata sui discendenti; il font invece si eredita,
+    cosi' .font-mono (PID, byte, unit) resta monospace.
+  */
+  #app {
+    font-family: var(--app-font-family);
+  }
+
+  #app,
+  #app * {
+    line-height: var(--app-line-height) !important;
+  }
+
+  /* I controlli form non ereditano il font per default */
+  #app :where(button, input, select, textarea) {
+    font-family: inherit;
   }
 }
 
-@layer components {
-  .cyber-panel {
-    @apply border border-border/90 bg-card;
-    box-shadow: var(--shadow-cyber-panel);
-  }
-
-  .cyber-signal {
-    @apply border border-primary/60;
-    box-shadow: var(--shadow-cyber-signal);
-  }
-
-  .cyber-label {
-    @apply font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground;
-  }
-}
-
-html, body, #app, #app * {
-  font-family: var(--app-font-family) !important;
-  overflow: hidden;
-}
-
-html {
-  font-size: var(--app-font-size);
-}
-
-/*
-  Prima: `line-height: var(--app-line-height)` stava solo su <html>,
-  senza !important. Quasi ogni elemento di testo dell'app usa classi
-  Tailwind (text-sm, text-xs, text-[11px]…) che portano già un proprio
-  line-height esplicito insieme al font-size — un valore impostato
-  DIRETTAMENTE su un elemento non eredita nulla dall'antenato, quindi
-  vinceva sempre quello di Tailwind. Risultato: cambiare l'interlinea
-  nelle impostazioni non aveva alcun effetto visibile. Stesso
-  trattamento già riservato a font-family qui sopra: forzare con
-  !important su #app * fa vincere il valore scelto dall'utente.
-*/
-#app, #app * {
-  line-height: var(--app-line-height) !important;
-}
-
-/* Reduced motion */
+/* Reduced motion (preferenza utente o di sistema) */
 html.reduce-motion *,
 html.reduce-motion *::before,
-html.reduce-motion *::after,
-html.reduce-motion .cyber-panel,
-html.reduce-motion .cyber-signal,
-html.reduce-motion .cyber-label {
+html.reduce-motion *::after {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
 
-/* High contrast */
-html.high-contrast * {
-  border-color: rgba(255, 255, 255, 0.25) !important;
-}
-
-html.high-contrast .cyber-panel,
-html.high-contrast .cyber-signal,
-html.high-contrast .cyber-label {
-  border-color: rgba(255, 255, 255, 0.35) !important;
-  color: #e4e4e7 !important;
-  box-shadow: none !important;
-}
-
-html.high-contrast p,
-html.high-contrast span,
-html.high-contrast li,
-html.high-contrast label {
-  color: #e4e4e7 !important;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

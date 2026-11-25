@@ -1,93 +1,74 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { AlertCircle, Bell, CheckCircle2, ChevronRight, Clock3 } from '@lucide/vue'
-import { SharedAlert, SharedButton, SharedEmpty, SharedPanel, SharedStatusBadge } from '@/components/shared'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Skeleton } from '@/components/ui/skeleton'
+import { CircleAlert } from '@lucide/vue'
 import type { AlertEvent } from '@/types/alert'
 import { ALERT_PRESETS } from '@/modules/alerts/utils/alertPresets'
 
-withDefaults(defineProps<{
+// Lista master (source/Alerts.dc.html, classe .arow): righe button,
+// selezionata bg-primary/25.
+defineProps<{
   events: AlertEvent[]
+  selectedId?: string | null
   loading?: boolean
   error?: string | null
-  selectedId?: string | null
-}>(), {
-  loading: false,
-  error: null,
-  selectedId: null,
-})
+}>()
 
 const emit = defineEmits<{ select: [event: AlertEvent] }>()
+
 const { t } = useI18n()
 
-function stateKey(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-function presetFor(event: AlertEvent) {
-  return ALERT_PRESETS.find((preset) => preset.key === event.presetKey)
-}
-function labelFor(event: AlertEvent) {
-  const preset = presetFor(event)
+function title(event: AlertEvent) {
+  const preset = ALERT_PRESETS.find((item) => item.key === event.presetKey)
   return preset ? t(`alerts.messages.${preset.messageKey}`) : t('alerts.unknownAlert')
 }
-function toneFor(severity: AlertEvent['severity']) {
-  return severity === 'critical' ? 'destructive' : severity === 'warning' ? 'warning' : 'primary'
-}
-function iconFor(state: AlertEvent['state']) {
-  return state === 'resolved' ? CheckCircle2 : state === 'acknowledged' ? Clock3 : AlertCircle
-}
+
 function stateLabel(state: AlertEvent['state']) {
-  return t(`alerts.state${stateKey(state)}`)
+  return t(`alerts.state${state.charAt(0).toUpperCase()}${state.slice(1)}`)
 }
-function formatDate(timestamp: number) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'short' }).format(timestamp)
+
+function stateClass(state: AlertEvent['state']) {
+  if (state === 'triggered') return 'text-destructive-text'
+  if (state === 'acknowledged') return 'text-warning'
+  if (state === 'resolved') return 'text-success'
+  return 'text-muted-foreground'
+}
+
+function iconClass(event: AlertEvent) {
+  if (event.state === 'resolved') return 'bg-success/12 text-success'
+  if (event.state === 'acknowledged') return 'bg-warning/12 text-warning'
+  return 'bg-destructive/25 text-destructive-text'
+}
+
+function formatTime(timestamp: number) {
+  return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(timestamp)
 }
 </script>
 
 <template lang="pug">
-SharedPanel(class="min-h-[18rem]")
-  template(#header)
-    div(class="flex items-center gap-3")
-      Bell(class="h-4 w-4 text-primary" aria-hidden="true")
-      div
-        h2(class="font-heading text-sm font-semibold uppercase tracking-wide text-foreground") {{ t('alerts.eventListTitle') }}
-        p(class="cyber-label mt-1") {{ t('alerts.eventListSubtitle') }}
-    span(class="font-mono text-xs text-muted-foreground") {{ events.length }}
-
-  SharedAlert(v-if="error" variant="destructive" :title="t('common.error')" :description="error" class="m-4")
-  div(v-else-if="loading && events.length === 0" class="divide-y divide-border/70" :aria-label="t('alerts.loading')" aria-busy="true")
-    div(v-for="i in 4" :key="i" class="flex items-start justify-between gap-3 px-4 py-3")
-      div(class="flex min-w-0 flex-1 items-start gap-3")
-        Skeleton(class="mt-0.5 h-4 w-4 shrink-0 rounded-full")
-        div(class="min-w-0 flex-1 space-y-2")
-          Skeleton(class="h-3.5 w-3/4")
-          Skeleton(class="h-3 w-1/2")
-      div(class="flex shrink-0 items-center gap-2")
-        Skeleton(class="h-5 w-16 rounded-full")
-  SharedEmpty(
-    v-else-if="events.length === 0"
-    :icon="Bell"
-    :title="t('alerts.emptyTitle')"
-    :description="t('alerts.emptyDescription')"
+section(
+  :aria-label="t('alerts.eventListTitle')"
+  class="flex min-w-0 flex-[1_1_380px] flex-col gap-0.5 rounded-lg border border-border bg-card p-1.5"
+)
+  p(v-if="error" role="alert" class="px-4 py-3 text-13 text-destructive-text") {{ error }}
+  p(v-if="loading && events.length === 0" class="px-4 py-6 text-center text-13 text-muted-foreground") {{ t('alerts.loading') }}
+  div(v-else-if="events.length === 0" class="flex flex-col items-center gap-1 px-4 py-8 text-center")
+    span(class="font-semibold") {{ t('alerts.emptyTitle') }}
+    span(class="text-13 text-muted-foreground") {{ t('alerts.emptyDescription') }}
+  button(
+    v-for="event in events"
+    :key="event.id"
+    type="button"
+    :aria-pressed="selectedId === event.id"
+    class="flex w-full items-center gap-3.5 rounded-[10px] px-4 py-3.5 text-left transition-colors duration-150"
+    :class="selectedId === event.id ? 'bg-primary/25' : 'hover:bg-white/4'"
+    @click="emit('select', event)"
   )
-  ScrollArea(v-else class="h-[28rem]")
-    div(class="divide-y divide-border/70")
-      SharedButton(
-        v-for="event in events"
-        :key="event.id"
-        variant="ghost"
-        class="group flex h-auto w-full items-start justify-between gap-3 rounded-none px-4 py-3 text-left hover:bg-accent/60"
-        :class="selectedId === event.id ? 'bg-primary/5' : ''"
-        @click="emit('select', event)"
-      )
-        div(class="flex min-w-0 items-start gap-3")
-          component(:is="iconFor(event.state)" class="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true")
-          div(class="min-w-0")
-            p(class="truncate text-sm font-medium text-foreground") {{ labelFor(event) }}
-            p(class="mt-1 truncate font-mono text-[11px] text-muted-foreground") {{ event.resourceKey }} · {{ formatDate(event.lastUpdatedAt) }}
-        div(class="flex shrink-0 items-center gap-2")
-          SharedStatusBadge(:label="stateLabel(event.state)" :tone="toneFor(event.severity)" :icon="iconFor(event.state)")
-          ChevronRight(class="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true")
+    span(class="inline-flex size-9 shrink-0 items-center justify-center rounded-[9px]" :class="iconClass(event)" aria-hidden="true")
+      CircleAlert(class="size-[18px]")
+    span(class="flex min-w-0 flex-1 flex-col gap-[3px]")
+      span(class="font-semibold") {{ title(event) }}
+      span(class="truncate font-mono text-xs text-group-foreground") {{ event.resourceKey }}
+    span(class="flex flex-col items-end gap-1")
+      span(class="text-xs font-semibold" :class="stateClass(event.state)") {{ stateLabel(event.state) }}
+      span(class="font-mono text-xs text-muted-foreground") {{ formatTime(event.lastUpdatedAt) }}
 </template>

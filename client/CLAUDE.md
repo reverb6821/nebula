@@ -96,8 +96,9 @@ src/
 ### 3. Page Header & Search Filters (`usePageHeader`)
 - `usePageHeader` is a global Pinia store composable that drives the app's top header (title, subtitle, refresh button, and a `toolsComponent` slot for flow-specific tools).
 - Each flow's **view** (in `modules/<flow>/views/`) is responsible for calling `setHeader(...)` on mount (and updating it via `watch` when relevant state changes) and `clearHeader()` on unmount.
-- If a flow has a search/filter control, render it in the header rather than inline in the view body: pass the filter component via `toolsComponent` and its props/handlers via `toolsProps`. Event handlers can be passed as `onUpdate:xxx` keys inside `toolsProps`, since the header renders tools with `v-bind="toolsProps"`.
-- Components rendered via `toolsComponent` should stay dumb/presentational and driven entirely by `toolsProps` — do not have them read the module store directly, so the same filter component keeps working both inline (props/emits) and in the header.
+- The header (Graphite Adwaita design, see `design/nebula-handoff/DESIGN.md`) shows a centered title/subtitle and only icon actions on the right (refresh, plus optional `toolsComponent` icon buttons). `titleComponent`/`titleProps` can replace the title (e.g. Docker's Containers/Images tabs).
+- Search fields and filter chips live in a toolbar inside the view body, above the content (`SearchField` + `FilterChips` from `@/components/shared`), not in the header.
+- Components rendered via `toolsComponent`/`titleComponent` and toolbar controls stay dumb/presentational, driven entirely by props/emits — do not have them read the module store directly. Event handlers can be passed as `onUpdate:xxx` keys inside `toolsProps`/`titleProps`, since the header renders them with `v-bind`.
 
 ### 4. Store Pattern (Pinia)
 - Use Setup Store syntax (`defineStore('name', () => { ... })`).
@@ -127,5 +128,6 @@ src/
 4. **Immutability**: Maintain clean Vue reactivity; do not mutate nested reactive state directly.
 5. **Pug Templates Only**: All `<template>` blocks use `lang="pug"`.
 6. **Respect the module boundary**: generic/reusable code in `src/{components,composables,stores}`; flow-specific code stays inside `modules/<flow>/`.
-7. **Header-driven filters**: a flow's search/filter UI is wired through `usePageHeader`'s `toolsComponent`/`toolsProps`, set from that flow's view.
+7. **In-page filters**: a flow's search/filter UI is a toolbar inside the view (`SearchField` + `FilterChips`); the header keeps title, subtitle and icon actions, set from the view via `usePageHeader`.
 8. **Test what has logic**: no tests for trivial wrappers; unit tests (Vitest) for real logic, E2E (Playwright) for critical flows only.
+9. **No TypeScript syntax in Pug templates**: casts (`as T`) and non-null assertions (`x!`) are not stripped from Pug template expressions in dev and break the page at runtime; move them into `<script setup>`.

@@ -1,7 +1,7 @@
 import { h } from 'vue'
 import { tableFeatures } from '@tanstack/vue-table'
 import type { ColumnDef } from '@tanstack/vue-table'
-import { ArrowUpDown } from '@lucide/vue'
+import { ArrowDown } from '@lucide/vue'
 import type { Process, SortKey, SortDir } from '@/types/process'
 import ProcessIcon from '../components/ProcessIcon.vue'
 
@@ -15,12 +15,14 @@ export const processTableFeatures = tableFeatures({})
 type Features = typeof processTableFeatures
 
 const STATUS_COLOR: Record<string, string> = {
-  R: 'text-emerald-400',
-  D: 'text-red-400',
-  Z: 'text-red-500',
-  T: 'text-amber-400',
-  S: 'text-zinc-500',
+  R: 'text-success',
+  D: 'text-destructive-text',
+  Z: 'text-destructive-text',
+  T: 'text-caution',
+  S: 'text-foreground',
 }
+
+const STATUS_FALLBACK = 'text-muted-foreground'
 
 function formatKb(bytes: number): string {
   const kb = bytes / 1024
@@ -30,10 +32,18 @@ function formatKb(bytes: number): string {
   return `${(mb / 1024).toFixed(1)}G`
 }
 
+// Arancio (caution) da 15% in su, come nel design.
 function cpuColorClass(percent: number): string {
-  if (percent >= 50) return 'text-red-400'
-  if (percent >= 15) return 'text-amber-300'
-  return 'text-zinc-300'
+  if (percent >= 15) return 'text-caution'
+  return 'text-foreground'
+}
+
+// Argomenti del comando senza l'eseguibile, per la colonna Command.
+function commandArgs(process: Process): string {
+  const cmd = process.cmd.trim()
+  if (!cmd) return ''
+  const firstSpace = cmd.indexOf(' ')
+  return firstSpace === -1 ? '' : cmd.slice(firstSpace + 1)
 }
 
 // L'ordinamento resta nello store (sortKey/sortDir) — è lo stesso stato che
@@ -43,40 +53,42 @@ export function createProcessColumns(
   sortKey: SortKey,
   sortDir: SortDir,
   onSort: (key: SortKey) => void,
-): ColumnDef<Features, Process, any>[] {
+): ColumnDef<Features, Process, unknown>[] {
   function sortableHeader(label: string, key: SortKey, align: 'left' | 'right' = 'right') {
-    return () =>
-      h(
+    return () => {
+      const active = sortKey === key
+      return h(
         'button',
         {
           type: 'button',
-          class: `flex items-center gap-0.5 ${align === 'right' ? 'ml-auto' : ''}`,
+          class: `${align === 'right' ? 'ml-auto flex w-fit' : 'inline-flex'} items-center gap-1 ${active ? 'text-primary-text' : 'hover:text-foreground'}`,
           onClick: () => onSort(key),
         },
         [
           h('span', label),
-          sortKey === key
-            ? h(ArrowUpDown, { class: `h-2.5 w-2.5 ${sortDir === 'asc' ? 'rotate-180' : ''}` })
+          active
+            ? h(ArrowDown, { class: `size-3 ${sortDir === 'asc' ? 'rotate-180' : ''}`, 'aria-hidden': 'true' })
             : null,
         ],
       )
+    }
   }
 
   return [
     {
       accessorKey: 'pid',
       header: sortableHeader('PID', 'pid'),
-      cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original.pid),
+      cell: ({ row }) => h('span', { class: 'block text-right text-group-foreground' }, row.original.pid),
     },
     {
       accessorKey: 'user',
-      header: sortableHeader('USER', 'user', 'left'),
-      cell: ({ row }) => h('span', { class: 'truncate text-sky-300' }, row.original.user),
+      header: sortableHeader('User', 'user', 'left'),
+      cell: ({ row }) => h('span', { class: 'truncate font-sans text-primary-text' }, row.original.user),
     },
     {
       accessorKey: 'pri',
       header: sortableHeader('PRI', 'pri'),
-      cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original.pri),
+      cell: ({ row }) => h('span', { class: 'block text-right' }, row.original.pri),
     },
     {
       accessorKey: 'ni',
@@ -84,32 +96,32 @@ export function createProcessColumns(
       cell: ({ row }) =>
         h(
           'span',
-          { class: `tabular-nums ${row.original.ni < 0 ? 'text-red-400' : ''}` },
+          { class: `block text-right ${row.original.ni < 0 ? 'text-destructive-text' : ''}` },
           row.original.ni,
         ),
     },
     {
       accessorKey: 'virtBytes',
       header: sortableHeader('VIRT', 'virtBytes'),
-      cell: ({ row }) => h('span', { class: 'tabular-nums' }, formatKb(row.original.virtBytes)),
+      cell: ({ row }) => h('span', { class: 'block text-right text-muted-foreground' }, formatKb(row.original.virtBytes)),
     },
     {
       accessorKey: 'resBytes',
       header: sortableHeader('RES', 'resBytes'),
-      cell: ({ row }) => h('span', { class: 'tabular-nums' }, formatKb(row.original.resBytes)),
+      cell: ({ row }) => h('span', { class: 'block text-right' }, formatKb(row.original.resBytes)),
     },
     {
       accessorKey: 'shrBytes',
       header: sortableHeader('SHR', 'shrBytes'),
-      cell: ({ row }) => h('span', { class: 'tabular-nums' }, formatKb(row.original.shrBytes)),
+      cell: ({ row }) => h('span', { class: 'block text-right text-muted-foreground' }, formatKb(row.original.shrBytes)),
     },
     {
       id: 'status',
-      header: () => h('span', { class: 'block text-center' }, 'S'),
+      header: () => h('span', { class: 'block' }, 'S'),
       cell: ({ row }) =>
         h(
           'span',
-          { class: `block text-center ${STATUS_COLOR[row.original.status] ?? 'text-zinc-500'}` },
+          { class: `block ${STATUS_COLOR[row.original.status] ?? STATUS_FALLBACK}` },
           row.original.status,
         ),
     },
@@ -119,27 +131,30 @@ export function createProcessColumns(
       cell: ({ row }) =>
         h(
           'span',
-          { class: `tabular-nums ${cpuColorClass(row.original.cpuPercent)}` },
+          { class: `block text-right font-semibold ${cpuColorClass(row.original.cpuPercent)}` },
           row.original.cpuPercent.toFixed(1),
         ),
     },
     {
       accessorKey: 'memPercent',
       header: sortableHeader('MEM%', 'memPercent'),
-      cell: ({ row }) => h('span', { class: 'tabular-nums' }, row.original.memPercent.toFixed(1)),
+      cell: ({ row }) => h('span', { class: 'block text-right' }, row.original.memPercent.toFixed(1)),
     },
     {
       id: 'cpuTime',
       header: () => h('span', { class: 'block text-right' }, 'TIME+'),
-      cell: ({ row }) => h('span', { class: 'block text-right tabular-nums' }, row.original.cpuTime),
+      cell: ({ row }) => h('span', { class: 'block text-right text-muted-foreground' }, row.original.cpuTime),
     },
     {
       accessorKey: 'name',
-      header: sortableHeader('COMMAND', 'name', 'left'),
+      header: sortableHeader('Command', 'name', 'left'),
       cell: ({ row }) =>
-        h('span', { class: 'flex min-w-0 items-center gap-1.5' }, [
-          h(ProcessIcon, { process: row.original }),
-          h('span', { class: 'truncate text-lime-400' }, row.original.cmd || row.original.name),
+        h('span', { class: 'flex max-w-[520px] min-w-0 items-center gap-2.5', title: row.original.cmd || row.original.name }, [
+          h('span', { class: 'inline-flex size-[22px] shrink-0 items-center justify-center rounded-[6px] bg-white/8' }, [
+            h(ProcessIcon, { process: row.original }),
+          ]),
+          h('span', { class: 'shrink-0 font-sans font-semibold' }, row.original.name),
+          h('span', { class: 'truncate text-xs text-muted-foreground' }, commandArgs(row.original)),
         ]),
     },
   ]
