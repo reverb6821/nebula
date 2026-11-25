@@ -9,59 +9,11 @@ function isWindows(): boolean {
 
 // ─── Linux parsers ────────────────────────────────────────────────────────────
 
-interface SystemctlUnit {
-  unit: string
-  description: string
-  active: string
-  sub: string
-  load: string
-}
-
 function mapLinuxStatus(active: string, sub: string): DaemonStatus {
   if (active === 'active' && sub === 'running') return 'active'
   if (active === 'failed') return 'failed'
   if (active === 'inactive') return 'inactive'
   return 'unknown'
-}
-
-function parseLinuxDaemons(raw: string): Daemon[] {
-  try {
-    const units = JSON.parse(raw) as SystemctlUnit[]
-    return units.map((u) => ({
-      name: u.unit.replace('.service', ''),
-      description: u.description,
-      status: mapLinuxStatus(u.active, u.sub),
-      enabled: 'unknown' as DaemonEnabled,
-    }))
-  } catch {
-    return []
-  }
-}
-
-async function enrichLinuxEnabled(daemons: Daemon[]): Promise<Daemon[]> {
-  if (daemons.length === 0) return daemons
-
-  const names = daemons.map((d) => `${d.name}.service`).join(' ')
-  const { stdout } = await runCmd(
-    `systemctl show ${names} --property=Id,UnitFileState --no-pager`,
-  )
-
-  const enabledMap: Record<string, DaemonEnabled> = {}
-  const blocks = stdout.trim().split(/\n\n+/)
-
-  for (const block of blocks) {
-    const id = block.match(/^Id=(.+)$/m)?.[1]?.replace('.service', '')
-    const state = block.match(/^UnitFileState=(.+)$/m)?.[1]
-    if (id && state) {
-      const mapped: DaemonEnabled =
-        state === 'enabled' || state === 'disabled' || state === 'static'
-          ? (state as DaemonEnabled)
-          : 'unknown'
-      enabledMap[id] = mapped
-    }
-  }
-
-  return daemons.map((d) => ({ ...d, enabled: enabledMap[d.name] ?? 'unknown' }))
 }
 
 // ─── Windows parsers ──────────────────────────────────────────────────────────

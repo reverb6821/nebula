@@ -6,6 +6,9 @@ interface HeaderState {
   subtitle?: string
   toolsComponent: Component | null
   toolsProps?: Record<string, unknown>
+  // Sostituisce il titolo centrato (es. Tabs Containers / Images in Docker)
+  titleComponent?: Component | null
+  titleProps?: Record<string, unknown>
   onRefresh?: (() => void) | null
   refreshLoading?: boolean
 }
@@ -15,6 +18,8 @@ export const usePageHeader = defineStore('pageHeader', () => {
   const subtitle       = ref<string | undefined>(undefined)
   const toolsComponent = shallowRef<Component | null>(null)
   const toolsProps     = ref<Record<string, unknown>>({})
+  const titleComponent = shallowRef<Component | null>(null)
+  const titleProps     = ref<Record<string, unknown>>({})
   const onRefresh      = ref<(() => void) | null>(null)
   const refreshLoading = ref(false)
 
@@ -23,6 +28,8 @@ export const usePageHeader = defineStore('pageHeader', () => {
     subtitle.value       = state.subtitle
     toolsComponent.value = state.toolsComponent
     toolsProps.value     = state.toolsProps ?? {}
+    titleComponent.value = state.titleComponent ?? null
+    titleProps.value     = state.titleProps ?? {}
     onRefresh.value      = state.onRefresh ?? null
     refreshLoading.value = state.refreshLoading ?? false
   }
@@ -32,12 +39,15 @@ export const usePageHeader = defineStore('pageHeader', () => {
     subtitle.value       = undefined
     toolsComponent.value = null
     toolsProps.value     = {}
+    titleComponent.value = null
+    titleProps.value     = {}
     onRefresh.value      = null
     refreshLoading.value = false
   }
 
   return {
-    title, subtitle, toolsComponent, toolsProps, onRefresh, refreshLoading,
+    title, subtitle, toolsComponent, toolsProps, titleComponent, titleProps,
+    onRefresh, refreshLoading,
     setHeader, clearHeader,
   }
 })

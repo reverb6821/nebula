@@ -3,7 +3,7 @@ import { runCmd } from '@/composables/useNeutralinoCmd'
 import { createResourcesSampler } from '../../composables/useResourcesApi'
 
 vi.mock('@/composables/useNeutralinoCmd', () => ({
-  runCmd: vi.fn(),
+  runCmd: vi.fn<typeof import('@/composables/useNeutralinoCmd')['runCmd']>(),
 }))
 
 const mockedRunCmd = vi.mocked(runCmd)

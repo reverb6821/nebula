@@ -10,7 +10,7 @@ import {
 } from '../composables/useDaemonAction'
 
 vi.mock('@/composables/useNeutralinoCmd', () => ({
-  runCmd: vi.fn(),
+  runCmd: vi.fn<typeof import('@/composables/useNeutralinoCmd')['runCmd']>(),
 }))
 
 const mockedRunCmd = vi.mocked(runCmd)

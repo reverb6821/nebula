@@ -33,7 +33,7 @@ const rangeLabel = computed(() => {
 </script>
 
 <template lang="pug">
-div(class="flex items-center justify-between border-t border-border bg-background px-2 py-1.5 font-mono text-[11px]")
+div(class="flex items-center justify-between border-t border-border bg-background px-2 py-1.5 font-mono text-2xs")
   div(class="flex items-center gap-2")
     span(id="process-page-size-label" class="cyber-label") Rows
     Select(
@@ -43,11 +43,11 @@ div(class="flex items-center justify-between border-t border-border bg-backgroun
       SelectTrigger(
         size="sm"
         aria-labelledby="process-page-size-label"
-        class="h-6 w-16 rounded border-border bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground focus:border-ring focus:ring-ring"
+        class="h-6 w-16 rounded border-border bg-muted px-1.5 py-0.5 font-mono text-2xs text-foreground focus:border-ring focus:ring-ring"
       )
         SelectValue
       SelectContent
-        SelectItem(v-for="n in pageSizeOptions" :key="n" :value="String(n)" class="font-mono text-[11px]") {{ n }}
+        SelectItem(v-for="n in pageSizeOptions" :key="n" :value="String(n)" class="font-mono text-2xs") {{ n }}
 
   div(class="flex items-center gap-3")
     span(class="text-muted-foreground tabular-nums") {{ rangeLabel }}

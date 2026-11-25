@@ -9,11 +9,11 @@ import type { Process } from '@/types/process'
 // non runCmd/spawnStream sottostanti. Isola lo store dalla logica di
 // parsing (già coperta a parte in useProcessApi.spec.ts).
 vi.mock('@/modules/process/composables/useProcessApi', () => ({
-  listProcesses: vi.fn(),
-  startProcessStream: vi.fn(),
-  killProcess: vi.fn(),
-  terminateProcess: vi.fn(),
-  reniceProcess: vi.fn(),
+  listProcesses: vi.fn<typeof import('@/modules/process/composables/useProcessApi')['listProcesses']>(),
+  startProcessStream: vi.fn<typeof import('@/modules/process/composables/useProcessApi')['startProcessStream']>(),
+  killProcess: vi.fn<typeof import('@/modules/process/composables/useProcessApi')['killProcess']>(),
+  terminateProcess: vi.fn<typeof import('@/modules/process/composables/useProcessApi')['terminateProcess']>(),
+  reniceProcess: vi.fn<typeof import('@/modules/process/composables/useProcessApi')['reniceProcess']>(),
 }))
 
 import {
@@ -46,7 +46,7 @@ describe('useProcessesStore', () => {
     // autoRefresh parte true e la watch immediate chiama subito
     // startAutoRefresh(): senza questo default, ogni test partirebbe
     // con uno stream "appeso" in attesa di una Promise mai risolta.
-    mockStartProcessStream.mockResolvedValue({ id: 1, stop: vi.fn().mockResolvedValue(undefined) })
+    mockStartProcessStream.mockResolvedValue({ id: 1, stop: vi.fn<() => Promise<void>>().mockResolvedValue(undefined) })
   })
 
   afterEach(() => {
@@ -296,7 +296,7 @@ describe('useProcessesStore', () => {
     })
 
     it('disattivare autoRefresh ferma lo stream attivo', async () => {
-      const stop = vi.fn().mockResolvedValue(undefined)
+      const stop = vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
       mockStartProcessStream.mockResolvedValue({ id: 1, stop })
       const store = useProcessesStore()
       // flushPromises, non solo nextTick: la Promise interna di
@@ -325,7 +325,7 @@ describe('useProcessesStore', () => {
     })
 
     it('stopAutoRefresh (esposta per il cleanup in main.ts) ferma lo stream', async () => {
-      const stop = vi.fn().mockResolvedValue(undefined)
+      const stop = vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
       mockStartProcessStream.mockResolvedValue({ id: 1, stop })
       const store = useProcessesStore()
       await flushPromises()
@@ -339,7 +339,7 @@ describe('useProcessesStore', () => {
       let onSnapshot: ((p: Process[]) => void) | undefined
       mockStartProcessStream.mockImplementation(async (cb) => {
         onSnapshot = cb
-        return { id: 1, stop: vi.fn().mockResolvedValue(undefined) }
+        return { id: 1, stop: vi.fn<() => Promise<void>>().mockResolvedValue(undefined) }
       })
       const store = useProcessesStore()
       await flushPromises()

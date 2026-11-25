@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createSystemMetersSampler } from '../../composables/useSystemMeters'
 
 vi.mock('@/composables/useNeutralinoCmd', () => ({
-  runCmd: vi.fn(),
+  runCmd: vi.fn<typeof import('@/composables/useNeutralinoCmd')['runCmd']>(),
 }))
 
 import { runCmd } from '../../../../composables/useNeutralinoCmd'

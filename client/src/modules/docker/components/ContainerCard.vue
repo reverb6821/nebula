@@ -1,152 +1,88 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Play, Square, RotateCcw, Trash2, FileText, Star } from '@lucide/vue'
-import type { DockerContainer, ContainerStats } from '@/types/docker'
-import { SharedButton, SharedPanel } from '@/components/shared'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import ContainerStatusBadge from './ContainerStatusBadge.vue'
+import { Box, FileText, Play, RotateCcw, Square, Trash2 } from '@lucide/vue'
+import type { DockerContainer } from '@/types/docker'
+import { Button } from '@/components/ui/button'
+import { StatusBadge } from '@/components/shared'
 
+// Card container (source/Docker.dc.html): icona colorata per stato, nome,
+// immagine mono, badge stato; footer con Logs e azioni icona.
 const props = defineProps<{
   container: DockerContainer
-  stats: ContainerStats | undefined
   pending: boolean
-  selected: boolean
-  favorite: boolean
 }>()
 
 const emit = defineEmits<{
+  logs: []
   start: []
   stop: []
   restart: []
   remove: []
-  logs: []
-  toggleFavorite: []
 }>()
 
 const { t } = useI18n()
 
-const isRunning = computed(() => props.container.status === 'running')
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(0)} KB`
-  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`
-  return `${(bytes / 1024 ** 3).toFixed(2)} GB`
-}
+const running = computed(() => props.container.status === 'running')
+const statusLabel = computed(() => t(`overview.containerStatus.${props.container.status}`))
 </script>
 
 <template lang="pug">
-  SharedPanel(
-    tabindex="0"
-    role="button"
-    :aria-pressed="selected"
-    :aria-label="t('docker.openLogsFor', { name: container.name })"
-    :selected="selected"
-    :favorite="favorite"
-    class="group cursor-pointer transition-all duration-150 hover:border-primary/40 hover:bg-accent outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-    @click="emit('logs')"
-    @keydown.enter="emit('logs')"
-    @keydown.space.prevent="emit('logs')"
-  )
-    template(#header)
-      div(class="flex items-start justify-between gap-2")
-        div(class="min-w-0")
-          div(class="truncate font-mono text-sm font-semibold leading-tight text-foreground") {{ container.name }}
-          div(class="mt-1 flex items-center gap-2")
-            ContainerStatusBadge(:status="container.status")
-            span(class="truncate font-mono text-xs text-muted-foreground") {{ container.image }}
-        //- Favorite pin
-        Tooltip
-          TooltipTrigger(as-child)
-            SharedButton(
-              variant="ghost"
-              size="icon"
-              class="h-6 w-6 shrink-0 rounded-md hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-              :class="favorite ? 'text-warning !opacity-100' : 'text-muted-foreground hover:text-warning'"
-              :aria-label="favorite ? t('docker.unpin') : t('docker.pin')"
-              @click.stop="emit('toggleFavorite')"
-            )
-              Star(class="h-3 w-3" :class="{ 'fill-current': favorite }" aria-hidden="true")
-          TooltipContent {{ favorite ? t('docker.unpin') : t('docker.pin') }}
-
-    template(#default)
-      //- Ports
-      div(v-if="container.ports.length" class="flex flex-wrap gap-1")
-        span(
-          v-for="port in container.ports"
-          :key="port"
-          class="rounded border border-border/70 bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
-        ) {{ port }}
-
-      //- Stats bar
-      div(v-if="isRunning && stats" class="grid grid-cols-2 gap-2")
-        div(class="cyber-panel rounded-md px-2.5 py-1.5")
-          p(class="cyber-label") CPU
-          p(class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground") {{ stats.cpuPercent.toFixed(1) }}%
-        div(class="cyber-panel rounded-md px-2.5 py-1.5")
-          p(class="cyber-label") MEM
-          p(class="mt-0.5 font-mono text-xs font-medium tabular-nums text-foreground") {{ formatBytes(stats.memUsage) }}
-
-    //- Footer: azione primaria (start/stop) come pill, il resto come icone a destra —
-    //- stessa grammatica di DaemonCard.
-    template(#footer)
-      div(class="flex w-full items-center gap-2" @click.stop)
-        Tooltip
-          TooltipTrigger(as-child)
-            SharedButton(
-              variant="ghost"
-              size="sm"
-              :loading="pending"
-              :disabled="pending"
-              :aria-label="isRunning ? t('common.stop') : t('common.start')"
-              class="h-7 gap-1.5 rounded-md px-2.5 text-xs font-medium"
-              :class="isRunning ? 'bg-destructive/10 text-destructive hover:bg-destructive/15' : 'bg-success/10 text-success hover:bg-success/15'"
-              @click="isRunning ? emit('stop') : emit('start')"
-            )
-              component(:is="isRunning ? Square : Play" class="h-3 w-3" aria-hidden="true")
-              | {{ isRunning ? t('common.stop') : t('common.start') }}
-          TooltipContent {{ isRunning ? t('common.stop') : t('common.start') }}
-
-        div(class="ml-auto flex items-center gap-0.5")
-          Tooltip
-            TooltipTrigger(as-child)
-              SharedButton(
-                variant="ghost"
-                size="icon"
-                class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-                :aria-label="t('docker.logs')"
-                @click="emit('logs')"
-              )
-                FileText(class="h-3.5 w-3.5" aria-hidden="true")
-            TooltipContent {{ t('docker.logs') }}
-
-          Tooltip
-            TooltipTrigger(as-child)
-              SharedButton(
-                variant="ghost"
-                size="icon"
-                :disabled="pending || !isRunning"
-                :icon="RotateCcw"
-                :aria-label="t('common.restart')"
-                class="h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-                @click="emit('restart')"
-              )
-            TooltipContent {{ t('common.restart') }}
-
-          Tooltip
-            TooltipTrigger(as-child)
-              SharedButton(
-                variant="ghost"
-                size="icon"
-                :disabled="pending"
-                :icon="Trash2"
-                :aria-label="t('common.remove')"
-                class="h-7 w-7 rounded-md text-destructive hover:bg-destructive/15 hover:text-destructive"
-                @click="emit('remove')"
-              )
-            TooltipContent {{ t('common.remove') }}
+article(class="flex flex-col gap-3.5 rounded-lg border border-border bg-card p-[18px]")
+  div(class="flex items-start gap-3")
+    span(
+      class="inline-flex size-10 shrink-0 items-center justify-center rounded-[10px]"
+      :class="running ? 'bg-success/12 text-success' : 'bg-white/7 text-group-foreground'"
+      aria-hidden="true"
+    )
+      Box(class="size-5")
+    div(class="flex min-w-0 flex-1 flex-col gap-[3px]")
+      h3(class="truncate text-15 font-bold") {{ container.name }}
+      span(class="truncate font-mono text-xs text-muted-foreground" :title="container.image") {{ container.image }}
+    StatusBadge(
+      :tone="running ? 'running' : container.status === 'dead' ? 'failed' : 'exited'"
+      :label="statusLabel"
+      class="px-[9px] py-[3px]"
+    )
+  div(class="flex gap-1 border-t border-border pt-3")
+    Button(variant="secondary" class="min-h-9 bg-white/7 px-3" @click="emit('logs')")
+      FileText(class="size-[15px]" aria-hidden="true")
+      | {{ t('docker.logs') }}
+    div(class="flex-1")
+    Button(
+      v-if="running"
+      variant="ghost"
+      size="icon"
+      :disabled="pending"
+      :aria-label="t('docker.stopContainer', { name: container.name })"
+      @click="emit('stop')"
+    )
+      Square(class="size-4" aria-hidden="true")
+    Button(
+      v-else
+      variant="ghost"
+      size="icon"
+      class="text-success hover:text-success"
+      :disabled="pending"
+      :aria-label="t('docker.startContainer', { name: container.name })"
+      @click="emit('start')"
+    )
+      Play(class="size-4" aria-hidden="true")
+    Button(
+      variant="ghost"
+      size="icon"
+      :disabled="pending"
+      :aria-label="t('docker.restartContainer', { name: container.name })"
+      @click="emit('restart')"
+    )
+      RotateCcw(class="size-4" :class="{ 'animate-spin': pending }" aria-hidden="true")
+    Button(
+      variant="ghost"
+      size="icon"
+      class="text-destructive-text hover:text-destructive-text"
+      :disabled="pending"
+      :aria-label="t('docker.removeContainer', { name: container.name })"
+      @click="emit('remove')"
+    )
+      Trash2(class="size-4" aria-hidden="true")
 </template>

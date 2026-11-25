@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import SettingsLanguage from '../../components/SettingsLanguage.vue'
 
-const setLocale = vi.fn()
+const setLocale = vi.fn<typeof import('@/i18n')['setLocale']>()
 
 // Mock di @/i18n: isoliamo il test dal contenuto reale dei locale file,
 // serve solo che availableLocales esista (per il v-for) e che setLocale

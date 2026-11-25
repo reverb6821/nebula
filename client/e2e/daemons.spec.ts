@@ -3,36 +3,30 @@ import { resetBrowserState } from './helpers'
 
 test.beforeEach(async ({ page }) => {
   await resetBrowserState(page)
-  await page.goto('/#/daemons')
+  await page.goto('/#/services')
 })
 
-test('shows the empty daemon state and search threshold hint', async ({ page }) => {
-  await expect(page.locator('header').getByText('Daemons', { exact: true })).toBeVisible()
+test('shows the empty service state and the search field', async ({ page }) => {
+  await expect(page.getByRole('heading', { level: 1, name: 'Services' })).toBeVisible()
   await expect(page.getByText('No daemons found.')).toBeVisible()
 
-  const search = page.getByRole('textbox', { name: 'Cerca' })
-  await search.fill('ab')
-  await expect(page.getByText(/Type 1 more character/)).toBeVisible()
+  const search = page.getByRole('searchbox', { name: 'Search units' })
+  await search.fill('ssh')
+  await expect(search).toHaveValue('ssh')
 })
 
-test('opens daemon filters and resets them', async ({ page }) => {
-  await page.getByRole('button', { name: 'Filtri avanzati' }).click()
-  await expect(page.getByText('Status', { exact: true })).toBeVisible()
-  await expect(page.getByText('Boot', { exact: true })).toBeVisible()
-
-  await page.getByText('Active', { exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Rimuovi filtro Active' })).toBeVisible()
-
-  await page.getByRole('button', { name: 'Azzera filtri' }).click()
-  await expect(page.getByRole('button', { name: 'Rimuovi filtro Active' })).toHaveCount(0)
+test('focuses the search field with Ctrl+F', async ({ page }) => {
+  await page.keyboard.press('Control+f')
+  await expect(page.getByRole('searchbox', { name: 'Search units' })).toBeFocused()
 })
 
-test('switches daemon list and grid views', async ({ page }) => {
-  const listButton = page.getByRole('button', { name: 'List view' })
-  const gridButton = page.getByRole('button', { name: 'Grid view' })
+test('selects one filter chip at a time', async ({ page }) => {
+  const filters = page.getByRole('group', { name: 'Filter units' })
+  const all = filters.getByRole('button', { name: /^All/ })
+  const failed = filters.getByRole('button', { name: /^Failed/ })
 
-  await expect(listButton).toHaveAttribute('aria-pressed', 'true')
-  await gridButton.click()
-  await expect(gridButton).toHaveAttribute('aria-pressed', 'true')
-  await expect(listButton).toHaveAttribute('aria-pressed', 'false')
+  await expect(all).toHaveAttribute('aria-pressed', 'true')
+  await failed.click()
+  await expect(failed).toHaveAttribute('aria-pressed', 'true')
+  await expect(all).toHaveAttribute('aria-pressed', 'false')
 })

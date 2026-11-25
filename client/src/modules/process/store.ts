@@ -47,7 +47,7 @@ export const useProcessesStore = defineStore('processes', () => {
     const q = searchDebounced.value.toLowerCase().trim()
     const hasStatus = statusFilter.value.length > 0
 
-    let list = processes.value.filter((p) => {
+    const list = processes.value.filter((p) => {
       if (q.length >= MIN_SEARCH) {
         const matchesText =
           p.name.toLowerCase().includes(q) ||
@@ -78,6 +78,12 @@ export const useProcessesStore = defineStore('processes', () => {
     running: processes.value.filter((p) => p.status === 'R').length,
     cpuTop:  processes.value.reduce((max, p) => Math.max(max, p.cpuPercent), 0),
   }))
+
+  // Errori di azioni avviate dalle viste (conferme, menu): passano da qui
+  // invece di scrivere error.value dall'esterno.
+  function setError(message: string | null) {
+    error.value = message
+  }
 
   // ─── Pagination ─────────────────────────────────────────────────────────────
 
@@ -114,6 +120,10 @@ export const useProcessesStore = defineStore('processes', () => {
       : [...current, status]
   }
 
+  function setStatusFilter(next: ProcessStatus[]) {
+    statusFilter.value = [...next]
+  }
+
   function resetFilters() {
     search.value = ''
     statusFilter.value = []
@@ -142,6 +152,10 @@ export const useProcessesStore = defineStore('processes', () => {
     const result = await run(() => listProcesses())
     if (result === undefined) return
     processes.value = result
+  }
+
+  function collectNow(): Promise<Process[]> {
+    return Promise.resolve(processes.value)
   }
 
   // ─── Auto-refresh (stream) ──────────────────────────────────────────────────
@@ -219,8 +233,8 @@ export const useProcessesStore = defineStore('processes', () => {
     sortKey, sortDir, pendingPids, autoRefresh, stats,
     page, pageSize, totalPages, paginated, setPage, setPageSize,
     selectedPid, select,
-    fetch, setSort, kill, terminate, renice, niceStep,
-    toggleStatusFilter, resetFilters,
+    setError, fetch, collectNow, setSort, kill, terminate, renice, niceStep,
+    toggleStatusFilter, setStatusFilter, resetFilters,
     stopAutoRefresh,
   }
 })

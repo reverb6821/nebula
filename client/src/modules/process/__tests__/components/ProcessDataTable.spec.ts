@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
 import type { ColumnDef } from '@tanstack/vue-table'
 import ProcessDataTable from '../../components/ProcessDataTable.vue'
 import { processTableFeatures } from '../../utils/processColumns.ts'
@@ -17,7 +18,7 @@ import type { Process } from '../../../../types/process.ts'
 
 type Features = typeof processTableFeatures
  
-const columns: ColumnDef<Features, Process, any>[] = [
+const columns: ColumnDef<Features, Process, unknown>[] = [
   { accessorKey: 'name', header: 'Nome' },
   { accessorKey: 'pid', header: 'PID' },
 ]
@@ -54,6 +55,13 @@ function mountTable(props: {
       selectedPid: props.selectedPid ?? null,
       pendingPids: props.pendingPids ?? new Set<number>(),
     },
+    global: {
+      plugins: [createI18n({
+        legacy: false,
+        locale: 'en',
+        messages: { en: { processes: { noMatch: 'No processes match your search.' } } },
+      })],
+    },
   })
 }
  
@@ -72,7 +80,7 @@ describe('ProcessDataTable', () => {
     const wrapper = mountTable({ data: [] })
  
     expect(wrapper.findAll('tbody tr[role="row"]')).toHaveLength(0)
-    expect(wrapper.text()).toContain('Nessun processo corrisponde alla ricerca.')
+    expect(wrapper.text()).toContain('No processes match your search.')
   })
  
   it('marca aria-selected e la classe evidenziata solo sulla riga selezionata', () => {
@@ -82,8 +90,8 @@ describe('ProcessDataTable', () => {
     const rows = wrapper.findAll('tbody tr[role="row"]')
     expect(rows[0]!.attributes('aria-selected')).toBe('false')
     expect(rows[1]!.attributes('aria-selected')).toBe('true')
-    expect(rows[1]!.classes()).toContain('bg-primary/15')
-    expect(rows[0]!.classes()).not.toContain('bg-primary/15')
+    expect(rows[1]!.classes()).toContain('bg-primary/25')
+    expect(rows[0]!.classes()).not.toContain('bg-primary/25')
   })
  
   it('applica opacity-50 solo alle righe con pid in pendingPids', () => {

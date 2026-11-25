@@ -40,7 +40,7 @@ const toneDotClass = computed(() => ({
 Badge(
   v-if="mode === 'badge'"
   variant="outline"
-  :class="cn('gap-1 rounded-md border px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide', toneClass, props.class)"
+  :class="cn('gap-1 rounded-md border px-2 py-0.5 font-mono text-[0.625rem] font-medium uppercase tracking-wide', toneClass, props.class)"
 )
   component(
     v-if="icon"
@@ -53,7 +53,7 @@ Badge(
 
 div(
   v-else
-  :class="cn('flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-wide', toneClass, props.class)"
+  :class="cn('flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[0.625rem] uppercase tracking-wide', toneClass, props.class)"
 )
   span(
     class="h-1.5 w-1.5 shrink-0 rounded-full shadow-[0_0_7px_currentColor]"

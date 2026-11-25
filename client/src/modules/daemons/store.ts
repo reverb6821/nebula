@@ -176,6 +176,10 @@ export const useDaemonsStore = defineStore('daemons', () => {
     page.value = 1
   }
 
+  function setFilters(next: DaemonFilters) {
+    filters.value = { status: [...next.status], enabled: [...next.enabled] }
+  }
+
   function toggleStatusFilter(status: DaemonStatus) {
     const current = filters.value.status
     filters.value = {
@@ -203,6 +207,16 @@ export const useDaemonsStore = defineStore('daemons', () => {
     if (result === undefined) return
     daemons.value = result
     page.value = 1
+  }
+
+  function collectNow() {
+    return listDaemons()
+  }
+
+  // Aggiornamento dal monitor alert (sorgente gia' raccolta): a differenza
+  // di fetch() non resetta la paginazione ne' tocca loading/error.
+  function syncDaemons(list: Daemon[]) {
+    daemons.value = list
   }
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -266,7 +280,8 @@ export const useDaemonsStore = defineStore('daemons', () => {
   async function toggleEnabled(name: string) {
     const daemon = daemons.value.find((d) => d.name === name)
     if (!daemon || daemon.enabled === 'static') return
-    daemon.enabled === 'enabled' ? await disable(name) : await enable(name)
+    if (daemon.enabled === 'enabled') await disable(name)
+    else await enable(name)
   }
 
   return {
@@ -274,7 +289,7 @@ export const useDaemonsStore = defineStore('daemons', () => {
     hasMore, hasActiveFilters, favorites, favoritesArray,
     loading, error, search, searchDebounced,
     pendingNames, stats, filters, viewMode,
-    fetch, loadMore, resetFilters,
+    fetch, collectNow, syncDaemons, loadMore, resetFilters, setFilters,
     toggleStatusFilter, toggleEnabledFilter,
     toggleFavorite, isFavorite,
     start, stop, restart, enable, disable, toggleEnabled,

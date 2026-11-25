@@ -8,8 +8,8 @@ import SettingsAppearance from '../../components/SettingsAppearance.vue'
 // Stesso motivo del mock in store.spec.ts: niente window.NL_PORT in jsdom.
 vi.mock('@neutralinojs/lib', () => ({
   storage: {
-    getData: vi.fn().mockRejectedValue(new Error('NE_ST_NOSTKEY')),
-    setData: vi.fn().mockResolvedValue(undefined),
+    getData: vi.fn<typeof import('@neutralinojs/lib')['storage']['getData']>().mockRejectedValue(new Error('NE_ST_NOSTKEY')),
+    setData: vi.fn<typeof import('@neutralinojs/lib')['storage']['setData']>().mockResolvedValue(undefined),
   },
 }))
 
@@ -28,7 +28,6 @@ const messages = {
       fontDefault: 'System',
       fontSans: 'Sans-serif',
       fontMono: 'Monospace',
-      fontDyslexic: 'Dyslexic-friendly',
       lineHeight: 'Line height',
       lineHeightNormal: 'Normal',
       lineHeightRelaxed: 'Relaxed',
@@ -51,7 +50,6 @@ const messages = {
       fontDefault: 'Sistema',
       fontSans: 'Senza grazie',
       fontMono: 'Monospazio',
-      fontDyslexic: 'Per dislessia',
       lineHeight: 'Interlinea',
       lineHeightNormal: 'Normale',
       lineHeightRelaxed: 'Rilassata',
@@ -125,22 +123,10 @@ describe('SettingsAppearance — computed delle label', () => {
     expect(optionsOf(wrapper, 0).map((o) => o.label)).toContain('Piccolo')
   })
 
-  it('genera le opzioni di fontFamily col previewFont corretto per ciascuna', () => {
-    const wrapper = mountComponent(createTestI18n('en'))
-
-    const fontFamily = optionsOf(wrapper, 1)
-    expect(fontFamily).toEqual([
-      { value: 'system', label: 'System', previewFont: 'system-ui' },
-      { value: 'inter', label: 'Sans-serif', previewFont: 'Inter' },
-      { value: 'mono', label: 'Monospace', previewFont: 'monospace' },
-      { value: 'dyslexic', label: 'Dyslexic-friendly', previewFont: 'system-ui' },
-    ])
-  })
-
   it('genera le opzioni di lineHeight nell\'ordine atteso', () => {
     const wrapper = mountComponent(createTestI18n('en'))
 
-    const lineHeight = optionsOf(wrapper, 2)
+    const lineHeight = optionsOf(wrapper, 1)
     expect(lineHeight.map((o) => o.value)).toEqual(['normal', 'relaxed', 'loose'])
     expect(lineHeight.map((o) => o.label)).toEqual(['Normal', 'Relaxed', 'Loose'])
   })

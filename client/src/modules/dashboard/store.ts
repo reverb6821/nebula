@@ -39,6 +39,23 @@ export const useResourcesStore = defineStore('resources', () => {
 
   const sampleResources = createResourcesSampler()
   const sampleSensors = createSensorsSampler()
+  let sensorsSampled = false
+  let dashboardRunning = false
+
+  async function collectResourcesNow(): Promise<ResourcesSnapshot | null> {
+    if (dashboardRunning && snapshot.value) return snapshot.value
+    const sampled = await sampleResources()
+    if (sampled) snapshot.value = sampled
+    return sampled
+  }
+
+  async function collectSensorsNow(): Promise<SensorsSnapshot> {
+    if (dashboardRunning && sensorsSampled) return sensors.value
+    const sampled = await sampleSensors()
+    sensors.value = sampled
+    sensorsSampled = true
+    return sampled
+  }
 
   let tickCount = 0
 
@@ -64,6 +81,7 @@ export const useResourcesStore = defineStore('resources', () => {
     if (tickCount % SENSORS_EVERY_N_TICKS === 0) {
       const s = await sampleSensors()
       sensors.value = s
+      sensorsSampled = true
       if (s.cpuTempC !== null) pushHistory(cpuTempHistory.value, s.cpuTempC)
       if (s.gpuTempC !== null) pushHistory(gpuTempHistory.value, s.gpuTempC)
       if (s.cpuPowerW !== null) pushHistory(cpuPowerHistory.value, s.cpuPowerW)
@@ -74,11 +92,13 @@ export const useResourcesStore = defineStore('resources', () => {
   const { pause, resume } = useIntervalFn(tick, 1000, { immediate: false })
 
   function start() {
+    dashboardRunning = true
     tickCount = 0
     tick().then(() => resume())
   }
 
   function stop() {
+    dashboardRunning = false
     pause()
   }
 
@@ -109,6 +129,7 @@ export const useResourcesStore = defineStore('resources', () => {
     cpuTempHistory, gpuTempHistory, cpuPowerHistory, gpuPowerHistory,
     cpuTempAvg, gpuTempAvg, cpuPowerAvg, gpuPowerAvg,
     netMaxRate, diskMaxRate,
+    collectResourcesNow, collectSensorsNow,
     start, stop,
   }
 })

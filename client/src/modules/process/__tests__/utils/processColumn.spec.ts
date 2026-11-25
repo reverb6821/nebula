@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { defineComponent, type VNode } from 'vue'
 import { mount } from '@vue/test-utils'
-import { ArrowUpDown } from '@lucide/vue'
+import { ArrowDown } from '@lucide/vue'
 import { createProcessColumns } from '../../utils/processColumns'
 import ProcessIcon from '../../components/ProcessIcon.vue'
 import type { Process } from '../../../../types/process.ts'
@@ -24,14 +24,27 @@ function renderVNode(vnode: VNode) {
   return mount(Wrapper)
 }
 
-function getColumn(columns: ReturnType<typeof createProcessColumns>, key: string) {
-  const col = columns.find((c: any) => (c.accessorKey ?? c.id) === key)
+// Vista minima di una colonna: i test invocano header/cell a mano.
+interface TestColumn {
+  accessorKey?: string
+  id?: string
+  header: () => VNode
+  cell: (context: { row: { original: Process } }) => VNode
+}
+
+function columnKey(column: unknown): string | undefined {
+  const { accessorKey, id } = column as { accessorKey?: string; id?: string }
+  return accessorKey ?? id
+}
+
+function getColumn(columns: ReturnType<typeof createProcessColumns>, key: string): TestColumn {
+  const col = columns.find((c) => columnKey(c) === key)
   if (!col) throw new Error(`colonna "${key}" non trovata`)
-  return col as any
+  return col as unknown as TestColumn
 }
 
 describe('createProcessColumns', () => {
-  const onSort = vi.fn()
+  const onSort = vi.fn<(key: string) => void>()
 
   beforeEach(() => {
     onSort.mockClear()
@@ -39,7 +52,7 @@ describe('createProcessColumns', () => {
 
   it('definisce una colonna per ogni campo atteso, nell\'ordine giusto', () => {
     const columns = createProcessColumns('cpuPercent', 'desc', onSort)
-    const keys = columns.map((c: any) => c.accessorKey ?? c.id)
+    const keys = columns.map(columnKey)
     expect(keys).toEqual([
       'pid', 'user', 'pri', 'ni', 'virtBytes', 'resBytes', 'shrBytes',
       'status', 'cpuPercent', 'memPercent', 'cpuTime', 'name',
@@ -61,12 +74,12 @@ describe('createProcessColumns', () => {
 
   describe('colore CPU% in base alle soglie', () => {
     it.each([
-      [0, 'text-zinc-300'],
-      [14.9, 'text-zinc-300'],
-      [15, 'text-amber-300'],
-      [49.9, 'text-amber-300'],
-      [50, 'text-red-400'],
-      [99, 'text-red-400'],
+      [0, 'text-foreground'],
+      [14.9, 'text-foreground'],
+      [15, 'text-caution'],
+      [49.9, 'text-caution'],
+      [50, 'text-caution'],
+      [99, 'text-caution'],
     ])('%s%% → %s', (percent, expectedClass) => {
       const columns = createProcessColumns('cpuPercent', 'desc', onSort)
       const col = getColumn(columns, 'cpuPercent')
@@ -77,11 +90,11 @@ describe('createProcessColumns', () => {
 
   describe('colonna status', () => {
     it.each([
-      ['R', 'text-emerald-400'],
-      ['D', 'text-red-400'],
-      ['Z', 'text-red-500'],
-      ['T', 'text-amber-400'],
-      ['S', 'text-zinc-500'],
+      ['R', 'text-success'],
+      ['D', 'text-destructive-text'],
+      ['Z', 'text-destructive-text'],
+      ['T', 'text-caution'],
+      ['S', 'text-foreground'],
     ] as const)('status %s → classe %s', (status, expectedClass) => {
       const columns = createProcessColumns('cpuPercent', 'desc', onSort)
       const col = getColumn(columns, 'status')
@@ -90,13 +103,13 @@ describe('createProcessColumns', () => {
       expect(wrapper.text()).toBe(status)
     })
 
-    it('usa un colore di fallback (zinc-500) per uno stato non mappato in STATUS_COLOR', () => {
+    it('usa un colore di fallback (muted-foreground) per uno stato non mappato in STATUS_COLOR', () => {
       const columns = createProcessColumns('cpuPercent', 'desc', onSort)
       const col = getColumn(columns, 'status')
       // '?' è un ProcessStatus legittimo (vedi processStatus.ts) ma non
       // compare nella mappa STATUS_COLOR di questo file, che copre solo R/S/D/Z/T.
       const wrapper = renderVNode(col.cell({ row: { original: makeProcess({ status: '?' }) } }))
-      expect(wrapper.classes()).toContain('text-zinc-500')
+      expect(wrapper.classes()).toContain('text-muted-foreground')
     })
   })
 
@@ -105,28 +118,29 @@ describe('createProcessColumns', () => {
       const columns = createProcessColumns('cpuPercent', 'desc', onSort)
       const col = getColumn(columns, 'ni')
       const wrapper = renderVNode(col.cell({ row: { original: makeProcess({ ni: -5 }) } }))
-      expect(wrapper.classes()).toContain('text-red-400')
+      expect(wrapper.classes()).toContain('text-destructive-text')
     })
 
     it('nessuna classe di evidenza per valori >= 0', () => {
       const columns = createProcessColumns('cpuPercent', 'desc', onSort)
       const col = getColumn(columns, 'ni')
       const wrapper = renderVNode(col.cell({ row: { original: makeProcess({ ni: 0 }) } }))
-      expect(wrapper.classes()).not.toContain('text-red-400')
+      expect(wrapper.classes()).not.toContain('text-destructive-text')
     })
   })
 
   describe('colonna name (icona + comando)', () => {
-    it('mostra cmd quando presente', () => {
+    it('mostra il nome e gli argomenti del comando', () => {
       const columns = createProcessColumns('cpuPercent', 'desc', onSort)
       const col = getColumn(columns, 'name')
       const wrapper = renderVNode(col.cell({
         row: { original: makeProcess({ name: 'bash', cmd: '/bin/bash -l' }) },
       }))
-      expect(wrapper.text()).toBe('/bin/bash -l')
+      expect(wrapper.text()).toBe('bash-l')
+      expect(wrapper.attributes('title')).toBe('/bin/bash -l')
     })
 
-    it('ricade su name se cmd è vuoto', () => {
+    it('mostra solo il nome se cmd è vuoto', () => {
       const columns = createProcessColumns('cpuPercent', 'desc', onSort)
       const col = getColumn(columns, 'name')
       const wrapper = renderVNode(col.cell({
@@ -164,8 +178,8 @@ describe('createProcessColumns', () => {
       const activeHeader = renderVNode(getColumn(columns, 'cpuPercent').header())
       const inactiveHeader = renderVNode(getColumn(columns, 'pid').header())
 
-      expect(activeHeader.findComponent(ArrowUpDown).exists()).toBe(true)
-      expect(inactiveHeader.findComponent(ArrowUpDown).exists()).toBe(false)
+      expect(activeHeader.findComponent(ArrowDown).exists()).toBe(true)
+      expect(inactiveHeader.findComponent(ArrowDown).exists()).toBe(false)
     })
 
     it('ruota l\'icona quando la direzione è ascendente, non quando è discendente', () => {
@@ -175,8 +189,8 @@ describe('createProcessColumns', () => {
       const ascHeader = renderVNode(getColumn(ascColumns, 'cpuPercent').header())
       const descHeader = renderVNode(getColumn(descColumns, 'cpuPercent').header())
 
-      expect(ascHeader.findComponent(ArrowUpDown).classes()).toContain('rotate-180')
-      expect(descHeader.findComponent(ArrowUpDown).classes()).not.toContain('rotate-180')
+      expect(ascHeader.findComponent(ArrowDown).classes()).toContain('rotate-180')
+      expect(descHeader.findComponent(ArrowDown).classes()).not.toContain('rotate-180')
     })
 
     it('allinea a destra di default, a sinistra per user e name', () => {

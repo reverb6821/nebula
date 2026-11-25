@@ -7,25 +7,40 @@ test.beforeEach(async ({ page }) => {
 
 test('reaches every primary route from the sidebar', async ({ page }) => {
   await page.goto('/')
+  await expect(page).toHaveURL(/\/#\/overview$/)
 
-  await page.getByRole('link', { name: 'Settings' }).click()
-  await expect(page).toHaveURL(/\/#\/settings$/)
-  await expect(page.getByRole('heading', { name: 'Language' })).toBeVisible()
+  const sidebar = page.getByRole('navigation', { name: 'Main' })
+  const routes = [
+    { link: 'Processes', url: /\/#\/processes$/, title: 'Processes' },
+    { link: 'Services', url: /\/#\/services$/, title: 'Services' },
+    { link: 'Alerts', url: /\/#\/alerts$/, title: 'Alerts' },
+    { link: 'Preferences', url: /\/#\/preferences$/, title: 'Preferences' },
+    { link: 'Overview', url: /\/#\/overview$/, title: 'Overview' },
+  ]
 
-  await page.getByRole('button', { name: 'System', exact: true }).click()
-  await page.getByRole('link', { name: 'Daemons' }).click()
-  await expect(page).toHaveURL(/\/#\/daemons$/)
-  await expect(page.locator('header').getByText('Daemons', { exact: true })).toBeVisible()
+  for (const route of routes) {
+    const link = sidebar.getByRole('link', { name: route.link })
+    await link.click()
+    await expect(page).toHaveURL(route.url)
+    await expect(link).toHaveAttribute('aria-current', 'page')
+    await expect(page.getByRole('heading', { level: 1, name: route.title })).toBeVisible()
+  }
 
-  await page.getByRole('link', { name: 'Process' }).click()
-  await expect(page).toHaveURL(/\/#\/process$/)
-  await expect(page.locator('header').getByText('Processes', { exact: true })).toBeVisible()
-
-  await page.getByRole('link', { name: 'Docker' }).click()
+  // Docker mostra le tab Containers / Images al posto del titolo.
+  const dockerLink = sidebar.getByRole('link', { name: 'Docker' })
+  await dockerLink.click()
   await expect(page).toHaveURL(/\/#\/docker$/)
-  await expect(page.locator('header').getByText('Docker', { exact: true })).toBeVisible()
+  await expect(dockerLink).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('tab', { name: 'Containers' })).toBeVisible()
+})
 
-  await page.getByRole('link', { name: 'Dashboard' }).click()
-  await expect(page).toHaveURL(/\/#\/$/)
-  await expect(page.getByText('Memory & swap')).toBeVisible()
+test('redirects the legacy routes to the renamed pages', async ({ page }) => {
+  for (const [legacy, current] of [
+    ['/#/daemons', /\/#\/services$/],
+    ['/#/process', /\/#\/processes$/],
+    ['/#/settings', /\/#\/preferences$/],
+  ] as const) {
+    await page.goto(legacy)
+    await expect(page).toHaveURL(current)
+  }
 })

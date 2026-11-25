@@ -1,3 +1,4 @@
+import type { Process } from '@/types/process'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   listProcesses,
@@ -8,8 +9,8 @@ import {
 } from '../../composables/useProcessApi'
 
 vi.mock('@/composables/useNeutralinoCmd', () => ({
-  runCmd: vi.fn(),
-  spawnStream: vi.fn(),
+  runCmd: vi.fn<typeof import('@/composables/useNeutralinoCmd')['runCmd']>(),
+  spawnStream: vi.fn<typeof import('@/composables/useNeutralinoCmd')['spawnStream']>(),
 }))
 
 import { runCmd, spawnStream } from '../../../../composables/useNeutralinoCmd'
@@ -114,14 +115,14 @@ describe('startProcessStream', () => {
     let captured: Parameters<typeof mockSpawnStream>[1] | undefined
     mockSpawnStream.mockImplementation(async (_cmd, handlers) => {
       captured = handlers
-      return { id: 1, stop: vi.fn().mockResolvedValue(undefined) }
+      return { id: 1, stop: vi.fn<() => Promise<void>>().mockResolvedValue(undefined) }
     })
     return () => captured!
   }
 
   it('invoca onSnapshot con i processi parsati per ogni chunk delimitato dal marker', async () => {
     const getHandlers = captureHandlers()
-    const onSnapshot = vi.fn()
+    const onSnapshot = vi.fn<(processes: Process[]) => void>()
 
     await startProcessStream(onSnapshot)
     const handlers = getHandlers()
@@ -137,7 +138,7 @@ describe('startProcessStream', () => {
 
   it('bufferizza i dati finché non arriva il marker completo (chunk spezzato tra due onStdout)', async () => {
     const getHandlers = captureHandlers()
-    const onSnapshot = vi.fn()
+    const onSnapshot = vi.fn<(processes: Process[]) => void>()
 
     await startProcessStream(onSnapshot)
     const handlers = getHandlers()
@@ -157,7 +158,7 @@ describe('startProcessStream', () => {
 
   it('gestisce più chunk completi arrivati in un\'unica onStdout', async () => {
     const getHandlers = captureHandlers()
-    const onSnapshot = vi.fn()
+    const onSnapshot = vi.fn<(processes: Process[]) => void>()
 
     await startProcessStream(onSnapshot)
     const handlers = getHandlers()
@@ -172,7 +173,7 @@ describe('startProcessStream', () => {
 
   it('inoltra stderr a onError', async () => {
     const getHandlers = captureHandlers()
-    const onError = vi.fn()
+    const onError = vi.fn<(message: string) => void>()
 
     await startProcessStream(vi.fn(), onError)
     const handlers = getHandlers()
@@ -183,7 +184,7 @@ describe('startProcessStream', () => {
 
   it('segnala solo le uscite con codice diverso da 0', async () => {
     const getHandlers = captureHandlers()
-    const onError = vi.fn()
+    const onError = vi.fn<(message: string) => void>()
 
     await startProcessStream(vi.fn(), onError)
     const handlers = getHandlers()
